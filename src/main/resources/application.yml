@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: iotfsdb
+  main:
+    banner-mode: off
+
+server:
+  http2:
+    enabled: true
+  compression:
+    enabled: true
+    mime-types: application/json
+    min-response-size: 2048
+
+iotfsdb:
+  root:
+  read-only: true
+  max-query-size: 1000
+  max-idle-seconds: 60
