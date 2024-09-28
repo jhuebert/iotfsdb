@@ -15,8 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -49,14 +51,17 @@ public class SeriesController {
     @GetMapping
     public List<Series> findSeries(
         @RequestParam(name = "pattern", required = false, defaultValue = ".*") String pattern,
-        @RequestParam(name = "metadata", required = false) Map<String, String> metadata
+        @RequestParam Map<String, String> metadata
     ) {
-        return seriesService.findSeries(pattern, metadata);
+        Map<String, String> trimmedMetadata = new HashMap<>(metadata);
+        trimmedMetadata.keySet().removeAll(Set.of("pattern"));
+        return seriesService.findSeries(pattern, trimmedMetadata);
     }
 
     @GetMapping("{id}/metadata")
     public Map<String, String> getMetadata(@PathVariable("id") String id) {
-        return seriesService.getMetadata(id);
+        return seriesService.getMetadata(id)
+            .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "series not found"));
     }
 
     @PutMapping("{id}/metadata")

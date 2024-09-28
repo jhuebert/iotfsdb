@@ -1,10 +1,10 @@
-package org.huebert.iotfsdb.series;
+package org.huebert.iotfsdb.series.adapter;
 
 import org.apache.logging.log4j.util.Strings;
 import org.huebert.iotfsdb.file.FileBasedArray;
 import org.huebert.iotfsdb.file.FloatFileBasedArray;
-import org.huebert.iotfsdb.schema.DataValue;
 import org.huebert.iotfsdb.schema.Series;
+import org.huebert.iotfsdb.series.SeriesAggregation;
 
 import java.io.File;
 import java.time.Duration;

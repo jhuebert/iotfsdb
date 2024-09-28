@@ -9,25 +9,29 @@ import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
+import java.util.regex.Pattern;
 
 public enum FileInterval {
 
-    DAY(Period.ofDays(1), DateTimeFormatter.ofPattern("yyyyMMdd")),
-    MONTH(Period.ofMonths(1), DateTimeFormatter.ofPattern("yyyyMM")),
-    YEAR(Period.ofYears(1), DateTimeFormatter.ofPattern("yyyy"));
+    DAY(Period.ofDays(1), DateTimeFormatter.ofPattern("yyyyMMdd"), Pattern.compile("\\d{8}")),
+    MONTH(Period.ofMonths(1), DateTimeFormatter.ofPattern("yyyyMM"), Pattern.compile("\\d{6}")),
+    YEAR(Period.ofYears(1), DateTimeFormatter.ofPattern("yyyy"), Pattern.compile("\\d{4}"));
 
     private final Period period;
 
     private final DateTimeFormatter formatter;
 
-    FileInterval(Period period, DateTimeFormatter formatter) {
+    private final Pattern pattern;
+
+    FileInterval(Period period, DateTimeFormatter formatter, Pattern pattern) {
         this.period = period;
         this.formatter = formatter;
+        this.pattern = pattern;
     }
 
     public static FileInterval findMatchingInterval(String filename) {
         for (FileInterval fileInterval : values()) {
-            if (fileInterval.formatter.toString().length() == filename.length()) {
+            if (fileInterval.pattern.matcher(filename).matches()) {
                 return fileInterval;
             }
         }
@@ -36,10 +40,6 @@ public enum FileInterval {
 
     public String getFilename(LocalDateTime dateTime) {
         return formatter.format(dateTime);
-    }
-
-    public LocalDateTime getStart(LocalDateTime dateTime) {
-        return getStart(getFilename(dateTime));
     }
 
     public LocalDateTime getStart(String filename) {
@@ -75,7 +75,7 @@ public enum FileInterval {
         return LocalDateTime.of(year, month, day, hour, minute, second);
     }
 
-    public LocalDateTime getEnd(LocalDateTime start) {
+    private LocalDateTime getEnd(LocalDateTime start) {
         return start.plus(period);
     }
 

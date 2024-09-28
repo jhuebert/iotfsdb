@@ -7,13 +7,14 @@ import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import lombok.Getter;
 import lombok.Setter;
-import org.huebert.iotfsdb.schema.DataValue;
 import org.huebert.iotfsdb.schema.FileInterval;
 import org.huebert.iotfsdb.schema.Series;
+import org.huebert.iotfsdb.series.adapter.SeriesTypeAdapter;
 
 import java.io.File;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -69,22 +70,23 @@ public class SeriesContainer<T> {
             });
     }
 
-    public Map<LocalDateTime, T> get(Range<LocalDateTime> range, Duration interval, boolean includeNull) {
+    public Map<LocalDateTime, T> get(Range<LocalDateTime> range, int valueInterval, boolean includeNull) {
         Preconditions.checkNotNull(range);
         Preconditions.checkArgument(range.hasLowerBound());
         Preconditions.checkArgument(range.hasUpperBound());
-        Preconditions.checkNotNull(interval);
+        Preconditions.checkArgument(valueInterval > 0);
 
         Map<LocalDateTime, T> result = new LinkedHashMap<>();
         if (range.isEmpty()) {
             return result;
         }
 
-        int count = (int) Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(interval);
+        Duration valueDuration = Duration.of(valueInterval, ChronoUnit.SECONDS);
+        int count = (int) Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(valueDuration);
         List<Range<LocalDateTime>> ranges = new ArrayList<>(count);
         LocalDateTime start = range.lowerEndpoint();
-        for (int i = 0; i < count; i++) {
-            LocalDateTime end = start.plus(interval);
+        for (int i = 0; i <= count; i++) {
+            LocalDateTime end = start.plus(valueDuration);
             ranges.add(Range.closedOpen(start, end));
             start = end;
         }
@@ -93,32 +95,19 @@ public class SeriesContainer<T> {
         try {
             for (Range<LocalDateTime> current : ranges) {
                 //TODO Add different aggregations
-                T aggregate = adapter.aggregate(rangeMap.subRangeMap(current)
+                Stream<T> stream = rangeMap.subRangeMap(current)
                     .asMapOfRanges().values().stream()
-                    .flatMap(f -> f.get().get(current).stream().filter(v -> includeNull || v != null)), SeriesAggregation.AVERAGE);
-                result.put(current.lowerEndpoint(), aggregate);
+                    .flatMap(f -> f.get().get(current).stream());
+                T aggregate = adapter.aggregate(stream, SeriesAggregation.AVERAGE);
+                if (includeNull || (aggregate != null)) {
+                    result.put(current.lowerEndpoint(), aggregate);
+                }
             }
         } finally {
             rwLock.readLock().unlock();
         }
 
         return result;
-    }
-
-    public T get(LocalDateTime dateTime) {
-
-        Supplier<SeriesFile<T>> supplier;
-        rwLock.readLock().lock();
-        try {
-            supplier = rangeMap.get(dateTime);
-        } finally {
-            rwLock.readLock().unlock();
-        }
-
-        if (supplier == null) {
-            return null;
-        }
-        return supplier.get().get(dateTime);
     }
 
     public void set(LocalDateTime dateTime, String value) {
@@ -143,10 +132,12 @@ public class SeriesContainer<T> {
         try {
             supplier = rangeMap.get(dateTime);
             if (supplier == null) {
-                File file = new File(seriesRoot, series.fileInterval().getFilename(dateTime));
-                LocalDateTime start = series.fileInterval().getStart(dateTime);
-                supplier = Suppliers.memoize(() -> new SeriesFile<>(adapter.readArray(file, series, start, false, true), start, series.fileInterval()));
-                rangeMap.put(series.fileInterval().getRange(start), supplier);
+                FileInterval fileInterval = series.fileInterval();
+                String filename = fileInterval.getFilename(dateTime);
+                File file = new File(seriesRoot, filename);
+                LocalDateTime start = fileInterval.getStart(filename);
+                supplier = Suppliers.memoize(() -> new SeriesFile<>(adapter.readArray(file, series, start, false, true), start, fileInterval));
+                rangeMap.put(fileInterval.getRange(start), supplier);
             }
         } finally {
             rwLock.writeLock().unlock();

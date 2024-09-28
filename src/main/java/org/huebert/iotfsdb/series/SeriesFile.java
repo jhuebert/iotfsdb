@@ -17,15 +17,10 @@ public class SeriesFile<T> {
 
     private final FileBasedArray<T> fileBasedArray;
 
-    protected SeriesFile(FileBasedArray<T> fileBasedArray, LocalDateTime start, FileInterval fileInterval) {
+    public SeriesFile(FileBasedArray<T> fileBasedArray, LocalDateTime start, FileInterval fileInterval) {
         this.fileBasedArray = Preconditions.checkNotNull(fileBasedArray);
         this.dateTimeRange = fileInterval.getRange(start);
         this.interval = fileInterval.getDuration(start).dividedBy(fileBasedArray.size());
-    }
-
-    public T get(LocalDateTime dateTime) {
-        Preconditions.checkArgument(dateTimeRange.contains(dateTime));
-        return fileBasedArray.get(getIndex(dateTime));
     }
 
     public List<T> get(Range<LocalDateTime> range) {
