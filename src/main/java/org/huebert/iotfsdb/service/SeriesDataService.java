@@ -29,7 +29,7 @@ public class SeriesDataService {
     public void flush() throws IOException {
         for (Map.Entry<Series, Boolean> entry : updated.entrySet()) {
             entry.setValue(false);
-            containers.get(entry.getKey()).flush();
+//            containers.get(entry.getKey()).flush();
         }
     }
 
@@ -41,16 +41,16 @@ public class SeriesDataService {
         return null;
     }
 
-    public float getValue(Series series, LocalDateTime dateTime) {
-        return containers.computeIfAbsent(series, SeriesContainer::new).getValue(dateTime);
-    }
-
-    public boolean setValue(Series series, LocalDateTime dateTime, float value) {
-        SeriesContainer container = containers.computeIfAbsent(series, SeriesContainer::new);
-        boolean changed = container.setValue(properties, dateTime, value);
-        if (changed) {
-            updated.put(series, true);
-        }
-        return changed;
-    }
+//    public float getValue(Series series, LocalDateTime dateTime) {
+//        return containers.computeIfAbsent(series, SeriesContainer::new).getValue(dateTime);
+//    }
+//
+//    public boolean setValue(Series series, LocalDateTime dateTime, float value) {
+//        SeriesContainer container = containers.computeIfAbsent(series, SeriesContainer::new);
+//        boolean changed = container.setValue(properties, dateTime, value);
+//        if (changed) {
+//            updated.put(series, true);
+//        }
+//        return changed;
+//    }
 }

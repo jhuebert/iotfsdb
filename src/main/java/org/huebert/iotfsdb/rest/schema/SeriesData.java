@@ -1,9 +1,9 @@
 package org.huebert.iotfsdb.rest.schema;
 
-import java.util.List;
+import java.util.Map;
 
 public record SeriesData(
     Series series,
-    List<?> data
+    Map<Long, Float> data
 ) {
 }

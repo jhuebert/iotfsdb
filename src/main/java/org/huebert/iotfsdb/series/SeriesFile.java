@@ -2,38 +2,25 @@ package org.huebert.iotfsdb.series;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
-import lombok.Getter;
 import org.huebert.iotfsdb.file.FileBasedArray;
-import org.huebert.iotfsdb.file.FloatFileBasedArray;
-import org.huebert.iotfsdb.rest.schema.Series;
+import org.huebert.iotfsdb.rest.schema.FileInterval;
 
-import java.io.File;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public abstract class SeriesFile<T> {
+public class SeriesFile<T> {
 
-    @Getter
-    private final Series series;
-
-    @Getter
-    private final LocalDateTime start;
-
-    @Getter
     private final Duration interval;
 
-    @Getter
     private final Range<LocalDateTime> dateTimeRange;
 
     private final FileBasedArray<T> fileBasedArray;
 
-    protected SeriesFile(Series series, FileBasedArray<T> fileBasedArray, LocalDateTime start) {
-        this.series = Preconditions.checkNotNull(series);
+    protected SeriesFile(FileBasedArray<T> fileBasedArray, LocalDateTime start, FileInterval fileInterval) {
         this.fileBasedArray = Preconditions.checkNotNull(fileBasedArray);
-        this.start = Preconditions.checkNotNull(start);
-        this.interval = series.fileDuration().getDuration().dividedBy(fileBasedArray.size());
-        this.dateTimeRange = Range.closedOpen(start, start.plus(series.fileDuration().getDuration()));
+        this.dateTimeRange = fileInterval.getRange(start);
+        this.interval = fileInterval.getDuration(start).dividedBy(fileBasedArray.size());
     }
 
     public T get(LocalDateTime dateTime) {
@@ -55,34 +42,7 @@ public abstract class SeriesFile<T> {
     }
 
     private int getIndex(LocalDateTime value) {
-        return (int) Duration.between(start, value).dividedBy(interval);
-    }
-
-    private record FileParameters(File file, int size) {
-    }
-
-    private static int calculateSize(Series series) {
-        int size = (int) series.fileDuration().getDuration().dividedBy(series.valueDuration());
-        Preconditions.checkArgument(size > 0);
-        return size;
-    }
-
-    public static FloatSeries createFloatSeries(File file, Series series, LocalDateTime dateTime) {
-        int size = calculateSize(series);
-        FloatFileBasedArray fileBasedArray = FloatFileBasedArray.create(file, size);
-        return new FloatSeries(series, fileBasedArray, dateTime);
-    }
-
-    public static FloatSeries readFloatSeries(File file, Series series, LocalDateTime dateTime, boolean readOnly) {
-        FloatFileBasedArray fileBasedArray = FloatFileBasedArray.read(file, readOnly);
-        return new FloatSeries(series, fileBasedArray, dateTime);
-    }
-
-    public static class FloatSeries extends SeriesFile<Float> {
-
-        private FloatSeries(Series series, FileBasedArray<Float> fileBasedArray, LocalDateTime start) {
-            super(series, fileBasedArray, start);
-        }
+        return (int) Duration.between(dateTimeRange.lowerEndpoint(), value).dividedBy(interval);
     }
 
 }
