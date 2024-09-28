@@ -1,8 +1,8 @@
 package org.huebert.iotfsdb.series;
 
+import org.apache.logging.log4j.util.Strings;
 import org.huebert.iotfsdb.file.BooleanFileBasedArray;
 import org.huebert.iotfsdb.file.FileBasedArray;
-import org.huebert.iotfsdb.schema.DataValue;
 import org.huebert.iotfsdb.schema.Series;
 
 import java.io.File;
@@ -33,8 +33,11 @@ public class BooleanTypeAdapter implements SeriesTypeAdapter<Boolean> {
     }
 
     @Override
-    public Boolean convert(DataValue value) {
-        return value.getBooleanValue();
+    public Boolean convert(String value) {
+        if (Strings.isBlank(value)) {
+            return null;
+        }
+        return Boolean.parseBoolean(value);
     }
 
 }

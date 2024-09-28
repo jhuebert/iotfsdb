@@ -20,6 +20,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -149,11 +150,12 @@ public class SeriesService {
         return series;
     }
 
-    public DataValue set(DataValue dataValue) {
-        SeriesContainer<?> seriesContainer = seriesMap.get(dataValue.getSeriesId());
+    public void set(String seriesId, LocalDateTime dateTime, String value) {
+        Preconditions.checkNotNull(seriesId);
+        Preconditions.checkNotNull(dateTime);
+        SeriesContainer<?> seriesContainer = seriesMap.get(seriesId);
         Preconditions.checkNotNull(seriesContainer);
-        seriesContainer.set(dataValue);
-        return dataValue;
+        seriesContainer.set(dateTime, value);
     }
 //
 //    public Map<String, Map<LocalDateTime, ?>> get(

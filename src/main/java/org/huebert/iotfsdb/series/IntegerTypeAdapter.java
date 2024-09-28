@@ -1,8 +1,8 @@
 package org.huebert.iotfsdb.series;
 
+import org.apache.logging.log4j.util.Strings;
 import org.huebert.iotfsdb.file.FileBasedArray;
 import org.huebert.iotfsdb.file.IntegerFileBasedArray;
-import org.huebert.iotfsdb.schema.DataValue;
 import org.huebert.iotfsdb.schema.Series;
 
 import java.io.File;
@@ -33,8 +33,11 @@ public class IntegerTypeAdapter implements SeriesTypeAdapter<Integer> {
     }
 
     @Override
-    public Integer convert(DataValue value) {
-        return value.getIntegerValue();
+    public Integer convert(String value) {
+        if (Strings.isBlank(value)) {
+            return null;
+        }
+        return Integer.parseInt(value);
     }
 
 }

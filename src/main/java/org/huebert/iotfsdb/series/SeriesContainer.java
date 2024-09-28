@@ -121,10 +121,9 @@ public class SeriesContainer<T> {
         return supplier.get().get(dateTime);
     }
 
-    public void set(DataValue value) {
+    public void set(LocalDateTime dateTime, String value) {
         Preconditions.checkArgument(!readOnly);
 
-        LocalDateTime dateTime = value.getTs();
         T converted = adapter.convert(value);
 
         Supplier<SeriesFile<T>> supplier;

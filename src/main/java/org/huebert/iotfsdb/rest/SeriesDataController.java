@@ -1,9 +1,6 @@
 package org.huebert.iotfsdb.rest;
 
-import org.huebert.iotfsdb.schema.DataValue;
 import org.huebert.iotfsdb.service.SeriesService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,10 +14,6 @@ public class SeriesDataController {
         this.seriesService = seriesService;
     }
 
-    @PostMapping
-    public DataValue set(@RequestBody DataValue dataValue) {
-        return seriesService.set(dataValue);
-    }
 //
 //    @GetMapping
 //    public List<SeriesData> findData(

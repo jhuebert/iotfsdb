@@ -6,9 +6,6 @@ import java.time.LocalDateTime;
 
 @Data
 public class DataValue {
-    private String seriesId;
-    private LocalDateTime ts;
-    private Float floatValue;
-    private Integer integerValue;
-    private Boolean booleanValue;
+    private LocalDateTime dateTime;
+    private String value;
 }

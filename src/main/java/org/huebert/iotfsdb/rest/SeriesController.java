@@ -1,5 +1,6 @@
 package org.huebert.iotfsdb.rest;
 
+import org.huebert.iotfsdb.schema.DataValue;
 import org.huebert.iotfsdb.schema.Series;
 import org.huebert.iotfsdb.service.SeriesService;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -61,6 +62,12 @@ public class SeriesController {
     @PutMapping("{id}/metadata")
     public Map<String, String> updateMetadata(@PathVariable("id") String id, @RequestBody Map<String, String> metadata) throws IOException {
         return seriesService.updateMetadata(id, metadata);
+    }
+
+    @PostMapping("{id}/data")
+    public DataValue set(@PathVariable("id") String id, @RequestBody DataValue dataValue) {
+        seriesService.set(id, dataValue.getDateTime(), dataValue.getValue());
+        return dataValue;
     }
 
 }

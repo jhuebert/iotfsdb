@@ -14,5 +14,5 @@ public interface SeriesTypeAdapter<T> {
 
     T aggregate(Stream<T> stream, SeriesAggregation aggregation);
 
-    T convert(DataValue value);
+    T convert(String value);
 }

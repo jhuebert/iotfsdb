@@ -1,5 +1,6 @@
 package org.huebert.iotfsdb.series;
 
+import org.apache.logging.log4j.util.Strings;
 import org.huebert.iotfsdb.file.FileBasedArray;
 import org.huebert.iotfsdb.file.FloatFileBasedArray;
 import org.huebert.iotfsdb.schema.DataValue;
@@ -33,7 +34,10 @@ public class FloatTypeAdapter implements SeriesTypeAdapter<Float> {
     }
 
     @Override
-    public Float convert(DataValue value) {
-        return value.getFloatValue();
+    public Float convert(String value) {
+        if (Strings.isBlank(value)) {
+            return null;
+        }
+        return Float.parseFloat(value);
     }
 }
