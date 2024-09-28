@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("/v1/data")
@@ -24,7 +25,7 @@ public class SeriesDataController {
 
     @GetMapping
     public Map<String, Map<LocalDateTime, ?>> findData(
-        @RequestParam(name = "pattern", required = false, defaultValue = ".*") String pattern,
+        @RequestParam(name = "pattern", required = false, defaultValue = ".*") Pattern pattern,
         @RequestParam(name = "start") LocalDateTime start,
         @RequestParam(name = "end", required = false) LocalDateTime end,
         @RequestParam(name = "interval", required = false, defaultValue = "1") int interval,

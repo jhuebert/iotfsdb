@@ -12,10 +12,7 @@ import org.huebert.iotfsdb.schema.Series;
 import org.huebert.iotfsdb.series.adapter.SeriesTypeAdapter;
 
 import java.io.File;
-import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,25 +67,13 @@ public class SeriesContainer<T> {
             });
     }
 
-    public Map<LocalDateTime, T> get(Range<LocalDateTime> range, int valueInterval, boolean includeNull) {
-        Preconditions.checkNotNull(range);
-        Preconditions.checkArgument(range.hasLowerBound());
-        Preconditions.checkArgument(range.hasUpperBound());
+    public Map<LocalDateTime, T> get(List<Range<LocalDateTime>> ranges, int valueInterval, boolean includeNull) {
+        Preconditions.checkNotNull(ranges);
         Preconditions.checkArgument(valueInterval > 0);
 
         Map<LocalDateTime, T> result = new LinkedHashMap<>();
-        if (range.isEmpty()) {
+        if (ranges.isEmpty()) {
             return result;
-        }
-
-        Duration valueDuration = Duration.of(valueInterval, ChronoUnit.SECONDS);
-        int count = (int) Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(valueDuration);
-        List<Range<LocalDateTime>> ranges = new ArrayList<>(count);
-        LocalDateTime start = range.lowerEndpoint();
-        for (int i = 0; i <= count; i++) {
-            LocalDateTime end = start.plus(valueDuration);
-            ranges.add(Range.closedOpen(start, end));
-            start = end;
         }
 
         rwLock.readLock().lock();

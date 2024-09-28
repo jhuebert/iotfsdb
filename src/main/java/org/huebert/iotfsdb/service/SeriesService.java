@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
-import io.micrometer.common.lang.NonNull;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.IotfsdbProperties;
@@ -16,11 +15,13 @@ import org.huebert.iotfsdb.series.adapter.FloatTypeAdapter;
 import org.huebert.iotfsdb.series.adapter.IntegerTypeAdapter;
 import org.huebert.iotfsdb.series.adapter.SeriesTypeAdapter;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,20 +29,19 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 
-@Validated
 @Slf4j
 @Service
 public class SeriesService {
 
+    private static final String METADATA_JSON = "metadata.json";
+
+    private static final String DEFINITION_JSON = "definition.json";
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     private final IotfsdbProperties properties;
-
-    private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     private final Map<String, SeriesContainer<?>> seriesMap = new ConcurrentHashMap<>();
 
@@ -52,17 +52,23 @@ public class SeriesService {
     @PostConstruct
     public void postConstruct() throws IOException {
         File root = Preconditions.checkNotNull(properties.getRoot(), "database root not set");
-        for (File file : root.listFiles()) {
+
+        File[] files = root.listFiles();
+        if (files == null) {
+            return;
+        }
+
+        for (File file : files) {
             if (!file.isDirectory() || !file.canRead()) {
                 log.warn("skipping series directory: {}", file);
                 continue;
             }
-            File definitionFile = new File(file, "definition.json");
+            File definitionFile = new File(file, DEFINITION_JSON);
             if (!definitionFile.exists() || !definitionFile.canRead()) {
                 log.warn("unable to read series definition: {}", definitionFile);
                 continue;
             }
-            File metadataFile = new File(file, "metadata.json");
+            File metadataFile = new File(file, METADATA_JSON);
             if (!metadataFile.exists() || !metadataFile.canRead()) {
                 log.warn("unable to read series metadata: {}", metadataFile);
                 continue;
@@ -83,44 +89,49 @@ public class SeriesService {
         } else if (type == SeriesType.BOOLEAN) {
             return new BooleanTypeAdapter();
         }
-        throw new RuntimeException();
+        throw new RuntimeException("invalid series type");
     }
 
     public Optional<Series> getSeries(String seriesId) {
+        Preconditions.checkNotNull(seriesId);
         return Optional.ofNullable(seriesMap.get(seriesId))
             .map(SeriesContainer::getSeries);
     }
 
     public Optional<Map<String, String>> getMetadata(String seriesId) {
+        Preconditions.checkNotNull(seriesId);
         return Optional.ofNullable(seriesMap.get(seriesId))
             .map(SeriesContainer::getMetadata);
     }
 
     public synchronized Map<String, String> updateMetadata(String seriesId, Map<String, String> metadata) throws IOException {
-        SeriesContainer<?> seriesContainer = seriesMap.get(seriesId);
-        File seriesRoot = seriesContainer.getSeriesRoot();
-        mapper.writeValue(new File(seriesRoot, "metadata.json"), metadata);
-        seriesContainer.setMetadata(metadata);
+        Preconditions.checkNotNull(seriesId);
+        Preconditions.checkNotNull(metadata);
+        SeriesContainer<?> container = seriesMap.get(seriesId);
+        File seriesRoot = container.getSeriesRoot();
+        mapper.writeValue(new File(seriesRoot, METADATA_JSON), metadata);
+        container.setMetadata(metadata);
         return metadata;
     }
 
     public synchronized void deleteSeries(String seriesId) {
+        Preconditions.checkNotNull(seriesId);
 
         SeriesContainer<?> seriesContainer = seriesMap.get(seriesId);
 
         //TODO Delete directory and content
-
+//        seriesContainer.getSeriesRoot();
 
         seriesMap.remove(seriesId);
     }
 
-    public List<Series> findSeries(String pattern,
-                                   Map<String, String> metadata) {
-        Pattern p = Pattern.compile(pattern);
+    public List<Series> findSeries(Pattern pattern, Map<String, String> metadata) {
+        Preconditions.checkNotNull(pattern);
+        Preconditions.checkNotNull(metadata);
         return seriesMap.values().stream()
             .filter(s -> matchesMetadata(s, metadata))
             .map(SeriesContainer::getSeries)
-            .filter(s -> p.matcher(s.id()).matches())
+            .filter(s -> pattern.matcher(s.id()).matches())
             .toList();
     }
 
@@ -134,20 +145,19 @@ public class SeriesService {
         return true;
     }
 
-    public synchronized Series createSeries(@NonNull Series series) throws IOException {
+    public synchronized Series createSeries(Series series) throws IOException {
         Preconditions.checkNotNull(series);
         Preconditions.checkArgument(!seriesMap.containsKey(series.id()));
 
         File seriesRoot = new File(properties.getRoot(), UUID.randomUUID().toString());
-        seriesRoot.mkdirs();
+        Preconditions.checkArgument(seriesRoot.mkdirs());
 
-        mapper.writeValue(new File(seriesRoot, "definition.json"), series);
-        mapper.writeValue(new File(seriesRoot, "metadata.json"), Map.of());
+        mapper.writeValue(new File(seriesRoot, DEFINITION_JSON), series);
+        mapper.writeValue(new File(seriesRoot, METADATA_JSON), Map.of());
 
         SeriesTypeAdapter<?> adapter = getAdapter(series.type());
-        SeriesContainer<?> value = new SeriesContainer<>(seriesRoot, series, Map.of(), adapter, properties.isReadOnly());
-        value.setMetadata(Map.of());
-        seriesMap.put(series.id(), value);
+        SeriesContainer<?> container = new SeriesContainer<>(seriesRoot, series, Map.of(), adapter, properties.isReadOnly());
+        seriesMap.put(series.id(), container);
 
         return series;
     }
@@ -161,19 +171,42 @@ public class SeriesService {
     }
 
     public Map<String, Map<LocalDateTime, ?>> get(
-        String pattern,
+        Pattern pattern,
         Map<String, String> metadata,
         Range<LocalDateTime> range,
         int valueInterval,
         boolean includeNull
     ) {
-        //TODO Generate list of ranges once here
-        Map<String, Map<LocalDateTime, ?>> r = new LinkedHashMap<>();
+        Preconditions.checkNotNull(pattern);
+        Preconditions.checkNotNull(metadata);
+        Preconditions.checkNotNull(range);
+        Preconditions.checkArgument(valueInterval > 0);
+
+        Map<String, Map<LocalDateTime, ?>> result = new LinkedHashMap<>();
+        if (range.isEmpty()) {
+            return result;
+        }
+
+        List<Range<LocalDateTime>> ranges = calculateRanges(range, valueInterval);
         for (Series series : findSeries(pattern, metadata)) {
             SeriesContainer<?> seriesContainer = seriesMap.get(series.id());
-            Map<LocalDateTime, ?> localDateTimeMap = seriesContainer.get(range, valueInterval, includeNull);
-            r.put(series.id(), localDateTimeMap);
+            Map<LocalDateTime, ?> localDateTimeMap = seriesContainer.get(ranges, valueInterval, includeNull);
+            result.put(series.id(), localDateTimeMap);
         }
-        return r;
+
+        return result;
+    }
+
+    private List<Range<LocalDateTime>> calculateRanges(Range<LocalDateTime> range, int valueInterval) {
+        Duration valueDuration = Duration.of(valueInterval, ChronoUnit.SECONDS);
+        int count = (int) Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(valueDuration);
+        List<Range<LocalDateTime>> ranges = new ArrayList<>(count);
+        LocalDateTime start = range.lowerEndpoint();
+        for (int i = 0; i <= count; i++) {
+            LocalDateTime end = start.plus(valueDuration);
+            ranges.add(Range.closedOpen(start, end));
+            start = end;
+        }
+        return ranges;
     }
 }

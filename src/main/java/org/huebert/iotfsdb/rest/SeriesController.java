@@ -19,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 
@@ -50,7 +51,7 @@ public class SeriesController {
 
     @GetMapping
     public List<Series> findSeries(
-        @RequestParam(name = "pattern", required = false, defaultValue = ".*") String pattern,
+        @RequestParam(name = "pattern", required = false, defaultValue = ".*") Pattern pattern,
         @RequestParam Map<String, String> metadata
     ) {
         Map<String, String> trimmedMetadata = new HashMap<>(metadata);
