@@ -1,4 +1,4 @@
-package org.huebert.iotfsdb.rest.schema;
+package org.huebert.iotfsdb.schema;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;

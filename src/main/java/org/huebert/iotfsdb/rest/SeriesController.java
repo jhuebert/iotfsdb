@@ -1,6 +1,6 @@
 package org.huebert.iotfsdb.rest;
 
-import org.huebert.iotfsdb.rest.schema.Series;
+import org.huebert.iotfsdb.schema.Series;
 import org.huebert.iotfsdb.service.SeriesService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,11 +8,19 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
-@RestController("/v1/series")
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+
+@RestController
+@RequestMapping("/v1/series")
 public class SeriesController {
 
     private final SeriesService seriesService;
@@ -22,13 +30,14 @@ public class SeriesController {
     }
 
     @PostMapping
-    public Series createSeries(@RequestBody Series series) {
+    public Series createSeries(@RequestBody Series series) throws IOException {
         return seriesService.createSeries(series);
     }
 
     @GetMapping("{id}")
     public Series getSeries(@PathVariable("id") String id) {
-        return seriesService.getSeries(id);
+        return seriesService.getSeries(id)
+            .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "series not found"));
     }
 
     @DeleteMapping("{id}")
@@ -37,18 +46,21 @@ public class SeriesController {
     }
 
     @GetMapping
-    public List<Series> findSeries(String pattern) {
-        return seriesService.findSeries(pattern);
+    public List<Series> findSeries(
+        @RequestParam(name = "pattern", required = false, defaultValue = ".*") String pattern,
+        @RequestParam(name = "metadata", required = false) Map<String, String> metadata
+    ) {
+        return seriesService.findSeries(pattern, metadata);
     }
 
     @GetMapping("{id}/metadata")
-    public SeriesMetadata getMetadata(@PathVariable("id") String id) {
-        return null;
+    public Map<String, String> getMetadata(@PathVariable("id") String id) {
+        return seriesService.getMetadata(id);
     }
 
     @PutMapping("{id}/metadata")
-    public SeriesMetadata updateMetadata(@PathVariable("id") String id, @RequestBody SeriesMetadata metadata) {
-        return metadata;
+    public Map<String, String> updateMetadata(@PathVariable("id") String id, @RequestBody Map<String, String> metadata) throws IOException {
+        return seriesService.updateMetadata(id, metadata);
     }
 
 }

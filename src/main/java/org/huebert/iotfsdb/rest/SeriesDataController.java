@@ -9,23 +9,23 @@ import java.util.List;
 @RestController("/v1/data")
 public class SeriesDataController {
 
-    @PostMapping
-    public IntegerValue addData(IntegerValue seriesData) {
-        return null;
-    }
-
-    @GetMapping
-    public List<SeriesData> findData(
-        String pattern,
-        String type,
-        String start,
-        String end,
-        boolean includeNull //TODO Default false?
-    ) {
-
-        return null;
-
-    }
+//    @PostMapping
+//    public IntegerValue addData(IntegerValue seriesData) {
+//        return null;
+//    }
+//
+//    @GetMapping
+//    public List<SeriesData> findData(
+//        String pattern,
+//        String type,
+//        String start,
+//        String end,
+//        boolean includeNull //TODO Default false?
+//    ) {
+//
+//        return null;
+//
+//    }
 
 
 

@@ -1,4 +1,4 @@
-package org.huebert.iotfsdb.rest.schema;
+package org.huebert.iotfsdb.schema;
 
 import java.time.Duration;
 

@@ -1,7 +1,7 @@
 package org.huebert.iotfsdb.series;
 
 import org.huebert.iotfsdb.file.FileBasedArray;
-import org.huebert.iotfsdb.rest.schema.Series;
+import org.huebert.iotfsdb.schema.Series;
 
 import java.io.File;
 import java.time.LocalDateTime;

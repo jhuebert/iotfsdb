@@ -1,14 +1,14 @@
 package org.huebert.iotfsdb.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Range;
 import io.micrometer.common.lang.NonNull;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.IotfsdbProperties;
-import org.huebert.iotfsdb.rest.schema.Series;
-import org.huebert.iotfsdb.rest.schema.SeriesType;
+import org.huebert.iotfsdb.schema.Series;
+import org.huebert.iotfsdb.schema.SeriesType;
 import org.huebert.iotfsdb.series.BooleanTypeAdapter;
 import org.huebert.iotfsdb.series.FloatTypeAdapter;
 import org.huebert.iotfsdb.series.IntegerTypeAdapter;
@@ -18,18 +18,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.io.File;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 @Validated
 @Slf4j
@@ -49,21 +47,26 @@ public class SeriesService {
     }
 
     @PostConstruct
-    public void postConstruct() {
-        Stream.of(properties.getRoot())
-            .filter(File::isDirectory)
-            .filter(File::canRead)
-            .filter(d -> new File(d, "definition.json").exists())
-            .filter(d -> new File(d, "metadata.json").exists())
-            .forEach(f -> {
-
-                Series series = mapper.readValue(new File(f, "definition.json"), Series.class);
-                Map<String, String> metadata = mapper.readValue(new File(f, "metadata.json"), SeriesMetadata.class);
-
-                SeriesTypeAdapter<?> adapter = getAdapter(series.type());
-                seriesMap.put(series.id(), new SeriesContainer<>(f, series, adapter, properties.getReadOnly()));
+    public void postConstruct() throws IOException {
+        File root = Preconditions.checkNotNull(properties.getRoot(), "database root not set");
+        for (File file : root.listFiles()) {
+            if (!file.isDirectory() || !file.canRead()) {
+                continue;
+            }
+            File definitionFile = new File(file, "definition.json");
+            if (!definitionFile.exists() || !definitionFile.canRead()) {
+                continue;
+            }
+            File metadataFile = new File(file, "metadata.json");
+            if (!metadataFile.exists() || !metadataFile.canRead()) {
+                continue;
+            }
+            Series series = mapper.readValue(definitionFile, Series.class);
+            Map<String, String> metadata = mapper.readValue(metadataFile, new TypeReference<>() {
             });
-
+            SeriesTypeAdapter<?> adapter = getAdapter(series.type());
+            seriesMap.put(series.id(), new SeriesContainer<>(file, series, metadata, adapter, properties.isReadOnly()));
+        }
     }
 
     private SeriesTypeAdapter<?> getAdapter(SeriesType type) {
@@ -77,13 +80,29 @@ public class SeriesService {
         throw new RuntimeException();
     }
 
-    public Series getSeries(String seriesId) {
-        return seriesMap.get(seriesId).getSeries();
+    public Optional<Series> getSeries(String seriesId) {
+        return Optional.ofNullable(seriesMap.get(seriesId))
+            .map(SeriesContainer::getSeries);
+    }
+
+    public Map<String, String> getMetadata(String seriesId) {
+        return seriesMap.get(seriesId).getMetadata();
+    }
+
+    public Map<String, String> updateMetadata(String seriesId, Map<String, String> metadata) throws IOException {
+        SeriesContainer<?> seriesContainer = seriesMap.get(seriesId);
+        File seriesRoot = seriesContainer.getSeriesRoot();
+        mapper.writeValue(new File(seriesRoot, "metadata.json"), metadata);
+        seriesContainer.setMetadata(metadata);
+        return metadata;
     }
 
     public void deleteSeries(String seriesId) {
         //TODO Need sync
+
         SeriesContainer<?> seriesContainer = seriesMap.get(seriesId);
+
+        //TODO Delete directory and content
 
 
         seriesMap.remove(seriesId);
@@ -109,9 +128,9 @@ public class SeriesService {
         return true;
     }
 
-    public Series createSeries(@NonNull Series series) {
+    public Series createSeries(@NonNull Series series) throws IOException {
         Preconditions.checkNotNull(series);
-        Preconditions.checkArgument(seriesMap.containsKey(series.id()));
+        Preconditions.checkArgument(!seriesMap.containsKey(series.id()));
 
         //TODO Need sync
 
@@ -122,28 +141,30 @@ public class SeriesService {
         mapper.writeValue(new File(seriesRoot, "metadata.json"), Map.of());
 
         SeriesTypeAdapter<?> adapter = getAdapter(series.type());
-        seriesMap.put(series.id(), new SeriesContainer<>(seriesRoot, series, adapter, properties.getReadOnly()));
+        SeriesContainer<?> value = new SeriesContainer<>(seriesRoot, series, Map.of(), adapter, properties.isReadOnly());
+        value.setMetadata(Map.of());
+        seriesMap.put(series.id(), value);
 
-
+        return series;
     }
 
-    public void set(String seriesId, LocalDateTime dateTime, Object value) {
-        seriesMap.get(seriesId).set(dateTime, value);
-    }
-
-    public Map<String, Map<LocalDateTime, ?>> get(
-        String pattern,
-        Map<String, String> metadata,
-        Range<LocalDateTime> range,
-        Duration interval,
-        boolean includeNull
-    ) {
-        Map<String, Map<LocalDateTime, ?>> r = new LinkedHashMap<>();
-        for (Series series : findSeries(pattern, metadata)) {
-            SeriesContainer<?> seriesContainer = seriesMap.get(series.id());
-            Map<LocalDateTime, ?> localDateTimeMap = seriesContainer.get(range, interval, includeNull);
-            r.put(series.id(), localDateTimeMap);
-        }
-        return r;
-    }
+//    public void set(String seriesId, LocalDateTime dateTime, Object value) {
+//        seriesMap.get(seriesId).set(dateTime, value);
+//    }
+//
+//    public Map<String, Map<LocalDateTime, ?>> get(
+//        String pattern,
+//        Map<String, String> metadata,
+//        Range<LocalDateTime> range,
+//        Duration interval,
+//        boolean includeNull
+//    ) {
+//        Map<String, Map<LocalDateTime, ?>> r = new LinkedHashMap<>();
+//        for (Series series : findSeries(pattern, metadata)) {
+//            SeriesContainer<?> seriesContainer = seriesMap.get(series.id());
+//            Map<LocalDateTime, ?> localDateTimeMap = seriesContainer.get(range, interval, includeNull);
+//            r.put(series.id(), localDateTimeMap);
+//        }
+//        return r;
+//    }
 }

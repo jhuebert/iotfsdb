@@ -7,8 +7,8 @@ import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import lombok.Getter;
 import lombok.Setter;
-import org.huebert.iotfsdb.rest.schema.FileInterval;
-import org.huebert.iotfsdb.rest.schema.Series;
+import org.huebert.iotfsdb.schema.FileInterval;
+import org.huebert.iotfsdb.schema.Series;
 
 import java.io.File;
 import java.time.Duration;
@@ -29,6 +29,7 @@ public class SeriesContainer<T> {
     @Getter
     private final Series series;
 
+    @Getter
     private final File seriesRoot;
 
     private final boolean readOnly;
@@ -41,7 +42,7 @@ public class SeriesContainer<T> {
 
     private final RangeMap<LocalDateTime, Supplier<SeriesFile<T>>> rangeMap = TreeRangeMap.create();
 
-    public SeriesContainer(File seriesRoot, Series series, SeriesTypeAdapter<T> adapter, boolean readOnly) {
+    public SeriesContainer(File seriesRoot, Series series, Map<String, String> metadata, SeriesTypeAdapter<T> adapter, boolean readOnly) {
         Preconditions.checkNotNull(seriesRoot);
         Preconditions.checkArgument(seriesRoot.exists());
         Preconditions.checkArgument(seriesRoot.isDirectory());

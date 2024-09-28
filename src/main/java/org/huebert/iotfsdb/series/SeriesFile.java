@@ -3,7 +3,7 @@ package org.huebert.iotfsdb.series;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
 import org.huebert.iotfsdb.file.FileBasedArray;
-import org.huebert.iotfsdb.rest.schema.FileInterval;
+import org.huebert.iotfsdb.schema.FileInterval;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
