@@ -1,7 +1,6 @@
 package org.huebert.iotfsdb.rest;
 
 import org.huebert.iotfsdb.rest.schema.Series;
-import org.huebert.iotfsdb.rest.schema.SeriesMetadata;
 import org.huebert.iotfsdb.service.SeriesService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;

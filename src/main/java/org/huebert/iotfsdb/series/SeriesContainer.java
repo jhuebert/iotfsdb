@@ -6,6 +6,7 @@ import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import lombok.Getter;
+import lombok.Setter;
 import org.huebert.iotfsdb.rest.schema.FileInterval;
 import org.huebert.iotfsdb.rest.schema.Series;
 
@@ -13,9 +14,9 @@ import java.io.File;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
+import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
@@ -31,6 +32,10 @@ public class SeriesContainer<T> {
     private final File seriesRoot;
 
     private final boolean readOnly;
+
+    @Getter
+    @Setter
+    private Map<String, String> metadata;
 
     private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
@@ -61,13 +66,13 @@ public class SeriesContainer<T> {
             });
     }
 
-    public SortedMap<LocalDateTime, T> get(Range<LocalDateTime> range, Duration interval) {
+    public Map<LocalDateTime, T> get(Range<LocalDateTime> range, Duration interval, boolean includeNull) {
         Preconditions.checkNotNull(range);
         Preconditions.checkArgument(range.hasLowerBound());
         Preconditions.checkArgument(range.hasUpperBound());
         Preconditions.checkNotNull(interval);
 
-        SortedMap<LocalDateTime, T> result = new TreeMap<>();
+        Map<LocalDateTime, T> result = new LinkedHashMap<>();
         if (range.isEmpty()) {
             return result;
         }
@@ -87,8 +92,8 @@ public class SeriesContainer<T> {
                 //TODO Add different aggregations
                 T aggregate = adapter.aggregate(rangeMap.subRangeMap(current)
                     .asMapOfRanges().values().stream()
-                    .flatMap(f -> f.get().get(current).stream()), SeriesAggregation.AVERAGE);
-                result.put(current.lowerEndpoint(), aggregate); //TODO Tree maps don't allow null values, linked map?
+                    .flatMap(f -> f.get().get(current).stream().filter(v -> includeNull || v != null)), SeriesAggregation.AVERAGE);
+                result.put(current.lowerEndpoint(), aggregate);
             }
         } finally {
             rwLock.readLock().unlock();

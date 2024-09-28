@@ -1,6 +1,5 @@
 package org.huebert.iotfsdb.rest;
 
-import org.huebert.iotfsdb.rest.schema.SeriesData;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;

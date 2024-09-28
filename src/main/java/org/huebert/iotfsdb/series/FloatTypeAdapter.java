@@ -6,6 +6,7 @@ import org.huebert.iotfsdb.rest.schema.Series;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.stream.Stream;
 
@@ -23,7 +24,7 @@ public class FloatTypeAdapter implements SeriesTypeAdapter<Float> {
     @Override
     public Float aggregate(Stream<Float> stream, SeriesAggregation aggregation) {
 //        if (aggregation == SeriesAggregation.AVERAGE) {
-        OptionalDouble result = stream.mapToDouble(a -> (double) a).average();
+        OptionalDouble result = stream.filter(Objects::nonNull).mapToDouble(a -> (double) a).average();
         return result.isPresent() ? (float) result.getAsDouble() : null;
 //        }
     }
