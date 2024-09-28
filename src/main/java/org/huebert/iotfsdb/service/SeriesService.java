@@ -7,6 +7,7 @@ import io.micrometer.common.lang.NonNull;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.IotfsdbProperties;
+import org.huebert.iotfsdb.schema.DataValue;
 import org.huebert.iotfsdb.schema.Series;
 import org.huebert.iotfsdb.schema.SeriesType;
 import org.huebert.iotfsdb.series.BooleanTypeAdapter;
@@ -148,9 +149,12 @@ public class SeriesService {
         return series;
     }
 
-//    public void set(String seriesId, LocalDateTime dateTime, Object value) {
-//        seriesMap.get(seriesId).set(dateTime, value);
-//    }
+    public DataValue set(DataValue dataValue) {
+        SeriesContainer<?> seriesContainer = seriesMap.get(dataValue.getSeriesId());
+        Preconditions.checkNotNull(seriesContainer);
+        seriesContainer.set(dataValue);
+        return dataValue;
+    }
 //
 //    public Map<String, Map<LocalDateTime, ?>> get(
 //        String pattern,

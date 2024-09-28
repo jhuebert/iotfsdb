@@ -2,6 +2,7 @@ package org.huebert.iotfsdb.series;
 
 import org.huebert.iotfsdb.file.FileBasedArray;
 import org.huebert.iotfsdb.file.IntegerFileBasedArray;
+import org.huebert.iotfsdb.schema.DataValue;
 import org.huebert.iotfsdb.schema.Series;
 
 import java.io.File;
@@ -29,6 +30,11 @@ public class IntegerTypeAdapter implements SeriesTypeAdapter<Integer> {
         OptionalDouble result = stream.filter(Objects::nonNull).mapToDouble(a -> (double) a).average();
         return result.isPresent() ? (int) Math.rint(result.getAsDouble()) : null;
 //        }
+    }
+
+    @Override
+    public Integer convert(DataValue value) {
+        return value.getIntegerValue();
     }
 
 }

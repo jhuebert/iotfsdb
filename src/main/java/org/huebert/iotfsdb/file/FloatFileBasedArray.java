@@ -53,7 +53,6 @@ public class FloatFileBasedArray implements FileBasedArray<Float> {
     public static FloatFileBasedArray create(File file, int size) {
         Preconditions.checkNotNull(file);
         Preconditions.checkArgument(!file.exists());
-        Preconditions.checkArgument(file.isFile());
 
         Preconditions.checkArgument(size > 0);
         int numBytes = size * 4;

@@ -2,6 +2,7 @@ package org.huebert.iotfsdb.series;
 
 import org.huebert.iotfsdb.file.FileBasedArray;
 import org.huebert.iotfsdb.file.FloatFileBasedArray;
+import org.huebert.iotfsdb.schema.DataValue;
 import org.huebert.iotfsdb.schema.Series;
 
 import java.io.File;
@@ -29,5 +30,10 @@ public class FloatTypeAdapter implements SeriesTypeAdapter<Float> {
         OptionalDouble result = stream.filter(Objects::nonNull).mapToDouble(a -> (double) a).average();
         return result.isPresent() ? (float) result.getAsDouble() : null;
 //        }
+    }
+
+    @Override
+    public Float convert(DataValue value) {
+        return value.getFloatValue();
     }
 }

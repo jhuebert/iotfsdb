@@ -7,6 +7,7 @@ import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import lombok.Getter;
 import lombok.Setter;
+import org.huebert.iotfsdb.schema.DataValue;
 import org.huebert.iotfsdb.schema.FileInterval;
 import org.huebert.iotfsdb.schema.Series;
 
@@ -54,6 +55,7 @@ public class SeriesContainer<T> {
         this.seriesRoot = seriesRoot;
         this.readOnly = readOnly;
         this.adapter = adapter;
+        this.metadata = metadata;
 
         FileInterval fileInterval = series.fileInterval();
         Stream.of(seriesRoot.listFiles())
@@ -119,8 +121,11 @@ public class SeriesContainer<T> {
         return supplier.get().get(dateTime);
     }
 
-    public void set(LocalDateTime dateTime, T value) {
+    public void set(DataValue value) {
         Preconditions.checkArgument(!readOnly);
+
+        LocalDateTime dateTime = value.getTs();
+        T converted = adapter.convert(value);
 
         Supplier<SeriesFile<T>> supplier;
         rwLock.readLock().lock();
@@ -131,7 +136,7 @@ public class SeriesContainer<T> {
         }
 
         if (supplier != null) {
-            supplier.get().set(dateTime, value);
+            supplier.get().set(dateTime, converted);
             return;
         }
 
@@ -148,7 +153,7 @@ public class SeriesContainer<T> {
             rwLock.writeLock().unlock();
         }
 
-        supplier.get().set(dateTime, value);
+        supplier.get().set(dateTime, converted);
     }
 
 }
