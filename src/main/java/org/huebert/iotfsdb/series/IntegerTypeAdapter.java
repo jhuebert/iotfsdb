@@ -5,7 +5,9 @@ import org.huebert.iotfsdb.file.IntegerFileBasedArray;
 import org.huebert.iotfsdb.schema.Series;
 
 import java.io.File;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.stream.Stream;
@@ -15,7 +17,7 @@ public class IntegerTypeAdapter implements SeriesTypeAdapter<Integer> {
     @Override
     public FileBasedArray<Integer> readArray(File file, Series series, LocalDateTime start, boolean readOnly, boolean create) {
         if (!file.exists()) {
-            int size = series.fileInterval().calculateSize(start, series.valueInterval());
+            int size = series.fileInterval().calculateSize(start, Duration.of(series.valueInterval(), ChronoUnit.SECONDS));
             return IntegerFileBasedArray.create(file, size);
         }
         return IntegerFileBasedArray.read(file, readOnly);

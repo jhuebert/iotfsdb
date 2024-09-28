@@ -5,7 +5,9 @@ import org.huebert.iotfsdb.file.FileBasedArray;
 import org.huebert.iotfsdb.schema.Series;
 
 import java.io.File;
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.stream.Stream;
@@ -15,7 +17,7 @@ public class BooleanTypeAdapter implements SeriesTypeAdapter<Boolean> {
     @Override
     public FileBasedArray<Boolean> readArray(File file, Series series, LocalDateTime start, boolean readOnly, boolean create) {
         if (!file.exists()) {
-            int size = series.fileInterval().calculateSize(start, series.valueInterval());
+            int size = series.fileInterval().calculateSize(start, Duration.of(series.valueInterval(), ChronoUnit.SECONDS));
             return BooleanFileBasedArray.create(file, size);
         }
         return BooleanFileBasedArray.read(file, readOnly);
