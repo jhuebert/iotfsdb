@@ -6,12 +6,8 @@ public interface FileBasedArray<T> extends AutoCloseable {
 
     int size();
 
-    T get(int index);
-
     List<T> get(int start, int end);
 
     void set(int index, T value);
-
-    boolean isReadOnly();
 
 }

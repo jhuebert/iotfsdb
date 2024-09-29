@@ -7,6 +7,7 @@ import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import lombok.Getter;
 import lombok.Setter;
+import org.huebert.iotfsdb.file.FileBasedArray;
 import org.huebert.iotfsdb.schema.FileInterval;
 import org.huebert.iotfsdb.schema.Series;
 import org.huebert.iotfsdb.series.adapter.SeriesTypeAdapter;
@@ -42,32 +43,37 @@ public class SeriesContainer<T> {
     private final RangeMap<LocalDateTime, Supplier<SeriesFile<T>>> rangeMap = TreeRangeMap.create();
 
     public SeriesContainer(File seriesRoot, Series series, Map<String, String> metadata, SeriesTypeAdapter<T> adapter, boolean readOnly) {
-        Preconditions.checkNotNull(seriesRoot);
+        this.seriesRoot = Preconditions.checkNotNull(seriesRoot);
+        this.series = Preconditions.checkNotNull(series);
+        this.metadata = Preconditions.checkNotNull(metadata);
+        this.adapter = Preconditions.checkNotNull(adapter);
+        this.readOnly = readOnly;
+
         Preconditions.checkArgument(seriesRoot.exists());
         Preconditions.checkArgument(seriesRoot.isDirectory());
         Preconditions.checkArgument(seriesRoot.canRead());
-        Preconditions.checkNotNull(series);
-        Preconditions.checkNotNull(adapter);
 
-        this.series = series;
-        this.seriesRoot = seriesRoot;
-        this.readOnly = readOnly;
-        this.adapter = adapter;
-        this.metadata = metadata;
+        File[] values = seriesRoot.listFiles();
+        if (values == null) {
+            return;
+        }
 
         FileInterval fileInterval = series.fileInterval();
-        Stream.of(seriesRoot.listFiles())
+        Stream.of(values)
             .filter(File::isFile)
             .filter(File::canRead)
             .filter(f -> fileInterval == FileInterval.findMatchingInterval(f.getName()))
             .forEach(f -> {
                 LocalDateTime start = fileInterval.getStart(f.getName());
                 Range<LocalDateTime> range = fileInterval.getRange(start);
-                rangeMap.put(range, Suppliers.memoize(() -> new SeriesFile<>(adapter.readArray(f, series, start, readOnly, false), start, series.fileInterval())));
+                rangeMap.put(range, Suppliers.memoize(() -> {
+                    FileBasedArray<T> array = adapter.readArray(f, series, start, readOnly, false);
+                    return new SeriesFile<>(array, start, series.fileInterval());
+                }));
             });
     }
 
-    public Map<LocalDateTime, T> get(List<Range<LocalDateTime>> ranges, int valueInterval, boolean includeNull) {
+    public Map<LocalDateTime, T> get(List<Range<LocalDateTime>> ranges, int valueInterval, boolean includeNull, SeriesAggregation aggregation) {
         Preconditions.checkNotNull(ranges);
         Preconditions.checkArgument(valueInterval > 0);
 
@@ -79,11 +85,10 @@ public class SeriesContainer<T> {
         rwLock.readLock().lock();
         try {
             for (Range<LocalDateTime> current : ranges) {
-                //TODO Add different aggregations
                 Stream<T> stream = rangeMap.subRangeMap(current)
                     .asMapOfRanges().values().stream()
                     .flatMap(f -> f.get().get(current).stream());
-                T aggregate = adapter.aggregate(stream, SeriesAggregation.AVERAGE);
+                T aggregate = adapter.aggregate(stream, aggregation);
                 if (includeNull || (aggregate != null)) {
                     result.put(current.lowerEndpoint(), aggregate);
                 }
@@ -96,9 +101,8 @@ public class SeriesContainer<T> {
     }
 
     public void set(LocalDateTime dateTime, String value) {
+        Preconditions.checkNotNull(dateTime);
         Preconditions.checkArgument(!readOnly);
-
-        T converted = adapter.convert(value);
 
         Supplier<SeriesFile<T>> supplier;
         rwLock.readLock().lock();
@@ -108,6 +112,7 @@ public class SeriesContainer<T> {
             rwLock.readLock().unlock();
         }
 
+        T converted = adapter.convert(value);
         if (supplier != null) {
             supplier.get().set(dateTime, converted);
             return;
@@ -121,7 +126,10 @@ public class SeriesContainer<T> {
                 String filename = fileInterval.getFilename(dateTime);
                 File file = new File(seriesRoot, filename);
                 LocalDateTime start = fileInterval.getStart(filename);
-                supplier = Suppliers.memoize(() -> new SeriesFile<>(adapter.readArray(file, series, start, false, true), start, fileInterval));
+                supplier = Suppliers.memoize(() -> {
+                    FileBasedArray<T> array = adapter.readArray(file, series, start, false, true);
+                    return new SeriesFile<>(array, start, fileInterval);
+                });
                 rangeMap.put(fileInterval.getRange(start), supplier);
             }
         } finally {

@@ -53,7 +53,6 @@ public class IntegerFileBasedArray implements FileBasedArray<Integer> {
     public static IntegerFileBasedArray create(File file, int size) {
         Preconditions.checkNotNull(file);
         Preconditions.checkArgument(!file.exists());
-        Preconditions.checkArgument(file.isFile());
 
         Preconditions.checkArgument(size > 0);
         int numBytes = size * 4;
@@ -73,7 +72,7 @@ public class IntegerFileBasedArray implements FileBasedArray<Integer> {
         }
     }
 
-    public IntegerFileBasedArray(int size, boolean readOnly, RandomAccessFile randomAccessFile, IntBuffer intBuffer) {
+    private IntegerFileBasedArray(int size, boolean readOnly, RandomAccessFile randomAccessFile, IntBuffer intBuffer) {
         this.size = size;
         this.readOnly = readOnly;
         this.randomAccessFile = randomAccessFile;
@@ -86,27 +85,9 @@ public class IntegerFileBasedArray implements FileBasedArray<Integer> {
     }
 
     @Override
-    public boolean isReadOnly() {
-        return readOnly;
-    }
-
-    @Override
-    public Integer get(int index) {
-        Preconditions.checkElementIndex(index, size);
-        rwLock.readLock().lock();
-        int result;
-        try {
-            result = intBuffer.get(index);
-        } finally {
-            rwLock.readLock().unlock();
-        }
-        return result == Integer.MIN_VALUE ? null : result;
-    }
-
-    @Override
     public List<Integer> get(int start, int end) {
-        Preconditions.checkPositionIndexes(start, end, size);
-        int length = end - start;
+        Preconditions.checkPositionIndexes(start, end, size - 1);
+        int length = end - start + 1;
         int[] result = new int[length];
         rwLock.readLock().lock();
         try {

@@ -72,7 +72,7 @@ public class FloatFileBasedArray implements FileBasedArray<Float> {
         }
     }
 
-    public FloatFileBasedArray(int size, boolean readOnly, RandomAccessFile randomAccessFile, FloatBuffer floatBuffer) {
+    private FloatFileBasedArray(int size, boolean readOnly, RandomAccessFile randomAccessFile, FloatBuffer floatBuffer) {
         this.size = size;
         this.readOnly = readOnly;
         this.randomAccessFile = randomAccessFile;
@@ -85,27 +85,9 @@ public class FloatFileBasedArray implements FileBasedArray<Float> {
     }
 
     @Override
-    public boolean isReadOnly() {
-        return readOnly;
-    }
-
-    @Override
-    public Float get(int index) {
-        Preconditions.checkElementIndex(index, size);
-        rwLock.readLock().lock();
-        float result;
-        try {
-            result = floatBuffer.get(index);
-        } finally {
-            rwLock.readLock().unlock();
-        }
-        return Float.isNaN(result) ? null : result;
-    }
-
-    @Override
     public List<Float> get(int start, int end) {
-        Preconditions.checkPositionIndexes(start, end, size);
-        int length = end - start;
+        Preconditions.checkPositionIndexes(start, end, size - 1);
+        int length = end - start + 1;
         float[] result = new float[length];
         rwLock.readLock().lock();
         try {

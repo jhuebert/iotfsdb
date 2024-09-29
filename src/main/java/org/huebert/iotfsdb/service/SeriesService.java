@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.IotfsdbProperties;
 import org.huebert.iotfsdb.schema.Series;
 import org.huebert.iotfsdb.schema.SeriesType;
+import org.huebert.iotfsdb.series.SeriesAggregation;
 import org.huebert.iotfsdb.series.SeriesContainer;
 import org.huebert.iotfsdb.series.adapter.BooleanTypeAdapter;
 import org.huebert.iotfsdb.series.adapter.FloatTypeAdapter;
@@ -175,7 +176,8 @@ public class SeriesService {
         Map<String, String> metadata,
         Range<LocalDateTime> range,
         int valueInterval,
-        boolean includeNull
+        boolean includeNull,
+        SeriesAggregation aggregation
     ) {
         Preconditions.checkNotNull(pattern);
         Preconditions.checkNotNull(metadata);
@@ -190,7 +192,7 @@ public class SeriesService {
         List<Range<LocalDateTime>> ranges = calculateRanges(range, valueInterval);
         for (Series series : findSeries(pattern, metadata)) {
             SeriesContainer<?> seriesContainer = seriesMap.get(series.id());
-            Map<LocalDateTime, ?> localDateTimeMap = seriesContainer.get(ranges, valueInterval, includeNull);
+            Map<LocalDateTime, ?> localDateTimeMap = seriesContainer.get(ranges, valueInterval, includeNull, aggregation);
             result.put(series.id(), localDateTimeMap);
         }
 

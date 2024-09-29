@@ -51,15 +51,11 @@ public class BooleanFileBasedArray implements FileBasedArray<Boolean> {
     public static BooleanFileBasedArray create(File file, int size) {
         Preconditions.checkNotNull(file);
         Preconditions.checkArgument(!file.exists());
-        Preconditions.checkArgument(file.isFile());
-
         Preconditions.checkArgument(size > 0);
-        int numBytes = size;
-
         try {
             RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
             ByteBuffer byteBuffer = randomAccessFile.getChannel()
-                .map(READ_WRITE, 0, numBytes);
+                .map(READ_WRITE, 0, size);
             for (int i = 0; i < size; i++) {
                 byteBuffer.put(Byte.MIN_VALUE);
             }
@@ -70,7 +66,7 @@ public class BooleanFileBasedArray implements FileBasedArray<Boolean> {
         }
     }
 
-    public BooleanFileBasedArray(int size, boolean readOnly, RandomAccessFile randomAccessFile, ByteBuffer byteBuffer) {
+    private BooleanFileBasedArray(int size, boolean readOnly, RandomAccessFile randomAccessFile, ByteBuffer byteBuffer) {
         this.size = size;
         this.readOnly = readOnly;
         this.randomAccessFile = randomAccessFile;
@@ -83,27 +79,9 @@ public class BooleanFileBasedArray implements FileBasedArray<Boolean> {
     }
 
     @Override
-    public boolean isReadOnly() {
-        return readOnly;
-    }
-
-    @Override
-    public Boolean get(int index) {
-        Preconditions.checkElementIndex(index, size);
-        rwLock.readLock().lock();
-        byte result;
-        try {
-            result = byteBuffer.get(index);
-        } finally {
-            rwLock.readLock().unlock();
-        }
-        return result == Byte.MIN_VALUE ? null : result != 0;
-    }
-
-    @Override
     public List<Boolean> get(int start, int end) {
-        Preconditions.checkPositionIndexes(start, end, size);
-        int length = end - start;
+        Preconditions.checkPositionIndexes(start, end, size - 1);
+        int length = end - start + 1;
         byte[] result = new byte[length];
         rwLock.readLock().lock();
         try {

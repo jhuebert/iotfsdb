@@ -39,10 +39,13 @@ public enum FileInterval {
     }
 
     public String getFilename(LocalDateTime dateTime) {
+        Preconditions.checkNotNull(dateTime);
         return formatter.format(dateTime);
     }
 
     public LocalDateTime getStart(String filename) {
+        Preconditions.checkNotNull(filename);
+
         TemporalAccessor parsed = formatter.parse(filename);
 
         int year = parsed.get(ChronoField.YEAR);
@@ -76,21 +79,24 @@ public enum FileInterval {
     }
 
     private LocalDateTime getEnd(LocalDateTime start) {
+        Preconditions.checkNotNull(start);
         return start.plus(period);
     }
 
     public Duration getDuration(LocalDateTime start) {
+        Preconditions.checkNotNull(start);
         return Duration.between(start, getEnd(start));
     }
 
     public Range<LocalDateTime> getRange(LocalDateTime start) {
+        Preconditions.checkNotNull(start);
         return Range.closedOpen(start, getEnd(start));
     }
 
     public int calculateSize(LocalDateTime start, Duration valueInterval) {
-        int size = (int) getDuration(start).dividedBy(valueInterval);
-        Preconditions.checkArgument(size > 0);
-        return size;
+        Preconditions.checkNotNull(start);
+        Preconditions.checkNotNull(valueInterval);
+        return (int) getDuration(start).dividedBy(valueInterval);
     }
 
 }

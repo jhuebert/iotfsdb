@@ -1,6 +1,7 @@
 package org.huebert.iotfsdb.rest;
 
 import com.google.common.collect.Range;
+import org.huebert.iotfsdb.series.SeriesAggregation;
 import org.huebert.iotfsdb.service.SeriesService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,12 +31,13 @@ public class SeriesDataController {
         @RequestParam(name = "end", required = false) LocalDateTime end,
         @RequestParam(name = "interval", required = false, defaultValue = "1") int interval,
         @RequestParam(name = "includeNull", required = false, defaultValue = "false") boolean includeNull,
+        @RequestParam(name = "aggregation", required = false, defaultValue = "AVERAGE") SeriesAggregation aggregation,
         @RequestParam Map<String, String> metadata
     ) {
         Map<String, String> trimmedMetadata = new HashMap<>(metadata);
-        trimmedMetadata.keySet().removeAll(Set.of("pattern", "start", "end", "interval", "includeNull"));
+        trimmedMetadata.keySet().removeAll(Set.of("pattern", "start", "end", "interval", "includeNull", "aggregation"));
         Range<LocalDateTime> range = Range.closed(start, end == null ? LocalDateTime.now() : end);
-        return seriesService.get(pattern, trimmedMetadata, range, interval, includeNull);
+        return seriesService.get(pattern, trimmedMetadata, range, interval, includeNull, aggregation);
     }
 
 }
