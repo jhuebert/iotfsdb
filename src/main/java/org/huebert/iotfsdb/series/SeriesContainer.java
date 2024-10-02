@@ -1,12 +1,13 @@
 package org.huebert.iotfsdb.series;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+import org.huebert.iotfsdb.Util;
 import org.huebert.iotfsdb.file.FileBasedArray;
 import org.huebert.iotfsdb.schema.FileInterval;
 import org.huebert.iotfsdb.schema.Series;
@@ -17,11 +18,13 @@ import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+@Slf4j
 public class SeriesContainer<T> {
 
     private final SeriesTypeAdapter<T> adapter;
@@ -32,8 +35,6 @@ public class SeriesContainer<T> {
     @Getter
     private final File seriesRoot;
 
-    private final boolean readOnly;
-
     @Getter
     @Setter
     private Map<String, String> metadata;
@@ -43,39 +44,31 @@ public class SeriesContainer<T> {
     private final RangeMap<LocalDateTime, Supplier<SeriesFile<T>>> rangeMap = TreeRangeMap.create();
 
     public SeriesContainer(File seriesRoot, Series series, Map<String, String> metadata, SeriesTypeAdapter<T> adapter, boolean readOnly) {
-        this.seriesRoot = Preconditions.checkNotNull(seriesRoot);
-        this.series = Preconditions.checkNotNull(series);
-        this.metadata = Preconditions.checkNotNull(metadata);
-        this.adapter = Preconditions.checkNotNull(adapter);
-        this.readOnly = readOnly;
+        this.seriesRoot = Util.checkDirectory(seriesRoot);
+        this.series = series;
+        this.metadata = metadata;
+        this.adapter = adapter;
 
-        Preconditions.checkArgument(seriesRoot.exists());
-        Preconditions.checkArgument(seriesRoot.isDirectory());
-        Preconditions.checkArgument(seriesRoot.canRead());
-
-        File[] values = seriesRoot.listFiles();
-        if (values == null) {
-            return;
+        File[] files = seriesRoot.listFiles();
+        if (files == null) {
+            throw new IllegalArgumentException(String.format("series directory (%s) contains no files", seriesRoot));
         }
 
         FileInterval fileInterval = series.fileInterval();
-        Stream.of(values)
+        Stream.of(files)
             .filter(File::isFile)
-            .filter(File::canRead)
-            .filter(f -> fileInterval == FileInterval.findMatchingInterval(f.getName()))
-            .forEach(f -> {
-                LocalDateTime start = fileInterval.getStart(f.getName());
+            .filter(file -> fileInterval == FileInterval.findMatch(file.getName()))
+            .forEach(file -> {
+                LocalDateTime start = fileInterval.getStart(file.getName());
                 Range<LocalDateTime> range = fileInterval.getRange(start);
                 rangeMap.put(range, Suppliers.memoize(() -> {
-                    FileBasedArray<T> array = adapter.readArray(f, series, start, readOnly, false);
+                    FileBasedArray<T> array = adapter.read(file, readOnly);
                     return new SeriesFile<>(array, start, series.fileInterval());
                 }));
             });
     }
 
-    public Map<LocalDateTime, T> get(List<Range<LocalDateTime>> ranges, int valueInterval, boolean includeNull, SeriesAggregation aggregation) {
-        Preconditions.checkNotNull(ranges);
-        Preconditions.checkArgument(valueInterval > 0);
+    public Map<LocalDateTime, T> get(List<Range<LocalDateTime>> ranges, boolean includeNull, SeriesAggregation aggregation) {
 
         Map<LocalDateTime, T> result = new LinkedHashMap<>();
         if (ranges.isEmpty()) {
@@ -87,7 +80,8 @@ public class SeriesContainer<T> {
             for (Range<LocalDateTime> current : ranges) {
                 Stream<T> stream = rangeMap.subRangeMap(current)
                     .asMapOfRanges().values().stream()
-                    .flatMap(f -> f.get().get(current).stream());
+                    .flatMap(f -> f.get().get(current).stream())
+                    .filter(Objects::nonNull);
                 T aggregate = adapter.aggregate(stream, aggregation);
                 if (includeNull || (aggregate != null)) {
                     result.put(current.lowerEndpoint(), aggregate);
@@ -101,8 +95,8 @@ public class SeriesContainer<T> {
     }
 
     public void set(LocalDateTime dateTime, String value) {
-        Preconditions.checkNotNull(dateTime);
-        Preconditions.checkArgument(!readOnly);
+
+        T converted = adapter.convert(value);
 
         Supplier<SeriesFile<T>> supplier;
         rwLock.readLock().lock();
@@ -112,7 +106,6 @@ public class SeriesContainer<T> {
             rwLock.readLock().unlock();
         }
 
-        T converted = adapter.convert(value);
         if (supplier != null) {
             supplier.get().set(dateTime, converted);
             return;
@@ -124,10 +117,11 @@ public class SeriesContainer<T> {
             if (supplier == null) {
                 FileInterval fileInterval = series.fileInterval();
                 String filename = fileInterval.getFilename(dateTime);
-                File file = new File(seriesRoot, filename);
                 LocalDateTime start = fileInterval.getStart(filename);
                 supplier = Suppliers.memoize(() -> {
-                    FileBasedArray<T> array = adapter.readArray(file, series, start, false, true);
+                    File file = new File(Util.checkDirectory(seriesRoot), filename);
+                    int size = series.calculateSize(start);
+                    FileBasedArray<T> array = adapter.create(file, size);
                     return new SeriesFile<>(array, start, fileInterval);
                 });
                 rangeMap.put(fileInterval.getRange(start), supplier);

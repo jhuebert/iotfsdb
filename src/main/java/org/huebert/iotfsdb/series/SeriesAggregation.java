@@ -6,5 +6,7 @@ public enum SeriesAggregation {
     LAST,
     MAXIMUM,
     MINIMUM,
-    MEDIAN
+    MEDIAN,
+    SUM,
+    COUNT
 }

@@ -1,6 +1,7 @@
 package org.huebert.iotfsdb.file;
 
 import com.google.common.base.Preconditions;
+import org.huebert.iotfsdb.Util;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +17,8 @@ import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
 
 public class FloatFileBasedArray implements FileBasedArray<Float> {
 
+    private static final float NULL_VALUE = Float.NaN;
+
     private final int size;
 
     private final boolean readOnly;
@@ -27,14 +30,17 @@ public class FloatFileBasedArray implements FileBasedArray<Float> {
     private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     public static FloatFileBasedArray read(File file, boolean readOnly) {
-        Preconditions.checkNotNull(file);
-        Preconditions.checkArgument(file.exists());
-        Preconditions.checkArgument(file.isFile());
-        Preconditions.checkArgument(file.canRead());
+        Util.checkFile(file);
 
         long numBytes = file.length();
-        Preconditions.checkArgument(numBytes > 0);
-        Preconditions.checkArgument(numBytes % 4 == 0);
+        if (numBytes == 0) {
+            throw new IllegalArgumentException(String.format("file (%s) is empty", file));
+        }
+
+        if (numBytes % 4 == 0) {
+            throw new IllegalArgumentException(String.format("file (%s) size (%d) is not a multiple of four", file, numBytes));
+        }
+
         int size = (int) (numBytes / 4);
 
         boolean combinedReadOnly = readOnly || !file.canWrite();
@@ -51,10 +57,11 @@ public class FloatFileBasedArray implements FileBasedArray<Float> {
     }
 
     public static FloatFileBasedArray create(File file, int size) {
-        Preconditions.checkNotNull(file);
-        Preconditions.checkArgument(!file.exists());
 
-        Preconditions.checkArgument(size > 0);
+        if (file.exists()) {
+            throw new IllegalArgumentException(String.format("file (%s) already exists", file));
+        }
+
         int numBytes = size * 4;
 
         try {
@@ -86,25 +93,32 @@ public class FloatFileBasedArray implements FileBasedArray<Float> {
 
     @Override
     public List<Float> get(int start, int end) {
-        Preconditions.checkPositionIndexes(start, end, size - 1);
+
         int length = end - start + 1;
         float[] result = new float[length];
+
         rwLock.readLock().lock();
         try {
             floatBuffer.get(start, result);
         } finally {
             rwLock.readLock().unlock();
         }
+
         return new NullableArray(result);
     }
 
     @Override
     public void set(int index, Float value) {
-        Preconditions.checkArgument(!readOnly);
-        Preconditions.checkElementIndex(index, size);
+
+        if (readOnly) {
+            throw new IllegalArgumentException("file is read only");
+        }
+
+        float floatValue = value == null ? NULL_VALUE : value;
+
         rwLock.writeLock().lock();
         try {
-            floatBuffer.put(index, value != null ? value : Float.NaN);
+            floatBuffer.put(index, floatValue);
         } finally {
             rwLock.writeLock().unlock();
         }
@@ -130,7 +144,6 @@ public class FloatFileBasedArray implements FileBasedArray<Float> {
 
         @Override
         public Float get(int index) {
-            Preconditions.checkElementIndex(index, values.length);
             float result = values[index];
             return Float.isNaN(result) ? null : result;
         }

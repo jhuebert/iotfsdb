@@ -1,6 +1,7 @@
 package org.huebert.iotfsdb.file;
 
 import com.google.common.base.Preconditions;
+import org.huebert.iotfsdb.Util;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,6 +17,12 @@ import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
 
 public class BooleanFileBasedArray implements FileBasedArray<Boolean> {
 
+    private static final byte NULL_VALUE = Byte.MIN_VALUE;
+
+    private static final byte FALSE_VALUE = (byte) 0;
+
+    private static final byte TRUE_VALUE = (byte) 1;
+
     private final int size;
 
     private final boolean readOnly;
@@ -27,13 +34,13 @@ public class BooleanFileBasedArray implements FileBasedArray<Boolean> {
     private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     public static BooleanFileBasedArray read(File file, boolean readOnly) {
-        Preconditions.checkNotNull(file);
-        Preconditions.checkArgument(file.exists());
-        Preconditions.checkArgument(file.isFile());
-        Preconditions.checkArgument(file.canRead());
+        Util.checkFile(file);
 
         long numBytes = file.length();
-        Preconditions.checkArgument(numBytes > 0);
+        if (numBytes == 0) {
+            throw new IllegalArgumentException(String.format("file (%s) is empty", file));
+        }
+
         int size = (int) numBytes;
 
         boolean combinedReadOnly = readOnly || !file.canWrite();
@@ -49,13 +56,14 @@ public class BooleanFileBasedArray implements FileBasedArray<Boolean> {
     }
 
     public static BooleanFileBasedArray create(File file, int size) {
-        Preconditions.checkNotNull(file);
-        Preconditions.checkArgument(!file.exists());
-        Preconditions.checkArgument(size > 0);
+
+        if (file.exists()) {
+            throw new IllegalArgumentException(String.format("file (%s) already exists", file));
+        }
+
         try {
             RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
-            ByteBuffer byteBuffer = randomAccessFile.getChannel()
-                .map(READ_WRITE, 0, size);
+            ByteBuffer byteBuffer = randomAccessFile.getChannel().map(READ_WRITE, 0, size);
             for (int i = 0; i < size; i++) {
                 byteBuffer.put(Byte.MIN_VALUE);
             }
@@ -80,26 +88,34 @@ public class BooleanFileBasedArray implements FileBasedArray<Boolean> {
 
     @Override
     public List<Boolean> get(int start, int end) {
-        Preconditions.checkPositionIndexes(start, end, size - 1);
+
         int length = end - start + 1;
         byte[] result = new byte[length];
+
         rwLock.readLock().lock();
         try {
             byteBuffer.get(start, result);
         } finally {
             rwLock.readLock().unlock();
         }
+
         return new NullableArray(result);
     }
 
     @Override
     public void set(int index, Boolean value) {
-        Preconditions.checkArgument(!readOnly);
-        Preconditions.checkElementIndex(index, size);
-        byte byteValue = Byte.MIN_VALUE;
-        if (value != null) {
-            byteValue = (byte) (value ? 1 : 0);
+
+        if (readOnly) {
+            throw new IllegalArgumentException("file is read only");
         }
+
+        byte byteValue;
+        if (value == null) {
+            byteValue = NULL_VALUE;
+        } else {
+            byteValue = value ? TRUE_VALUE : FALSE_VALUE;
+        }
+
         rwLock.writeLock().lock();
         try {
             byteBuffer.put(index, byteValue);
@@ -128,9 +144,11 @@ public class BooleanFileBasedArray implements FileBasedArray<Boolean> {
 
         @Override
         public Boolean get(int index) {
-            Preconditions.checkElementIndex(index, values.length);
             byte result = values[index];
-            return result == Byte.MIN_VALUE ? null : result != 0;
+            if (result == NULL_VALUE) {
+                return null;
+            }
+            return result != FALSE_VALUE;
         }
 
         @Override

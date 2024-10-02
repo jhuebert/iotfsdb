@@ -1,44 +1,34 @@
 package org.huebert.iotfsdb.series.adapter;
 
-import org.apache.logging.log4j.util.Strings;
 import org.huebert.iotfsdb.file.BooleanFileBasedArray;
 import org.huebert.iotfsdb.file.FileBasedArray;
-import org.huebert.iotfsdb.schema.Series;
 import org.huebert.iotfsdb.series.SeriesAggregation;
 
 import java.io.File;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.stream.Stream;
 
 public class BooleanTypeAdapter implements SeriesTypeAdapter<Boolean> {
 
     @Override
-    public FileBasedArray<Boolean> readArray(File file, Series series, LocalDateTime start, boolean readOnly, boolean create) {
-        if (!file.exists()) {
-            int size = series.fileInterval().calculateSize(start, Duration.of(series.valueInterval(), ChronoUnit.SECONDS));
-            return BooleanFileBasedArray.create(file, size);
-        }
+    public FileBasedArray<Boolean> create(File file, int size) {
+        return BooleanFileBasedArray.create(file, size);
+    }
+
+    @Override
+    public FileBasedArray<Boolean> read(File file, boolean readOnly) {
         return BooleanFileBasedArray.read(file, readOnly);
     }
 
     @Override
     public Boolean aggregate(Stream<Boolean> stream, SeriesAggregation aggregation) {
-//        if (aggregation == SeriesAggregation.AVERAGE) {
-        OptionalDouble result = stream.filter(Objects::nonNull).mapToDouble(a -> a ? 1.0 : 0.0).average();
-        return result.isPresent() ? result.getAsDouble() >= 0.5 : null;
-//        }
+        OptionalDouble result = AGGREGATION_MAP.get(aggregation).apply(stream.mapToDouble(a -> a ? 1.0 : 0.0));
+        return result.isPresent() ? Math.rint(result.getAsDouble()) >= 0.5 : null;
     }
 
     @Override
     public Boolean convert(String value) {
-        if (Strings.isBlank(value)) {
-            return null;
-        }
-        return Boolean.parseBoolean(value);
+        return value == null ? null : Boolean.parseBoolean(value);
     }
 
 }

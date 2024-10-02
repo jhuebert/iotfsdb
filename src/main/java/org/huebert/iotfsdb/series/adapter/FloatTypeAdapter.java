@@ -1,43 +1,34 @@
 package org.huebert.iotfsdb.series.adapter;
 
-import org.apache.logging.log4j.util.Strings;
 import org.huebert.iotfsdb.file.FileBasedArray;
 import org.huebert.iotfsdb.file.FloatFileBasedArray;
-import org.huebert.iotfsdb.schema.Series;
 import org.huebert.iotfsdb.series.SeriesAggregation;
 
 import java.io.File;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.Objects;
 import java.util.OptionalDouble;
 import java.util.stream.Stream;
 
 public class FloatTypeAdapter implements SeriesTypeAdapter<Float> {
 
     @Override
-    public FileBasedArray<Float> readArray(File file, Series series, LocalDateTime start, boolean readOnly, boolean create) {
-        if (!file.exists()) {
-            int size = series.fileInterval().calculateSize(start, Duration.of(series.valueInterval(), ChronoUnit.SECONDS));
-            return FloatFileBasedArray.create(file, size);
-        }
+    public FileBasedArray<Float> create(File file, int size) {
+        return FloatFileBasedArray.create(file, size);
+    }
+
+    @Override
+    public FileBasedArray<Float> read(File file, boolean readOnly) {
         return FloatFileBasedArray.read(file, readOnly);
     }
 
     @Override
     public Float aggregate(Stream<Float> stream, SeriesAggregation aggregation) {
-//        if (aggregation == SeriesAggregation.AVERAGE) {
-        OptionalDouble result = stream.filter(Objects::nonNull).mapToDouble(a -> (double) a).average();
+        OptionalDouble result = AGGREGATION_MAP.get(aggregation).apply(stream.mapToDouble(a -> (double) a));
         return result.isPresent() ? (float) result.getAsDouble() : null;
-//        }
     }
 
     @Override
     public Float convert(String value) {
-        if (Strings.isBlank(value)) {
-            return null;
-        }
-        return Float.parseFloat(value);
+        return value == null ? null : Float.parseFloat(value);
     }
+
 }

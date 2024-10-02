@@ -1,6 +1,5 @@
 package org.huebert.iotfsdb.schema;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
 
 import java.time.Duration;
@@ -14,7 +13,9 @@ import java.util.regex.Pattern;
 public enum FileInterval {
 
     DAY(Period.ofDays(1), DateTimeFormatter.ofPattern("yyyyMMdd"), Pattern.compile("\\d{8}")),
+
     MONTH(Period.ofMonths(1), DateTimeFormatter.ofPattern("yyyyMM"), Pattern.compile("\\d{6}")),
+
     YEAR(Period.ofYears(1), DateTimeFormatter.ofPattern("yyyy"), Pattern.compile("\\d{4}"));
 
     private final Period period;
@@ -29,7 +30,7 @@ public enum FileInterval {
         this.pattern = pattern;
     }
 
-    public static FileInterval findMatchingInterval(String filename) {
+    public static FileInterval findMatch(String filename) {
         for (FileInterval fileInterval : values()) {
             if (fileInterval.pattern.matcher(filename).matches()) {
                 return fileInterval;
@@ -39,12 +40,10 @@ public enum FileInterval {
     }
 
     public String getFilename(LocalDateTime dateTime) {
-        Preconditions.checkNotNull(dateTime);
         return formatter.format(dateTime);
     }
 
     public LocalDateTime getStart(String filename) {
-        Preconditions.checkNotNull(filename);
 
         TemporalAccessor parsed = formatter.parse(filename);
 
@@ -79,23 +78,18 @@ public enum FileInterval {
     }
 
     private LocalDateTime getEnd(LocalDateTime start) {
-        Preconditions.checkNotNull(start);
         return start.plus(period);
     }
 
     public Duration getDuration(LocalDateTime start) {
-        Preconditions.checkNotNull(start);
         return Duration.between(start, getEnd(start));
     }
 
     public Range<LocalDateTime> getRange(LocalDateTime start) {
-        Preconditions.checkNotNull(start);
         return Range.closedOpen(start, getEnd(start));
     }
 
     public int calculateSize(LocalDateTime start, Duration valueInterval) {
-        Preconditions.checkNotNull(start);
-        Preconditions.checkNotNull(valueInterval);
         return (int) getDuration(start).dividedBy(valueInterval);
     }
 

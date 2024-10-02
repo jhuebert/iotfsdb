@@ -1,6 +1,5 @@
 package org.huebert.iotfsdb.series;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Range;
 import org.huebert.iotfsdb.file.FileBasedArray;
 import org.huebert.iotfsdb.schema.FileInterval;
@@ -18,7 +17,7 @@ public class SeriesFile<T> {
     private final FileBasedArray<T> fileBasedArray;
 
     public SeriesFile(FileBasedArray<T> fileBasedArray, LocalDateTime start, FileInterval fileInterval) {
-        this.fileBasedArray = Preconditions.checkNotNull(fileBasedArray);
+        this.fileBasedArray = fileBasedArray;
         this.dateTimeRange = fileInterval.getRange(start);
         this.interval = fileInterval.getDuration(start).dividedBy(fileBasedArray.size());
     }
@@ -32,7 +31,6 @@ public class SeriesFile<T> {
     }
 
     public void set(LocalDateTime dateTime, T value) {
-        Preconditions.checkArgument(dateTimeRange.contains(dateTime));
         fileBasedArray.set(getIndex(dateTime), value);
     }
 

@@ -1,11 +1,21 @@
 package org.huebert.iotfsdb.schema;
 
-import lombok.Data;
-
 import java.time.LocalDateTime;
 
-@Data
-public class DataValue {
-    private LocalDateTime dateTime;
-    private String value;
+public record DataValue(
+    LocalDateTime dateTime,
+    String value
+) {
+
+    public static void checkValid(DataValue dataValue) {
+
+        if (dataValue == null) {
+            throw new IllegalArgumentException("data value is null");
+        }
+
+        if (dataValue.dateTime == null) {
+            throw new IllegalArgumentException("date and time is null");
+        }
+
+    }
 }

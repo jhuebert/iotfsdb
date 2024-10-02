@@ -15,4 +15,7 @@ public class IotfsdbProperties {
 
     private boolean readOnly = true;
 
+    //TODO Max records that can be returned from API
+    private int maxValuesPerSeries = 10000;
+
 }
