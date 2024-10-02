@@ -37,7 +37,7 @@ public class IntegerFileBasedArray implements FileBasedArray<Integer> {
             throw new IllegalArgumentException(String.format("file (%s) is empty", file));
         }
 
-        if (numBytes % 4 == 0) {
+        if (numBytes % 4 != 0) {
             throw new IllegalArgumentException(String.format("file (%s) size (%d) is not a multiple of four", file, numBytes));
         }
 
@@ -94,7 +94,7 @@ public class IntegerFileBasedArray implements FileBasedArray<Integer> {
     @Override
     public List<Integer> get(int start, int end) {
 
-        int length = end - start + 1;
+        int length = end - start;
         int[] result = new int[length];
 
         rwLock.readLock().lock();

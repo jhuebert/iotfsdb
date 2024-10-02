@@ -27,7 +27,7 @@ public class SeriesFile<T> implements AutoCloseable {
         if (intersection.isEmpty()) {
             return List.of();
         }
-        return fileBasedArray.get(getIndex(range.lowerEndpoint()), getIndex(range.upperEndpoint()));
+        return fileBasedArray.get(getIndex(intersection.lowerEndpoint()), getIndex(intersection.upperEndpoint()));
     }
 
     public void set(LocalDateTime dateTime, T value) {
