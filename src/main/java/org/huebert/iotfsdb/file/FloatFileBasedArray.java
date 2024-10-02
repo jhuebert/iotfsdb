@@ -1,6 +1,5 @@
 package org.huebert.iotfsdb.file;
 
-import com.google.common.base.Preconditions;
 import org.huebert.iotfsdb.Util;
 
 import java.io.File;

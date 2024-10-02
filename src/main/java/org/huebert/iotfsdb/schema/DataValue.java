@@ -1,9 +1,9 @@
 package org.huebert.iotfsdb.schema;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 public record DataValue(
-    LocalDateTime dateTime,
+    ZonedDateTime dateTime,
     String value
 ) {
 

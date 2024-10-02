@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -30,10 +30,10 @@ public class SeriesDataController {
     }
 
     @GetMapping
-    public Map<String, Map<LocalDateTime, ?>> findData(
+    public Map<String, Map<ZonedDateTime, ?>> findData(
         @RequestParam(name = "pattern", required = false, defaultValue = ".*") Pattern pattern,
-        @RequestParam(name = "start") LocalDateTime start,
-        @RequestParam(name = "end") LocalDateTime end,
+        @RequestParam(name = "start") ZonedDateTime start,
+        @RequestParam(name = "end") ZonedDateTime end,
         @RequestParam(name = "interval", required = false, defaultValue = "1") int interval,
         @RequestParam(name = "includeNull", required = false, defaultValue = "false") boolean includeNull,
         @RequestParam(name = "aggregation", required = false, defaultValue = "AVERAGE") SeriesAggregation aggregation,
@@ -71,7 +71,7 @@ public class SeriesDataController {
         Map<String, String> trimmedMetadata = new HashMap<>(metadata);
         trimmedMetadata.keySet().removeAll(PARAMS);
 
-        Range<LocalDateTime> range = Range.closed(start, end);
+        Range<ZonedDateTime> range = Range.closed(start, end);
 
         return seriesService.get(pattern, trimmedMetadata, range, interval, includeNull, aggregation);
     }

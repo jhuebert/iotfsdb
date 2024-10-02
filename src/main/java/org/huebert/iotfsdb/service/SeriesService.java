@@ -21,7 +21,7 @@ import org.springframework.util.FileSystemUtils;
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
-import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -187,25 +187,25 @@ public class SeriesService {
         return series;
     }
 
-    public void set(String seriesId, LocalDateTime dateTime, String value) {
+    public void set(String seriesId, ZonedDateTime dateTime, String value) {
         getContainer(seriesId).set(dateTime, value);
     }
 
-    public Map<String, Map<LocalDateTime, ?>> get(
+    public Map<String, Map<ZonedDateTime, ?>> get(
         Pattern pattern,
         Map<String, String> metadata,
-        Range<LocalDateTime> range,
+        Range<ZonedDateTime> range,
         int valueInterval,
         boolean includeNull,
         SeriesAggregation aggregation
     ) {
 
-        Map<String, Map<LocalDateTime, ?>> result = new ConcurrentHashMap<>();
+        Map<String, Map<ZonedDateTime, ?>> result = new ConcurrentHashMap<>();
         if (range.isEmpty()) {
             return result;
         }
 
-        List<Range<LocalDateTime>> ranges = calculateRanges(range, valueInterval);
+        List<Range<ZonedDateTime>> ranges = calculateRanges(range, valueInterval);
         findSeries(pattern, metadata).parallelStream()
             .forEach(series -> {
                 SeriesContainer<?> seriesContainer = seriesMap.get(series.id());
@@ -215,7 +215,7 @@ public class SeriesService {
         return result;
     }
 
-    private List<Range<LocalDateTime>> calculateRanges(Range<LocalDateTime> range, int valueInterval) {
+    private List<Range<ZonedDateTime>> calculateRanges(Range<ZonedDateTime> range, int valueInterval) {
 
         Duration valueDuration = Duration.of(valueInterval, ChronoUnit.SECONDS);
         int count = (int) Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(valueDuration);
@@ -225,10 +225,10 @@ public class SeriesService {
             valueDuration = Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(count);
         }
 
-        List<Range<LocalDateTime>> ranges = new ArrayList<>(count);
-        LocalDateTime start = range.lowerEndpoint();
+        List<Range<ZonedDateTime>> ranges = new ArrayList<>(count);
+        ZonedDateTime start = range.lowerEndpoint();
         for (int i = 0; i <= count; i++) {
-            LocalDateTime end = start.plus(valueDuration);
+            ZonedDateTime end = start.plus(valueDuration);
             ranges.add(Range.closedOpen(start, end));
             start = end;
         }

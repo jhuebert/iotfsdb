@@ -15,6 +15,8 @@ import org.huebert.iotfsdb.series.adapter.SeriesTypeAdapter;
 
 import java.io.File;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,19 +70,20 @@ public class SeriesContainer<T> implements AutoCloseable {
             });
     }
 
-    public Map<LocalDateTime, T> get(List<Range<LocalDateTime>> ranges, boolean includeNull, SeriesAggregation aggregation) {
+    public Map<ZonedDateTime, T> get(List<Range<ZonedDateTime>> ranges, boolean includeNull, SeriesAggregation aggregation) {
 
-        Map<LocalDateTime, T> result = new LinkedHashMap<>();
+        Map<ZonedDateTime, T> result = new LinkedHashMap<>();
         if (ranges.isEmpty()) {
             return result;
         }
 
         rwLock.readLock().lock();
         try {
-            for (Range<LocalDateTime> current : ranges) {
-                Stream<T> stream = rangeMap.subRangeMap(current)
+            for (Range<ZonedDateTime> current : ranges) {
+                Range<LocalDateTime> local = convertToUtc(current);
+                Stream<T> stream = rangeMap.subRangeMap(local)
                     .asMapOfRanges().values().parallelStream() //TODO Will this cause an issue with first/last
-                    .flatMap(f -> f.get().get(current).stream())
+                    .flatMap(f -> f.get().get(local).stream())
                     .filter(Objects::nonNull);
                 T aggregate = adapter.aggregate(stream, aggregation);
                 if (includeNull || (aggregate != null)) {
@@ -94,29 +97,43 @@ public class SeriesContainer<T> implements AutoCloseable {
         return result;
     }
 
-    public void set(LocalDateTime dateTime, String value) {
+    private LocalDateTime convertToUtc(ZonedDateTime zonedDateTime) {
+        return zonedDateTime.withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
+    }
 
+    private Range<LocalDateTime> convertToUtc(Range<ZonedDateTime> zonedRange) {
+        return Range.range(
+            convertToUtc(zonedRange.lowerEndpoint()),
+            zonedRange.lowerBoundType(),
+            convertToUtc(zonedRange.upperEndpoint()),
+            zonedRange.upperBoundType()
+        );
+    }
+
+    public void set(ZonedDateTime dateTime, String value) {
+
+        LocalDateTime local = convertToUtc(dateTime);
         T converted = adapter.convert(value);
 
         Supplier<SeriesFile<T>> supplier;
         rwLock.readLock().lock();
         try {
-            supplier = rangeMap.get(dateTime);
+            supplier = rangeMap.get(local);
         } finally {
             rwLock.readLock().unlock();
         }
 
         if (supplier != null) {
-            supplier.get().set(dateTime, converted);
+            supplier.get().set(local, converted);
             return;
         }
 
         rwLock.writeLock().lock();
         try {
-            supplier = rangeMap.get(dateTime);
+            supplier = rangeMap.get(local);
             if (supplier == null) {
                 FileInterval fileInterval = series.fileInterval();
-                String filename = fileInterval.getFilename(dateTime);
+                String filename = fileInterval.getFilename(local);
                 LocalDateTime start = fileInterval.getStart(filename);
                 supplier = Suppliers.memoize(() -> {
                     File file = new File(Util.checkDirectory(seriesRoot), filename);
@@ -130,7 +147,7 @@ public class SeriesContainer<T> implements AutoCloseable {
             rwLock.writeLock().unlock();
         }
 
-        supplier.get().set(dateTime, converted);
+        supplier.get().set(local, converted);
     }
 
     @Override
