@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -18,10 +19,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 
 @RestController
 @RequestMapping("/v1/series")
@@ -35,16 +36,17 @@ public class SeriesController {
 
     @PostMapping
     public Series createSeries(@RequestBody Series series) throws IOException {
+        Series.checkValid(series);
         return seriesService.createSeries(series);
     }
 
     @GetMapping("{id}")
     public Series getSeries(@PathVariable("id") String id) {
-        return seriesService.getSeries(id)
-            .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "series not found"));
+        return seriesService.getSeries(id);
     }
 
     @DeleteMapping("{id}")
+    @ResponseStatus(NO_CONTENT)
     public void deleteSeries(@PathVariable("id") String id) {
         seriesService.deleteSeries(id);
     }
@@ -55,24 +57,27 @@ public class SeriesController {
         @RequestParam Map<String, String> metadata
     ) {
         Map<String, String> trimmedMetadata = new HashMap<>(metadata);
-        trimmedMetadata.keySet().removeAll(Set.of("pattern"));
+        trimmedMetadata.keySet().remove("pattern");
         return seriesService.findSeries(pattern, trimmedMetadata);
     }
 
     @GetMapping("{id}/metadata")
     public Map<String, String> getMetadata(@PathVariable("id") String id) {
-        return seriesService.getMetadata(id)
-            .orElseThrow(() -> new ResponseStatusException(NOT_FOUND, "series not found"));
+        return seriesService.getMetadata(id);
     }
 
     @PutMapping("{id}/metadata")
     public Map<String, String> updateMetadata(@PathVariable("id") String id, @RequestBody Map<String, String> metadata) throws IOException {
+        if (metadata == null) {
+            throw new ResponseStatusException(BAD_REQUEST, "metadata is null");
+        }
         return seriesService.updateMetadata(id, metadata);
     }
 
     @PostMapping("{id}/data")
     public DataValue set(@PathVariable("id") String id, @RequestBody DataValue dataValue) {
-        seriesService.set(id, dataValue.getDateTime(), dataValue.getValue());
+        DataValue.checkValid(dataValue);
+        seriesService.set(id, dataValue.dateTime(), dataValue.value());
         return dataValue;
     }
 

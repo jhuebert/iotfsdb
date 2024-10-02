@@ -25,6 +25,13 @@ public class Util {
         return file;
     }
 
+    public static File checkFileWrite(File file) {
+        if (!file.canWrite()) {
+            throw new IllegalArgumentException(String.format("unable to write file (%s)", file));
+        }
+        return checkFile(file);
+    }
+
     public static File checkDirectory(File dir) {
 
         if (dir == null) {

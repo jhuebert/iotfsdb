@@ -25,7 +25,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 @Slf4j
-public class SeriesContainer<T> {
+public class SeriesContainer<T> implements AutoCloseable {
 
     private final SeriesTypeAdapter<T> adapter;
 
@@ -79,7 +79,7 @@ public class SeriesContainer<T> {
         try {
             for (Range<LocalDateTime> current : ranges) {
                 Stream<T> stream = rangeMap.subRangeMap(current)
-                    .asMapOfRanges().values().stream()
+                    .asMapOfRanges().values().parallelStream() //TODO Will this cause an issue with first/last
                     .flatMap(f -> f.get().get(current).stream())
                     .filter(Objects::nonNull);
                 T aggregate = adapter.aggregate(stream, aggregation);
@@ -133,4 +133,16 @@ public class SeriesContainer<T> {
         supplier.get().set(dateTime, converted);
     }
 
+    @Override
+    public void close() throws Exception {
+        rwLock.writeLock().lock();
+        try {
+            for (Supplier<SeriesFile<T>> value : rangeMap.asMapOfRanges().values()) {
+                value.get().close(); //TODO Not ideal that get is creating data before immediately closing it
+            }
+            rangeMap.clear();
+        } finally {
+            rwLock.writeLock().unlock();
+        }
+    }
 }

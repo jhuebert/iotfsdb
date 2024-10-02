@@ -8,7 +8,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class SeriesFile<T> {
+public class SeriesFile<T> implements AutoCloseable {
 
     private final Duration interval;
 
@@ -38,4 +38,8 @@ public class SeriesFile<T> {
         return (int) Duration.between(dateTimeRange.lowerEndpoint(), value).dividedBy(interval);
     }
 
+    @Override
+    public void close() throws Exception {
+        fileBasedArray.close();
+    }
 }
