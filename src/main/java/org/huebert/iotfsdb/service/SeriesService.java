@@ -24,6 +24,7 @@ import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -120,7 +121,7 @@ public class SeriesService {
     public synchronized Map<String, String> updateMetadata(String seriesId, Map<String, String> metadata) throws IOException {
 
         if (properties.isReadOnly()) {
-            throw new IllegalArgumentException("database is read only");
+            throw new IllegalStateException("database is read only");
         }
 
         SeriesContainer<?> container = getContainer(seriesId);
@@ -134,7 +135,7 @@ public class SeriesService {
     public synchronized void deleteSeries(String seriesId) {
 
         if (properties.isReadOnly()) {
-            throw new IllegalArgumentException("database is read only");
+            throw new IllegalStateException("database is read only");
         }
 
         SeriesContainer<?> container = seriesMap.remove(seriesId);
@@ -158,6 +159,7 @@ public class SeriesService {
             .filter(s -> matchesMetadata(s, metadata))
             .map(SeriesContainer::getSeries)
             .filter(s -> pattern.matcher(s.id()).matches())
+            .sorted(Comparator.comparing(Series::id))
             .toList();
     }
 
@@ -181,7 +183,7 @@ public class SeriesService {
     public synchronized Series createSeries(Series series) throws IOException {
 
         if (properties.isReadOnly()) {
-            throw new IllegalArgumentException("database is read only");
+            throw new IllegalStateException("database is read only");
         }
 
         if (seriesMap.containsKey(series.id())) {
@@ -207,7 +209,7 @@ public class SeriesService {
     public void set(String seriesId, ZonedDateTime dateTime, String value) {
 
         if (properties.isReadOnly()) {
-            throw new IllegalArgumentException("database is read only");
+            throw new IllegalStateException("database is read only");
         }
 
         getContainer(seriesId).set(dateTime, value);

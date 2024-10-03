@@ -110,7 +110,7 @@ public class FloatFileBasedArray implements FileBasedArray<Float> {
     public void set(int index, Float value) {
 
         if (readOnly) {
-            throw new IllegalArgumentException("file is read only");
+            throw new IllegalStateException("file is read only");
         }
 
         float floatValue = value == null ? NULL_VALUE : value;

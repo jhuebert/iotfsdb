@@ -111,7 +111,7 @@ public class IntegerFileBasedArray implements FileBasedArray<Integer> {
     public void set(int index, Integer value) {
 
         if (readOnly) {
-            throw new IllegalArgumentException("file is read only");
+            throw new IllegalStateException("file is read only");
         }
 
         int intValue = value == null ? NULL_VALUE : value;

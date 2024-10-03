@@ -32,6 +32,8 @@ public class SeriesContainer<T> implements AutoCloseable {
 
     private final SeriesTypeAdapter<T> adapter;
 
+    private final boolean readOnly;
+
     @Getter
     private final Series series;
 
@@ -51,6 +53,7 @@ public class SeriesContainer<T> implements AutoCloseable {
         this.series = series;
         this.metadata = metadata;
         this.adapter = adapter;
+        this.readOnly = readOnly;
 
         File[] files = seriesRoot.listFiles();
         if (files == null) {
@@ -117,6 +120,10 @@ public class SeriesContainer<T> implements AutoCloseable {
     }
 
     public void set(ZonedDateTime dateTime, String value) {
+
+        if (readOnly) {
+            throw new IllegalStateException("series is read only");
+        }
 
         LocalDateTime local = convertToUtc(dateTime);
         T converted = adapter.convert(value);

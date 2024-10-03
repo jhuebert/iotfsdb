@@ -105,7 +105,7 @@ public class BooleanFileBasedArray implements FileBasedArray<Boolean> {
     public void set(int index, Boolean value) {
 
         if (readOnly) {
-            throw new IllegalArgumentException("file is read only");
+            throw new IllegalStateException("file is read only");
         }
 
         byte byteValue;
