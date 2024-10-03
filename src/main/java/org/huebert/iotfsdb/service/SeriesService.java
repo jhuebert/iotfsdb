@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -153,6 +154,13 @@ public class SeriesService {
 
     private boolean matchesMetadata(SeriesContainer<?> container, Map<String, String> metadata) {
         Map<String, String> containerMetadata = container.getMetadata();
+
+        if (metadata.isEmpty()) {
+            return true;
+        } else if (metadata.size() > containerMetadata.size()) {
+            return false;
+        }
+
         for (Map.Entry<String, String> entry : metadata.entrySet()) {
             if (!Objects.equals(containerMetadata.get(entry.getKey()), entry.getValue())) {
                 return false;
@@ -208,8 +216,8 @@ public class SeriesService {
         List<Range<ZonedDateTime>> ranges = calculateRanges(range, valueInterval);
         findSeries(pattern, metadata).parallelStream()
             .forEach(series -> {
-                SeriesContainer<?> seriesContainer = seriesMap.get(series.id());
-                result.put(series.id(), seriesContainer.get(ranges, includeNull, aggregation));
+                SeriesContainer<?> container = getContainer(series.id());
+                result.put(series.id(), container.get(ranges, includeNull, aggregation));
             });
 
         return result;
@@ -220,8 +228,8 @@ public class SeriesService {
         Duration valueDuration = Duration.of(valueInterval, ChronoUnit.SECONDS);
         int count = (int) Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(valueDuration);
 
-        if (count > properties.getMaxValuesPerSeries()) {
-            count = properties.getMaxValuesPerSeries();
+        if (count > properties.getMaxQuerySize()) {
+            count = properties.getMaxQuerySize();
             valueDuration = Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(count);
         }
 

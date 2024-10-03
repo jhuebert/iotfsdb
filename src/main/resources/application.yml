@@ -4,4 +4,5 @@ spring:
 
 iotfsdb:
   root:
-  read-only: false
+  read-only: true
+  max-query-size: 1000

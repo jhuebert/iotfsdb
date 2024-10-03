@@ -4,6 +4,7 @@ import com.google.common.base.Suppliers;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +71,12 @@ public class SeriesContainer<T> implements AutoCloseable {
             });
     }
 
+    @AllArgsConstructor
+    private class Tuple {
+        private final ZonedDateTime dateTime;
+        private final T value;
+    }
+
     public Map<ZonedDateTime, T> get(List<Range<ZonedDateTime>> ranges, boolean includeNull, SeriesAggregation aggregation) {
 
         Map<ZonedDateTime, T> result = new LinkedHashMap<>();
@@ -79,17 +86,16 @@ public class SeriesContainer<T> implements AutoCloseable {
 
         rwLock.readLock().lock();
         try {
-            for (Range<ZonedDateTime> current : ranges) {
-                Range<LocalDateTime> local = convertToUtc(current);
-                Stream<T> stream = rangeMap.subRangeMap(local)
-                    .asMapOfRanges().values().parallelStream() //TODO Will this cause an issue with first/last
-                    .flatMap(f -> f.get().get(local).stream())
-                    .filter(Objects::nonNull);
-                T aggregate = adapter.aggregate(stream, aggregation);
-                if (includeNull || (aggregate != null)) {
-                    result.put(current.lowerEndpoint(), aggregate);
-                }
-            }
+            ranges.parallelStream()
+                .map(current -> {
+                    Range<LocalDateTime> local = convertToUtc(current);
+                    Stream<T> stream = rangeMap.subRangeMap(local).asMapOfRanges().values().stream()
+                        .flatMap(f -> f.get().get(local).stream())
+                        .filter(Objects::nonNull);
+                    return new Tuple(current.lowerEndpoint(), adapter.aggregate(stream, aggregation).orElse(null));
+                })
+                .filter(t -> includeNull || (t.value != null))
+                .forEachOrdered(t -> result.put(t.dateTime, t.value));
         } finally {
             rwLock.readLock().unlock();
         }
@@ -155,7 +161,7 @@ public class SeriesContainer<T> implements AutoCloseable {
         rwLock.writeLock().lock();
         try {
             for (Supplier<SeriesFile<T>> value : rangeMap.asMapOfRanges().values()) {
-                value.get().close(); //TODO Not ideal that get is creating data before immediately closing it
+                value.get().close();
             }
             rangeMap.clear();
         } finally {
