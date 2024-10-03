@@ -2,11 +2,11 @@ package org.huebert.iotfsdb.series;
 
 public enum SeriesAggregation {
     AVERAGE,
+    COUNT,
     FIRST,
     LAST,
     MAXIMUM,
-    MINIMUM,
     MEDIAN,
-    SUM,
-    COUNT
+    MINIMUM,
+    SUM
 }

@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -221,7 +222,7 @@ public class SeriesService {
         SeriesAggregation aggregation
     ) {
 
-        Map<String, Map<ZonedDateTime, ?>> result = new ConcurrentHashMap<>();
+        Map<String, Map<ZonedDateTime, ?>> result = new ConcurrentSkipListMap<>();
         if (range.isEmpty()) {
             return result;
         }
