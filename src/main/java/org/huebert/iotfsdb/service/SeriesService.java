@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -118,6 +117,11 @@ public class SeriesService {
     }
 
     public synchronized Map<String, String> updateMetadata(String seriesId, Map<String, String> metadata) throws IOException {
+
+        if (properties.isReadOnly()) {
+            throw new IllegalArgumentException("database is read only");
+        }
+
         SeriesContainer<?> container = getContainer(seriesId);
         File seriesRoot = container.getSeriesRoot();
         File metadataFile = Util.checkFileWrite(new File(seriesRoot, METADATA_JSON));
@@ -127,6 +131,10 @@ public class SeriesService {
     }
 
     public synchronized void deleteSeries(String seriesId) {
+
+        if (properties.isReadOnly()) {
+            throw new IllegalArgumentException("database is read only");
+        }
 
         SeriesContainer<?> container = seriesMap.remove(seriesId);
         if (container == null) {
@@ -196,6 +204,11 @@ public class SeriesService {
     }
 
     public void set(String seriesId, ZonedDateTime dateTime, String value) {
+
+        if (properties.isReadOnly()) {
+            throw new IllegalArgumentException("database is read only");
+        }
+
         getContainer(seriesId).set(dateTime, value);
     }
 
