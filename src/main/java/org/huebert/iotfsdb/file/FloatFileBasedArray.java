@@ -5,7 +5,6 @@ import org.huebert.iotfsdb.Util;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.FloatBuffer;
 import java.nio.MappedByteBuffer;
 import java.util.AbstractList;
 import java.util.List;
@@ -27,8 +26,6 @@ public class FloatFileBasedArray implements FileBasedArray<Float> {
 
     private final MappedByteBuffer mappedByteBuffer;
 
-    private final FloatBuffer floatBuffer;
-
     private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
     public static FloatFileBasedArray read(File file, boolean readOnly) {
@@ -43,7 +40,7 @@ public class FloatFileBasedArray implements FileBasedArray<Float> {
             throw new IllegalArgumentException(String.format("file (%s) size (%d) is not a multiple of four", file, numBytes));
         }
 
-        int size = (int) (numBytes / 4);
+        int size = (int) (numBytes >> 2);
 
         boolean combinedReadOnly = readOnly || !file.canWrite();
 
@@ -51,8 +48,7 @@ public class FloatFileBasedArray implements FileBasedArray<Float> {
             RandomAccessFile randomAccessFile = new RandomAccessFile(file, combinedReadOnly ? "r" : "rw");
             MappedByteBuffer mappedByteBuffer = randomAccessFile.getChannel()
                 .map(combinedReadOnly ? READ_ONLY : READ_WRITE, 0, numBytes);
-            FloatBuffer floatBuffer = mappedByteBuffer.asFloatBuffer();
-            return new FloatFileBasedArray(size, combinedReadOnly, randomAccessFile, mappedByteBuffer, floatBuffer);
+            return new FloatFileBasedArray(size, combinedReadOnly, randomAccessFile, mappedByteBuffer);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -64,30 +60,28 @@ public class FloatFileBasedArray implements FileBasedArray<Float> {
             throw new IllegalArgumentException(String.format("file (%s) already exists", file));
         }
 
-        int numBytes = size * 4;
+        int numBytes = size << 2;
 
         try {
             RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
             MappedByteBuffer mappedByteBuffer = randomAccessFile.getChannel()
                 .map(READ_WRITE, 0, numBytes);
-            FloatBuffer floatBuffer = mappedByteBuffer.asFloatBuffer();
             for (int i = 0; i < size; i++) {
-                floatBuffer.put(Float.NaN);
+                mappedByteBuffer.putFloat(Float.NaN);
             }
-            floatBuffer.rewind();
+            mappedByteBuffer.rewind();
             mappedByteBuffer.force();
-            return new FloatFileBasedArray(size, false, randomAccessFile, mappedByteBuffer, floatBuffer);
+            return new FloatFileBasedArray(size, false, randomAccessFile, mappedByteBuffer);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private FloatFileBasedArray(int size, boolean readOnly, RandomAccessFile randomAccessFile, MappedByteBuffer mappedByteBuffer, FloatBuffer floatBuffer) {
+    private FloatFileBasedArray(int size, boolean readOnly, RandomAccessFile randomAccessFile, MappedByteBuffer mappedByteBuffer) {
         this.size = size;
         this.readOnly = readOnly;
         this.randomAccessFile = randomAccessFile;
         this.mappedByteBuffer = mappedByteBuffer;
-        this.floatBuffer = floatBuffer;
     }
 
     @Override
@@ -100,9 +94,13 @@ public class FloatFileBasedArray implements FileBasedArray<Float> {
 
         float[] result = new float[length];
 
+        int byteIndex = start << 2;
+
         rwLock.readLock().lock();
         try {
-            floatBuffer.get(start, result);
+            for (int i = 0; i < length; i++, byteIndex += 4) {
+                result[i] = mappedByteBuffer.getFloat(byteIndex);
+            }
         } finally {
             rwLock.readLock().unlock();
         }
@@ -121,8 +119,9 @@ public class FloatFileBasedArray implements FileBasedArray<Float> {
 
         rwLock.writeLock().lock();
         try {
-            floatBuffer.put(index, floatValue);
-            mappedByteBuffer.force(index * 4, 4);
+            int offset = index << 2;
+            mappedByteBuffer.putFloat(offset, floatValue);
+            mappedByteBuffer.force(offset, 4);
         } finally {
             rwLock.writeLock().unlock();
         }
