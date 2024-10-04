@@ -92,9 +92,8 @@ public class IntegerFileBasedArray implements FileBasedArray<Integer> {
     }
 
     @Override
-    public List<Integer> get(int start, int end) {
+    public List<Integer> get(int start, int length) {
 
-        int length = end - start;
         int[] result = new int[length];
 
         rwLock.readLock().lock();

@@ -91,9 +91,8 @@ public class FloatFileBasedArray implements FileBasedArray<Float> {
     }
 
     @Override
-    public List<Float> get(int start, int end) {
+    public List<Float> get(int start, int length) {
 
-        int length = end - start;
         float[] result = new float[length];
 
         rwLock.readLock().lock();

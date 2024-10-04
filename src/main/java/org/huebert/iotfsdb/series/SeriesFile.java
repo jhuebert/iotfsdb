@@ -27,15 +27,18 @@ public class SeriesFile<T> implements AutoCloseable {
         if (intersection.isEmpty()) {
             return List.of();
         }
-        return fileBasedArray.get(getIndex(intersection.lowerEndpoint()), getIndex(intersection.upperEndpoint()));
+        int start = calculateNumIntervals(dateTimeRange.lowerEndpoint(), intersection.lowerEndpoint());
+        int length = calculateNumIntervals(intersection.lowerEndpoint(), intersection.upperEndpoint());
+        return fileBasedArray.get(start, length);
     }
 
     public void set(LocalDateTime dateTime, T value) {
-        fileBasedArray.set(getIndex(dateTime), value);
+        int index = calculateNumIntervals(dateTimeRange.lowerEndpoint(), dateTime);
+        fileBasedArray.set(index, value);
     }
 
-    private int getIndex(LocalDateTime value) {
-        return (int) Duration.between(dateTimeRange.lowerEndpoint(), value).dividedBy(interval);
+    private int calculateNumIntervals(LocalDateTime start, LocalDateTime end) {
+        return (int) Duration.between(start, end).dividedBy(interval);
     }
 
     @Override

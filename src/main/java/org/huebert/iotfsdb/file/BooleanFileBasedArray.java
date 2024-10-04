@@ -86,9 +86,8 @@ public class BooleanFileBasedArray implements FileBasedArray<Boolean> {
     }
 
     @Override
-    public List<Boolean> get(int start, int end) {
+    public List<Boolean> get(int start, int length) {
 
-        int length = end - start;
         byte[] result = new byte[length];
 
         rwLock.readLock().lock();
