@@ -253,7 +253,7 @@ public class SeriesService {
         ZonedDateTime start = range.lowerEndpoint();
         for (int i = 0; i <= count; i++) {
             ZonedDateTime end = start.plus(valueDuration);
-            ranges.add(Range.closedOpen(start, end));
+            ranges.add(Range.closed(start, end.minusNanos(1)));
             start = end;
         }
         return ranges;

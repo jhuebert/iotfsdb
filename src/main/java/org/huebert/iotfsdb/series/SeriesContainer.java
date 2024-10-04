@@ -66,8 +66,7 @@ public class SeriesContainer<T> implements AutoCloseable {
             .filter(file -> fileInterval == FileInterval.findMatch(file.getName()))
             .forEach(file -> {
                 LocalDateTime start = fileInterval.getStart(file.getName());
-                Range<LocalDateTime> range = fileInterval.getRange(start);
-                rangeMap.put(range, Suppliers.memoize(() -> {
+                rangeMap.put(fileInterval.getRange(start), Suppliers.memoize(() -> {
                     FileBasedArray<T> array = adapter.read(file, readOnly);
                     return new SeriesFile<>(array, start, series.fileInterval());
                 }));
