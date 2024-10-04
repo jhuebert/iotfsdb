@@ -50,6 +50,10 @@ public class BooleanFileBasedArrayTest {
     public void testCreate() throws Exception {
         try (BooleanFileBasedArray array = BooleanFileBasedArray.create(file, 10)) {
             assertThat(array.size()).isEqualTo(10);
+            assertThat(file.exists()).isEqualTo(true);
+            assertThat(file.canRead()).isEqualTo(true);
+            assertThat(file.canWrite()).isEqualTo(true);
+            assertThat(file.isFile()).isEqualTo(true);
             assertThat(file.length()).isEqualTo(10);
             for (int i = 0; i < 10; i++) {
                 assertThat(array.get(i, 1).get(0)).isEqualTo(null);
@@ -65,7 +69,7 @@ public class BooleanFileBasedArrayTest {
     @Test
     public void testRead() throws Exception {
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
-        raf.setLength(40);
+        raf.setLength(10);
         raf.close();
         try (BooleanFileBasedArray array = BooleanFileBasedArray.read(file, false)) {
             List<Boolean> result = array.get(0, 10);

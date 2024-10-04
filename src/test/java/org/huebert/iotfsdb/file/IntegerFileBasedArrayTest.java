@@ -50,6 +50,10 @@ public class IntegerFileBasedArrayTest {
     public void testCreate() throws Exception {
         try (IntegerFileBasedArray array = IntegerFileBasedArray.create(file, 10)) {
             assertThat(array.size()).isEqualTo(10);
+            assertThat(file.exists()).isEqualTo(true);
+            assertThat(file.canRead()).isEqualTo(true);
+            assertThat(file.canWrite()).isEqualTo(true);
+            assertThat(file.isFile()).isEqualTo(true);
             assertThat(file.length()).isEqualTo(40);
             for (int i = 0; i < 10; i++) {
                 assertThat(array.get(i, 1).get(0)).isEqualTo(null);
