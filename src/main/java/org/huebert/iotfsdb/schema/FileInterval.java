@@ -71,7 +71,7 @@ public enum FileInterval {
     }
 
     public Range<LocalDateTime> getRange(LocalDateTime start) {
-        return Range.closedOpen(start, getEnd(start));
+        return Range.closed(start, getEnd(start).minusNanos(1));
     }
 
     public int calculateSize(LocalDateTime start, Duration valueInterval) {

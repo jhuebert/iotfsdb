@@ -38,9 +38,9 @@ public class FileIntervalTest {
     @Test
     public void testGetRange() {
         LocalDateTime dateTime = LocalDateTime.parse("2024-01-01T00:00:00");
-        assertThat(FileInterval.YEAR.getRange(dateTime)).isEqualTo(Range.closedOpen(dateTime, LocalDateTime.parse("2025-01-01T00:00:00")));
-        assertThat(FileInterval.MONTH.getRange(dateTime)).isEqualTo(Range.closedOpen(dateTime, LocalDateTime.parse("2024-02-01T00:00:00")));
-        assertThat(FileInterval.DAY.getRange(dateTime)).isEqualTo(Range.closedOpen(dateTime, LocalDateTime.parse("2024-01-02T00:00:00")));
+        assertThat(FileInterval.YEAR.getRange(dateTime)).isEqualTo(Range.closed(dateTime, LocalDateTime.parse("2025-01-01T00:00:00").minusNanos(1)));
+        assertThat(FileInterval.MONTH.getRange(dateTime)).isEqualTo(Range.closed(dateTime, LocalDateTime.parse("2024-02-01T00:00:00").minusNanos(1)));
+        assertThat(FileInterval.DAY.getRange(dateTime)).isEqualTo(Range.closed(dateTime, LocalDateTime.parse("2024-01-02T00:00:00").minusNanos(1)));
     }
 
     @Test

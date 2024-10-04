@@ -28,7 +28,7 @@ public class SeriesFile<T> implements AutoCloseable {
             return List.of();
         }
         int start = calculateNumIntervals(dateTimeRange.lowerEndpoint(), intersection.lowerEndpoint());
-        int length = calculateNumIntervals(intersection.lowerEndpoint(), intersection.upperEndpoint());
+        int length = calculateNumIntervals(intersection.lowerEndpoint(), intersection.upperEndpoint()) + 1;
         return fileBasedArray.get(start, length);
     }
 
