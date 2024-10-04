@@ -59,22 +59,7 @@ public enum FileInterval {
             day = parsed.get(ChronoField.DAY_OF_MONTH);
         }
 
-        int hour = 0;
-        if (parsed.isSupported(ChronoField.HOUR_OF_DAY)) {
-            hour = parsed.get(ChronoField.HOUR_OF_DAY);
-        }
-
-        int minute = 0;
-        if (parsed.isSupported(ChronoField.MINUTE_OF_HOUR)) {
-            minute = parsed.get(ChronoField.MINUTE_OF_HOUR);
-        }
-
-        int second = 0;
-        if (parsed.isSupported(ChronoField.SECOND_OF_MINUTE)) {
-            second = parsed.get(ChronoField.SECOND_OF_MINUTE);
-        }
-
-        return LocalDateTime.of(year, month, day, hour, minute, second);
+        return LocalDateTime.of(year, month, day, 0, 0, 0);
     }
 
     private LocalDateTime getEnd(LocalDateTime start) {

@@ -9,6 +9,10 @@ public record DataValue(
 
     public static void checkValid(DataValue dataValue) {
 
+        if (dataValue == null) {
+            throw new IllegalArgumentException("data value is null");
+        }
+
         if (dataValue.dateTime == null) {
             throw new IllegalArgumentException("date and time is null");
         }
