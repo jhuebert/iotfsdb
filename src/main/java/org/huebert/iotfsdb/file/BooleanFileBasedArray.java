@@ -5,7 +5,7 @@ import org.huebert.iotfsdb.Util;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
+import java.nio.MappedByteBuffer;
 import java.util.AbstractList;
 import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -28,7 +28,7 @@ public class BooleanFileBasedArray implements FileBasedArray<Boolean> {
 
     private final RandomAccessFile randomAccessFile;
 
-    private final ByteBuffer byteBuffer;
+    private final MappedByteBuffer mappedByteBuffer;
 
     private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
 
@@ -46,9 +46,9 @@ public class BooleanFileBasedArray implements FileBasedArray<Boolean> {
 
         try {
             RandomAccessFile randomAccessFile = new RandomAccessFile(file, combinedReadOnly ? "r" : "rw");
-            ByteBuffer byteBuffer = randomAccessFile.getChannel()
+            MappedByteBuffer mappedByteBuffer = randomAccessFile.getChannel()
                 .map(combinedReadOnly ? READ_ONLY : READ_WRITE, 0, numBytes);
-            return new BooleanFileBasedArray(size, combinedReadOnly, randomAccessFile, byteBuffer);
+            return new BooleanFileBasedArray(size, combinedReadOnly, randomAccessFile, mappedByteBuffer);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -62,22 +62,23 @@ public class BooleanFileBasedArray implements FileBasedArray<Boolean> {
 
         try {
             RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
-            ByteBuffer byteBuffer = randomAccessFile.getChannel().map(READ_WRITE, 0, size);
+            MappedByteBuffer mappedByteBuffer = randomAccessFile.getChannel().map(READ_WRITE, 0, size);
             for (int i = 0; i < size; i++) {
-                byteBuffer.put(Byte.MIN_VALUE);
+                mappedByteBuffer.put(Byte.MIN_VALUE);
             }
-            byteBuffer.rewind();
-            return new BooleanFileBasedArray(size, false, randomAccessFile, byteBuffer);
+            mappedByteBuffer.rewind();
+            mappedByteBuffer.force();
+            return new BooleanFileBasedArray(size, false, randomAccessFile, mappedByteBuffer);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private BooleanFileBasedArray(int size, boolean readOnly, RandomAccessFile randomAccessFile, ByteBuffer byteBuffer) {
+    private BooleanFileBasedArray(int size, boolean readOnly, RandomAccessFile randomAccessFile, MappedByteBuffer mappedByteBuffer) {
         this.size = size;
         this.readOnly = readOnly;
         this.randomAccessFile = randomAccessFile;
-        this.byteBuffer = byteBuffer;
+        this.mappedByteBuffer = mappedByteBuffer;
     }
 
     @Override
@@ -92,7 +93,7 @@ public class BooleanFileBasedArray implements FileBasedArray<Boolean> {
 
         rwLock.readLock().lock();
         try {
-            byteBuffer.get(start, result);
+            mappedByteBuffer.get(start, result);
         } finally {
             rwLock.readLock().unlock();
         }
@@ -116,7 +117,8 @@ public class BooleanFileBasedArray implements FileBasedArray<Boolean> {
 
         rwLock.writeLock().lock();
         try {
-            byteBuffer.put(index, byteValue);
+            mappedByteBuffer.put(index, byteValue);
+            mappedByteBuffer.force(index, 1);
         } finally {
             rwLock.writeLock().unlock();
         }

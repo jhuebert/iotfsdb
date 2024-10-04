@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.IntBuffer;
+import java.nio.MappedByteBuffer;
 import java.util.AbstractList;
 import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -24,6 +25,8 @@ public class IntegerFileBasedArray implements FileBasedArray<Integer> {
     private final boolean readOnly;
 
     private final RandomAccessFile randomAccessFile;
+
+    private final MappedByteBuffer mappedByteBuffer;
 
     private final IntBuffer intBuffer;
 
@@ -47,10 +50,10 @@ public class IntegerFileBasedArray implements FileBasedArray<Integer> {
 
         try {
             RandomAccessFile randomAccessFile = new RandomAccessFile(file, combinedReadOnly ? "r" : "rw");
-            IntBuffer intBuffer = randomAccessFile.getChannel()
-                .map(combinedReadOnly ? READ_ONLY : READ_WRITE, 0, numBytes)
-                .asIntBuffer();
-            return new IntegerFileBasedArray(size, combinedReadOnly, randomAccessFile, intBuffer);
+            MappedByteBuffer mappedByteBuffer = randomAccessFile.getChannel()
+                .map(combinedReadOnly ? READ_ONLY : READ_WRITE, 0, numBytes);
+            IntBuffer intBuffer = mappedByteBuffer.asIntBuffer();
+            return new IntegerFileBasedArray(size, combinedReadOnly, randomAccessFile, mappedByteBuffer, intBuffer);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -66,23 +69,25 @@ public class IntegerFileBasedArray implements FileBasedArray<Integer> {
 
         try {
             RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
-            IntBuffer intBuffer = randomAccessFile.getChannel()
-                .map(READ_WRITE, 0, numBytes)
-                .asIntBuffer();
+            MappedByteBuffer mappedByteBuffer = randomAccessFile.getChannel()
+                .map(READ_WRITE, 0, numBytes);
+            IntBuffer intBuffer = mappedByteBuffer.asIntBuffer();
             for (int i = 0; i < size; i++) {
                 intBuffer.put(Integer.MIN_VALUE);
             }
             intBuffer.rewind();
-            return new IntegerFileBasedArray(size, false, randomAccessFile, intBuffer);
+            mappedByteBuffer.force();
+            return new IntegerFileBasedArray(size, false, randomAccessFile, mappedByteBuffer, intBuffer);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private IntegerFileBasedArray(int size, boolean readOnly, RandomAccessFile randomAccessFile, IntBuffer intBuffer) {
+    private IntegerFileBasedArray(int size, boolean readOnly, RandomAccessFile randomAccessFile, MappedByteBuffer mappedByteBuffer, IntBuffer intBuffer) {
         this.size = size;
         this.readOnly = readOnly;
         this.randomAccessFile = randomAccessFile;
+        this.mappedByteBuffer = mappedByteBuffer;
         this.intBuffer = intBuffer;
     }
 
@@ -118,6 +123,7 @@ public class IntegerFileBasedArray implements FileBasedArray<Integer> {
         rwLock.writeLock().lock();
         try {
             intBuffer.put(index, intValue);
+            mappedByteBuffer.force(index * 4, 4);
         } finally {
             rwLock.writeLock().unlock();
         }

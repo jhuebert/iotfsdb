@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.FloatBuffer;
+import java.nio.MappedByteBuffer;
 import java.util.AbstractList;
 import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -23,6 +24,8 @@ public class FloatFileBasedArray implements FileBasedArray<Float> {
     private final boolean readOnly;
 
     private final RandomAccessFile randomAccessFile;
+
+    private final MappedByteBuffer mappedByteBuffer;
 
     private final FloatBuffer floatBuffer;
 
@@ -46,10 +49,10 @@ public class FloatFileBasedArray implements FileBasedArray<Float> {
 
         try {
             RandomAccessFile randomAccessFile = new RandomAccessFile(file, combinedReadOnly ? "r" : "rw");
-            FloatBuffer floatBuffer = randomAccessFile.getChannel()
-                .map(combinedReadOnly ? READ_ONLY : READ_WRITE, 0, numBytes)
-                .asFloatBuffer();
-            return new FloatFileBasedArray(size, combinedReadOnly, randomAccessFile, floatBuffer);
+            MappedByteBuffer mappedByteBuffer = randomAccessFile.getChannel()
+                .map(combinedReadOnly ? READ_ONLY : READ_WRITE, 0, numBytes);
+            FloatBuffer floatBuffer = mappedByteBuffer.asFloatBuffer();
+            return new FloatFileBasedArray(size, combinedReadOnly, randomAccessFile, mappedByteBuffer, floatBuffer);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -65,23 +68,25 @@ public class FloatFileBasedArray implements FileBasedArray<Float> {
 
         try {
             RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
-            FloatBuffer floatBuffer = randomAccessFile.getChannel()
-                .map(READ_WRITE, 0, numBytes)
-                .asFloatBuffer();
+            MappedByteBuffer mappedByteBuffer = randomAccessFile.getChannel()
+                .map(READ_WRITE, 0, numBytes);
+            FloatBuffer floatBuffer = mappedByteBuffer.asFloatBuffer();
             for (int i = 0; i < size; i++) {
                 floatBuffer.put(Float.NaN);
             }
             floatBuffer.rewind();
-            return new FloatFileBasedArray(size, false, randomAccessFile, floatBuffer);
+            mappedByteBuffer.force();
+            return new FloatFileBasedArray(size, false, randomAccessFile, mappedByteBuffer, floatBuffer);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private FloatFileBasedArray(int size, boolean readOnly, RandomAccessFile randomAccessFile, FloatBuffer floatBuffer) {
+    private FloatFileBasedArray(int size, boolean readOnly, RandomAccessFile randomAccessFile, MappedByteBuffer mappedByteBuffer, FloatBuffer floatBuffer) {
         this.size = size;
         this.readOnly = readOnly;
         this.randomAccessFile = randomAccessFile;
+        this.mappedByteBuffer = mappedByteBuffer;
         this.floatBuffer = floatBuffer;
     }
 
@@ -117,6 +122,7 @@ public class FloatFileBasedArray implements FileBasedArray<Float> {
         rwLock.writeLock().lock();
         try {
             floatBuffer.put(index, floatValue);
+            mappedByteBuffer.force(index * 4, 4);
         } finally {
             rwLock.writeLock().unlock();
         }
