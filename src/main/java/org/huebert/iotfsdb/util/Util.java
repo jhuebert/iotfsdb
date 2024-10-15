@@ -1,4 +1,4 @@
-package org.huebert.iotfsdb;
+package org.huebert.iotfsdb.util;
 
 import java.io.File;
 

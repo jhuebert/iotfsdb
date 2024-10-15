@@ -1,7 +1,7 @@
 package org.huebert.iotfsdb.rest;
 
 import com.google.common.collect.Range;
-import org.huebert.iotfsdb.series.SeriesAggregation;
+import org.huebert.iotfsdb.series.Aggregation;
 import org.huebert.iotfsdb.service.SeriesService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +21,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 @RequestMapping("/v1/data")
 public class SeriesDataController {
 
-    private static final Set<String> PARAMS = Set.of("pattern", "start", "end", "interval", "includeNull", "aggregation");
+    private static final Set<String> PARAMS = Set.of("pattern", "start", "end", "interval", "includeNull", "aggregation1", "aggregation2", "maxSize");
 
     private final SeriesService seriesService;
 
@@ -30,13 +30,15 @@ public class SeriesDataController {
     }
 
     @GetMapping
-    public Map<String, Map<ZonedDateTime, ?>> findData(
-        @RequestParam(name = "pattern", required = false, defaultValue = ".*") Pattern pattern,
+    public Map<String, Map<ZonedDateTime, ? extends Number>> findData( //TODO Use request object
         @RequestParam(name = "start") ZonedDateTime start,
         @RequestParam(name = "end") ZonedDateTime end,
-        @RequestParam(name = "interval", required = false, defaultValue = "1") int interval,
+        @RequestParam(name = "pattern", required = false, defaultValue = ".*") Pattern pattern,
+        @RequestParam(name = "interval", required = false) Integer interval,
+        @RequestParam(name = "maxSize", required = false) Integer maxSize,
         @RequestParam(name = "includeNull", required = false, defaultValue = "false") boolean includeNull,
-        @RequestParam(name = "aggregation", required = false, defaultValue = "AVERAGE") SeriesAggregation aggregation,
+        @RequestParam(name = "aggregation1", required = false, defaultValue = "AVERAGE") Aggregation aggregation1,
+        @RequestParam(name = "aggregation2", required = false) Aggregation aggregation2,
         @RequestParam Map<String, String> metadata
     ) {
 
@@ -56,7 +58,7 @@ public class SeriesDataController {
             throw new ResponseStatusException(BAD_REQUEST, "end is null");
         }
 
-        if (aggregation == null) {
+        if (aggregation1 == null) {
             throw new ResponseStatusException(BAD_REQUEST, "aggregation is null");
         }
 
@@ -64,8 +66,12 @@ public class SeriesDataController {
             throw new ResponseStatusException(BAD_REQUEST, "end is before start");
         }
 
-        if (interval < 0) {
+        if (interval < 1) {
             throw new ResponseStatusException(BAD_REQUEST, "interval must be at least 1");
+        }
+
+        if (maxSize < 1) {
+            throw new ResponseStatusException(BAD_REQUEST, "maximum series size must be at least 1");
         }
 
         Map<String, String> trimmedMetadata = new HashMap<>(metadata);
@@ -73,7 +79,7 @@ public class SeriesDataController {
 
         Range<ZonedDateTime> range = Range.closed(start, end);
 
-        return seriesService.get(pattern, trimmedMetadata, range, interval, includeNull, aggregation);
+        return seriesService.get(pattern, trimmedMetadata, range, interval, maxSize, includeNull, aggregation1, aggregation2);
     }
 
 }

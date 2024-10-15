@@ -1,7 +1,6 @@
 package org.huebert.iotfsdb.rest;
 
-import org.huebert.iotfsdb.schema.DataValue;
-import org.huebert.iotfsdb.schema.Series;
+import org.huebert.iotfsdb.series.SeriesDefinition;
 import org.huebert.iotfsdb.service.SeriesService;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,14 +34,14 @@ public class SeriesController {
     }
 
     @PostMapping
-    public Series createSeries(@RequestBody Series series) throws IOException {
-        Series.checkValid(series);
-        return seriesService.createSeries(series);
+    public SeriesDefinition createSeries(@RequestBody SeriesDefinition seriesDefinition) throws IOException {
+        SeriesDefinition.checkValid(seriesDefinition);
+        return seriesService.createSeries(seriesDefinition);
     }
 
     @GetMapping("{id}")
-    public Series getSeries(@PathVariable("id") String id) {
-        return seriesService.getSeries(id);
+    public SeriesDefinition getSeries(@PathVariable("id") String id) {
+        return seriesService.getSeriesDefinition(id);
     }
 
     @DeleteMapping("{id}")
@@ -52,7 +51,7 @@ public class SeriesController {
     }
 
     @GetMapping
-    public List<Series> findSeries(
+    public List<SeriesDefinition> findSeries(
         @RequestParam(name = "pattern", required = false, defaultValue = ".*") Pattern pattern,
         @RequestParam Map<String, String> metadata
     ) {
@@ -78,6 +77,9 @@ public class SeriesController {
     public DataValue set(@PathVariable("id") String id, @RequestBody DataValue dataValue) {
         DataValue.checkValid(dataValue);
         seriesService.set(id, dataValue.dateTime(), dataValue.value());
+
+        //TODO Queue up inserts and flush every so often?
+
         return dataValue;
     }
 

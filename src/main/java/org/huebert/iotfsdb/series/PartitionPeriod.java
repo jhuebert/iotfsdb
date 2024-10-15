@@ -1,8 +1,7 @@
-package org.huebert.iotfsdb.schema;
+package org.huebert.iotfsdb.series;
 
-import com.google.common.collect.Range;
+import lombok.Getter;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
@@ -10,7 +9,7 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.regex.Pattern;
 
-public enum FileInterval {
+public enum PartitionPeriod {
 
     DAY(Period.ofDays(1), DateTimeFormatter.ofPattern("yyyyMMdd"), Pattern.compile("\\d{8}")),
 
@@ -18,22 +17,23 @@ public enum FileInterval {
 
     YEAR(Period.ofYears(1), DateTimeFormatter.ofPattern("yyyy"), Pattern.compile("\\d{4}"));
 
+    @Getter
     private final Period period;
 
     private final DateTimeFormatter formatter;
 
     private final Pattern pattern;
 
-    FileInterval(Period period, DateTimeFormatter formatter, Pattern pattern) {
+    PartitionPeriod(Period period, DateTimeFormatter formatter, Pattern pattern) {
         this.period = period;
         this.formatter = formatter;
         this.pattern = pattern;
     }
 
-    public static FileInterval findMatch(String filename) {
-        for (FileInterval fileInterval : values()) {
-            if (fileInterval.pattern.matcher(filename).matches()) {
-                return fileInterval;
+    public static PartitionPeriod findMatch(String filename) {
+        for (PartitionPeriod partitionPeriod : values()) {
+            if (partitionPeriod.pattern.matcher(filename).matches()) {
+                return partitionPeriod;
             }
         }
         return null;
@@ -43,7 +43,7 @@ public enum FileInterval {
         return formatter.format(dateTime);
     }
 
-    public LocalDateTime getStart(String filename) {
+    public LocalDateTime parseStart(String filename) {
 
         TemporalAccessor parsed = formatter.parse(filename);
 
@@ -60,22 +60,6 @@ public enum FileInterval {
         }
 
         return LocalDateTime.of(year, month, day, 0, 0, 0);
-    }
-
-    private LocalDateTime getEnd(LocalDateTime start) {
-        return start.plus(period);
-    }
-
-    public Duration getDuration(LocalDateTime start) {
-        return Duration.between(start, getEnd(start));
-    }
-
-    public Range<LocalDateTime> getRange(LocalDateTime start) {
-        return Range.closed(start, getEnd(start).minusNanos(1));
-    }
-
-    public int calculateSize(LocalDateTime start, Duration valueInterval) {
-        return (int) getDuration(start).dividedBy(valueInterval);
     }
 
 }

@@ -1,4 +1,4 @@
-package org.huebert.iotfsdb.schema;
+package org.huebert.iotfsdb.rest;
 
 import java.time.ZonedDateTime;
 
