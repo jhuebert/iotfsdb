@@ -213,7 +213,7 @@ public class SeriesService {
                 throw new IllegalArgumentException();
             }
             Duration duration = Duration.ofSeconds(interval);
-            int intervalCount = (int) Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(duration);
+            int intervalCount = (int) Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(duration) + 1;
             if (intervalCount < count) {
                 count = intervalCount;
             }
@@ -223,7 +223,7 @@ public class SeriesService {
 
         List<Range<ZonedDateTime>> ranges = new ArrayList<>(count);
         ZonedDateTime start = range.lowerEndpoint();
-        for (int i = 0; i <= count; i++) {
+        for (int i = 0; i < count; i++) {
             ZonedDateTime end = start.plus(duration);
             ranges.add(Range.closed(start, end.minusNanos(1)));
             start = end;

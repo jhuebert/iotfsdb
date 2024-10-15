@@ -66,11 +66,11 @@ public class SeriesDataController {
             throw new ResponseStatusException(BAD_REQUEST, "end is before start");
         }
 
-        if (interval < 1) {
+        if ((interval != null) && (interval < 1)) {
             throw new ResponseStatusException(BAD_REQUEST, "interval must be at least 1");
         }
 
-        if (maxSize < 1) {
+        if ((maxSize != null) && (maxSize < 1)) {
             throw new ResponseStatusException(BAD_REQUEST, "maximum series size must be at least 1");
         }
 
