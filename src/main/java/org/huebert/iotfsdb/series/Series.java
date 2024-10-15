@@ -6,23 +6,21 @@ import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.partition.Partition;
 import org.huebert.iotfsdb.partition.PartitionFactory;
+import org.huebert.iotfsdb.util.Tuple;
 import org.huebert.iotfsdb.util.Util;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
@@ -34,6 +32,12 @@ public class Series implements AutoCloseable {
 
     private static final String DEFINITION_JSON = "definition.json";
 
+    private final ObjectMapper mapper = new ObjectMapper();
+
+    private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
+
+    private final RangeMap<LocalDateTime, Partition<?>> rangeMap = TreeRangeMap.create();
+
     @Getter
     private final File root;
 
@@ -41,29 +45,26 @@ public class Series implements AutoCloseable {
     private final SeriesDefinition definition;
 
     @Getter
-    @Setter
     private Map<String, String> metadata;
 
-    private final ObjectMapper mapper = new ObjectMapper();
-
-    private final AtomicLong lastRequest = new AtomicLong(); //TODO
-
-    private final ReadWriteLock rwLock = new ReentrantReadWriteLock();
-
-    private final RangeMap<LocalDateTime, Partition<?>> rangeMap = TreeRangeMap.create();
-
-    public Series(File root, SeriesDefinition definition) throws IOException {
+    public Series(File root, SeriesDefinition definition) {
 
         if (!root.mkdirs()) {
             throw new RuntimeException(String.format("unable to create series directory (%s)", root));
         }
         this.root = root;
 
-        this.definition = definition;
-        mapper.writeValue(new File(root, DEFINITION_JSON), definition);
+        try {
 
-        this.metadata = Map.of();
-        mapper.writeValue(new File(root, METADATA_JSON), metadata);
+            this.definition = definition;
+            mapper.writeValue(new File(root, DEFINITION_JSON), definition);
+
+            this.metadata = Map.of();
+            mapper.writeValue(new File(root, METADATA_JSON), metadata);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public Series(File root) {
@@ -111,19 +112,18 @@ public class Series implements AutoCloseable {
         return metadata;
     }
 
-    public Map<String, String> updateMetadata(Map<String, String> metadata) throws IOException {
+    public Map<String, String> updateMetadata(Map<String, String> metadata) {
         rwLock.writeLock().lock();
         try {
             File metadataFile = Util.checkFileWrite(new File(root, METADATA_JSON));
             mapper.writeValue(metadataFile, metadata);
             this.metadata = metadata;
             return metadata;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         } finally {
             rwLock.writeLock().unlock();
         }
-    }
-
-    private record Tuple(ZonedDateTime dateTime, Number value) {
     }
 
     public Map<ZonedDateTime, ? extends Number> get(List<Range<ZonedDateTime>> ranges, boolean includeNull, Aggregation aggregation) {
@@ -137,47 +137,32 @@ public class Series implements AutoCloseable {
         try {
             ranges.parallelStream()
                 .map(current -> {
-                    Range<LocalDateTime> local = convertToUtc(current);
+                    Range<LocalDateTime> local = Util.convertToUtc(current);
                     Stream<? extends Number> stream = rangeMap.subRangeMap(local).asMapOfRanges().values().stream()
-                        .flatMap(f -> f.get(local).stream());
-                    return new Tuple(current.lowerEndpoint(), PartitionFactory.aggregate(stream, aggregation).orElse(null));
+                        .flatMap(partition -> partition.get(local).stream());
+                    return new Tuple<>(current.lowerEndpoint(), PartitionFactory.aggregate(stream, aggregation).orElse(null));
                 })
-                .filter(t -> includeNull || (t.value != null))
-                .forEachOrdered(t -> result.put(t.dateTime, t.value));
+                .filter(t -> includeNull || (t.value() != null))
+                .forEachOrdered(t -> result.put(t.key(), t.value()));
         } finally {
             rwLock.readLock().unlock();
         }
 
-        lastRequest.updateAndGet(r -> System.currentTimeMillis());
-
         return result;
-    }
-
-    private LocalDateTime convertToUtc(ZonedDateTime zonedDateTime) {
-        return zonedDateTime.withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
-    }
-
-    private Range<LocalDateTime> convertToUtc(Range<ZonedDateTime> zonedRange) {
-        return Range.range(
-            convertToUtc(zonedRange.lowerEndpoint()),
-            zonedRange.lowerBoundType(),
-            convertToUtc(zonedRange.upperEndpoint()),
-            zonedRange.upperBoundType()
-        );
     }
 
     public void set(ZonedDateTime dateTime, String value) {
 
-        LocalDateTime local = convertToUtc(dateTime);
-        PartitionPeriod partitionPeriod = definition.partition();
-        String filename = partitionPeriod.getFilename(local);
-        LocalDateTime start = partitionPeriod.parseStart(filename);
+        LocalDateTime local = Util.convertToUtc(dateTime);
 
         rwLock.writeLock().lock();
         try {
             Partition<?> partition = rangeMap.get(local);
             if (partition == null) {
+                PartitionPeriod partitionPeriod = definition.partition();
+                String filename = partitionPeriod.getFilename(local);
                 File file = new File(Util.checkDirectory(root), filename);
+                LocalDateTime start = partitionPeriod.parseStart(filename);
                 partition = PartitionFactory.create(definition.type(), file, start, partitionPeriod.getPeriod(), Duration.of(definition.interval(), ChronoUnit.SECONDS));
                 rangeMap.put(partition.getRange(), partition);
             }
@@ -185,17 +170,22 @@ public class Series implements AutoCloseable {
         } finally {
             rwLock.writeLock().unlock();
         }
+    }
 
-        lastRequest.updateAndGet(r -> System.currentTimeMillis());
+    public void closeIfIdleOrSync() {
+        rwLock.writeLock().lock();
+        try {
+            rangeMap.asMapOfRanges().values().forEach(Partition::closeIfIdleOrSync);
+        } finally {
+            rwLock.writeLock().unlock();
+        }
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         rwLock.writeLock().lock();
         try {
-            for (Partition<?> value : rangeMap.asMapOfRanges().values()) {
-                value.close();
-            }
+            rangeMap.asMapOfRanges().values().forEach(Partition::close);
         } finally {
             rwLock.writeLock().unlock();
         }

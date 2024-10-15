@@ -3,6 +3,7 @@ package org.huebert.iotfsdb.partition;
 import com.google.common.base.Function;
 import com.google.common.collect.Range;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.util.TriFunction;
 import org.huebert.iotfsdb.util.Util;
 
@@ -27,12 +28,31 @@ import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
  *
  * @param <T> Type of data in this partition
  */
+@Slf4j
 public abstract class Partition<T extends Number> extends AbstractList<T> implements RandomAccess, AutoCloseable {
+
+    // Partition can be considered idle if it hasn't been updated in the last 5 minutes
+    public static final int IDLE_TIME_MS = 300000;
+
+    // Synchronize no more often than once per second
+    private static final int SYNC_TIME_MS = 1000;
+
+    private final File file;
+
+    private final int size;
+
+    private final int typeSize;
+
+    private final int bitShift;
+
+    private final BiFunction<ByteBuffer, Integer, T> getType;
+
+    private final TriFunction<ByteBuffer, Integer, T, ByteBuffer> putType;
+
+    private final Function<String, T> convertText;
 
     @Getter
     private volatile boolean open;
-
-    private final File file;
 
     @Getter
     private final Duration interval;
@@ -40,18 +60,16 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
     @Getter
     private final Range<LocalDateTime> range;
 
-    private final int size;
-
     @Getter
     private final boolean readOnly;
 
-    private final int typeSize;
+    private long lastSet;
 
-    private final BiFunction<ByteBuffer, Integer, T> getType;
+    private long lastSync;
 
-    private final TriFunction<ByteBuffer, Integer, T, ByteBuffer> putType;
+    private int syncStart;
 
-    private final Function<String, T> convertText;
+    private int syncEnd;
 
     private RandomAccessFile randomAccessFile;
 
@@ -68,6 +86,7 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
         Function<String, T> convertText
     ) {
         this.typeSize = typeSize;
+        this.bitShift = (int) Math.rint(Math.log(typeSize) / Math.log(2));
         this.getType = getType;
         this.putType = putType;
         this.convertText = convertText;
@@ -85,12 +104,12 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
             }
 
             if (numBytes % typeSize != 0) {
-                throw new IllegalArgumentException(String.format("file (%s) size (%d) is not a multiple of four", file, numBytes));
+                throw new IllegalArgumentException(String.format("file (%s) size (%d) is not a valid multiple", file, numBytes));
             }
 
             this.readOnly = !file.canWrite();
             this.open = false;
-            this.size = (int) (numBytes / typeSize);
+            this.size = (int) (numBytes >> bitShift);
             this.interval = Duration.between(start, end).dividedBy(this.size);
 
         } else {
@@ -101,7 +120,7 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
             this.interval = interval;
 
             try {
-                int numBytes = size * typeSize;
+                int numBytes = size << bitShift;
                 this.randomAccessFile = new RandomAccessFile(file, "rw");
                 this.mappedByteBuffer = randomAccessFile.getChannel().map(READ_WRITE, 0, numBytes);
                 for (int i = 0; i < numBytes; i += typeSize) {
@@ -114,64 +133,9 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
             }
 
         }
-    }
 
-//    protected Partition(File file, LocalDateTime start, Period period, boolean readOnly, int typeSize, BiFunction<ByteBuffer, Integer, T> getType, TriFunction<ByteBuffer, Integer, T, ByteBuffer> putType, Function<String, T> convertText) {
-//        this.file = Util.checkFile(file);
-//        this.typeSize = typeSize;
-//        this.getType = getType;
-//        this.putType = putType;
-//        this.convertText = convertText;
-//
-//        long numBytes = file.length();
-//        if (numBytes == 0) {
-//            throw new IllegalArgumentException(String.format("file (%s) is empty", file));
-//        }
-//
-//        if (numBytes % typeSize != 0) {
-//            throw new IllegalArgumentException(String.format("file (%s) size (%d) is not a multiple of four", file, numBytes));
-//        }
-//
-//        this.size = (int) (numBytes / typeSize);
-//        this.readOnly = readOnly || !file.canWrite();
-//        LocalDateTime end = start.plus(period);
-//        this.interval = Duration.between(start, end).dividedBy(this.size);
-//        this.range = Range.closed(start, end.minusNanos(1));
-//        this.open = false;
-//    }
-//
-//    protected Partition(File file, LocalDateTime start, Period period, Duration interval, int typeSize, BiFunction<ByteBuffer, Integer, T> getType, TriFunction<ByteBuffer, Integer, T, ByteBuffer> putType, Function<String, T> convertText) {
-//        this.typeSize = typeSize;
-//        this.getType = getType;
-//        this.putType = putType;
-//        this.convertText = convertText;
-//
-//        if (file.exists()) {
-//            throw new IllegalArgumentException(String.format("file (%s) already exists", file));
-//        }
-//
-//        this.file = file;
-//        this.readOnly = false;
-//        LocalDateTime end = start.plus(period);
-//        this.range = Range.closed(start, end.minusNanos(1));
-//        this.interval = interval;
-//        this.size = (int) Duration.between(start, end).dividedBy(interval);
-//        int numBytes = size * typeSize;
-//
-//        try {
-//            this.randomAccessFile = new RandomAccessFile(file, "rw");
-//            this.mappedByteBuffer = randomAccessFile.getChannel()
-//                .map(READ_WRITE, 0, numBytes);
-//            for (int i = 0; i < numBytes; i += typeSize) {
-//                putType.apply(mappedByteBuffer, i, null);
-//            }
-//            mappedByteBuffer.rewind();
-//            mappedByteBuffer.force();
-//            this.open = true;
-//        } catch (IOException e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
+        clearSyncStatus();
+    }
 
     public List<T> get(Range<LocalDateTime> range) {
         Range<LocalDateTime> intersection = this.range.intersection(range);
@@ -209,23 +173,33 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
     @Override
     public T get(int index) {
         open();
-        int byteOffset = index * typeSize;
+        int byteOffset = index << bitShift;
         return getType.apply(mappedByteBuffer, byteOffset);
     }
 
     @Override
     public T set(int index, T element) {
+        log.debug("set: file={}, index={}, value={}", file, index, element);
 
         if (readOnly) {
             throw new IllegalStateException("file is read only");
         }
 
+        long current = System.currentTimeMillis();
+        lastSet = current;
         open();
 
-        int byteOffset = index * typeSize;
+        int byteOffset = index << bitShift;
         T previous = getType.apply(mappedByteBuffer, byteOffset);
         putType.apply(mappedByteBuffer, byteOffset, element);
-        mappedByteBuffer.force(byteOffset, typeSize);
+
+        syncStart = Math.min(syncStart, byteOffset);
+        syncEnd = Math.max(syncEnd, byteOffset + typeSize);
+
+        if (lastSync < current - SYNC_TIME_MS) {
+            sync();
+        }
+
         return previous;
     }
 
@@ -233,6 +207,7 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
         if (!open) {
             synchronized (this) {
                 if (!open) {
+                    log.debug("open: file={}", file);
                     try {
                         randomAccessFile = new RandomAccessFile(file, readOnly ? "r" : "rw");
                         mappedByteBuffer = randomAccessFile.getChannel()
@@ -241,23 +216,57 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
                         throw new RuntimeException(e);
                     }
                     open = true;
+                    clearSyncStatus();
                 }
             }
         }
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         if (open) {
             synchronized (this) {
                 if (open) {
-                    randomAccessFile.close();
+
+                    sync();
+
+                    log.debug("close: file={}", file);
+                    try {
+                        randomAccessFile.close();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
                     randomAccessFile = null;
                     mappedByteBuffer = null;
                     open = false;
                 }
             }
         }
+    }
+
+    public void closeIfIdleOrSync() {
+        if (open) {
+            if (lastSet < System.currentTimeMillis() - IDLE_TIME_MS) {
+                close();
+            } else {
+                sync();
+            }
+        }
+    }
+
+    private void sync() {
+        if (syncEnd > syncStart) {
+            log.debug("force: file={}, start={}, end={}", file, syncStart, syncEnd);
+            mappedByteBuffer.force(syncStart, syncEnd - syncStart);
+            clearSyncStatus();
+        }
+    }
+
+    private void clearSyncStatus() {
+        lastSync = System.currentTimeMillis();
+        syncStart = Integer.MAX_VALUE;
+        syncEnd = Integer.MIN_VALUE;
     }
 
 }

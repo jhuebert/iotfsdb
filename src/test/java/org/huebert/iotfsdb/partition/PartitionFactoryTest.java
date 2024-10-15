@@ -25,12 +25,12 @@ public class PartitionFactoryTest {
         raf.setLength(40);
         raf.close();
 
-        assertThat(PartitionFactory.create(SeriesType.BYTE, file, LocalDateTime.now(), Period.ofDays(1), null).size()).isEqualTo(40);
-        assertThat(PartitionFactory.create(SeriesType.DOUBLE, file, LocalDateTime.now(), Period.ofDays(1), null).size()).isEqualTo(5);
-        assertThat(PartitionFactory.create(SeriesType.FLOAT, file, LocalDateTime.now(), Period.ofDays(1), null).size()).isEqualTo(10);
-        assertThat(PartitionFactory.create(SeriesType.INTEGER, file, LocalDateTime.now(), Period.ofDays(1), null).size()).isEqualTo(10);
-        assertThat(PartitionFactory.create(SeriesType.LONG, file, LocalDateTime.now(), Period.ofDays(1), null).size()).isEqualTo(5);
-        assertThat(PartitionFactory.create(SeriesType.SHORT, file, LocalDateTime.now(), Period.ofDays(1), null).size()).isEqualTo(20);
+        assertThat(PartitionFactory.create(SeriesType.INT1, file, LocalDateTime.now(), Period.ofDays(1), null).size()).isEqualTo(40);
+        assertThat(PartitionFactory.create(SeriesType.FLOAT8, file, LocalDateTime.now(), Period.ofDays(1), null).size()).isEqualTo(5);
+        assertThat(PartitionFactory.create(SeriesType.FLOAT4, file, LocalDateTime.now(), Period.ofDays(1), null).size()).isEqualTo(10);
+        assertThat(PartitionFactory.create(SeriesType.INT4, file, LocalDateTime.now(), Period.ofDays(1), null).size()).isEqualTo(10);
+        assertThat(PartitionFactory.create(SeriesType.INT8, file, LocalDateTime.now(), Period.ofDays(1), null).size()).isEqualTo(5);
+        assertThat(PartitionFactory.create(SeriesType.INT2, file, LocalDateTime.now(), Period.ofDays(1), null).size()).isEqualTo(20);
 
         file.delete();
     }

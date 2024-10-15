@@ -17,4 +17,8 @@ public class IotfsdbProperties {
 
     private int maxQuerySize = 1000;
 
+    private boolean writeSync = true;
+
+    private int closeSeconds = 3600;
+
 }

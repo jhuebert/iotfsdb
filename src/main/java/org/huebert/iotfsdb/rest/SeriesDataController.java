@@ -1,6 +1,9 @@
 package org.huebert.iotfsdb.rest;
 
+import com.github.f4b6a3.ulid.UlidCreator;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Range;
+import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.series.Aggregation;
 import org.huebert.iotfsdb.service.SeriesService;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +20,7 @@ import java.util.regex.Pattern;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
+@Slf4j
 @RestController
 @RequestMapping("/v1/data")
 public class SeriesDataController {
@@ -31,16 +35,17 @@ public class SeriesDataController {
 
     @GetMapping
     public Map<String, Map<ZonedDateTime, ? extends Number>> findData( //TODO Use request object
-        @RequestParam(name = "start") ZonedDateTime start,
-        @RequestParam(name = "end") ZonedDateTime end,
-        @RequestParam(name = "pattern", required = false, defaultValue = ".*") Pattern pattern,
-        @RequestParam(name = "interval", required = false) Integer interval,
-        @RequestParam(name = "maxSize", required = false) Integer maxSize,
-        @RequestParam(name = "includeNull", required = false, defaultValue = "false") boolean includeNull,
-        @RequestParam(name = "aggregation1", required = false, defaultValue = "AVERAGE") Aggregation aggregation1,
-        @RequestParam(name = "aggregation2", required = false) Aggregation aggregation2,
-        @RequestParam Map<String, String> metadata
+                                                                       @RequestParam(name = "start") ZonedDateTime start,
+                                                                       @RequestParam(name = "end") ZonedDateTime end,
+                                                                       @RequestParam(name = "pattern", required = false, defaultValue = ".*") Pattern pattern,
+                                                                       @RequestParam(name = "interval", required = false) Integer interval,
+                                                                       @RequestParam(name = "maxSize", required = false) Integer maxSize,
+                                                                       @RequestParam(name = "includeNull", required = false, defaultValue = "false") boolean includeNull,
+                                                                       @RequestParam(name = "aggregation1", required = false, defaultValue = "AVERAGE") Aggregation aggregation1,
+                                                                       @RequestParam(name = "aggregation2", required = false) Aggregation aggregation2,
+                                                                       @RequestParam Map<String, String> metadata
     ) {
+        Stopwatch stopwatch = Stopwatch.createStarted();
 
         if (metadata == null) {
             throw new ResponseStatusException(BAD_REQUEST, "metadata is null");
@@ -77,9 +82,16 @@ public class SeriesDataController {
         Map<String, String> trimmedMetadata = new HashMap<>(metadata);
         trimmedMetadata.keySet().removeAll(PARAMS);
 
+        String requestId = UlidCreator.getUlid().toLowerCase();
+        log.info("findData(request): trace={}, start={}, end={}, pattern={}, interval={}, maxSize={}, includeNull={}, aggregation1={}, aggregation2={}, metadata={}", requestId, start, end, pattern, interval, maxSize, includeNull, aggregation1, aggregation2, trimmedMetadata);
+
         Range<ZonedDateTime> range = Range.closed(start, end);
 
-        return seriesService.get(pattern, trimmedMetadata, range, interval, maxSize, includeNull, aggregation1, aggregation2);
+        Map<String, Map<ZonedDateTime, ? extends Number>> result = seriesService.get(pattern, trimmedMetadata, range, interval, maxSize, includeNull, aggregation1, aggregation2);
+
+        log.info("findData(response): trace={}, size={}, elapsed={}", requestId, result.size(), stopwatch.stop());
+
+        return result;
     }
 
 }

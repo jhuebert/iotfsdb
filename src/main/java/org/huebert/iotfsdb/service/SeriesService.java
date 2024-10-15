@@ -5,16 +5,17 @@ import com.google.common.collect.Range;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.IotfsdbProperties;
+import org.huebert.iotfsdb.partition.Partition;
 import org.huebert.iotfsdb.partition.PartitionFactory;
 import org.huebert.iotfsdb.series.Aggregation;
 import org.huebert.iotfsdb.series.Series;
 import org.huebert.iotfsdb.series.SeriesDefinition;
 import org.huebert.iotfsdb.util.Util;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 
 import java.io.File;
-import java.io.IOException;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -58,6 +59,13 @@ public class SeriesService {
             });
     }
 
+    @Scheduled(fixedRate = Partition.IDLE_TIME_MS)
+    public void closeIfIdleOrSync() {
+        log.debug("closing or syncing idle files - started");
+        seriesMap.values().parallelStream().forEach(Series::closeIfIdleOrSync);
+        log.debug("closing or syncing idle files - complete");
+    }
+
     private Series getSeries(String seriesId) {
         Series series = seriesMap.get(seriesId);
         if (series == null) {
@@ -74,17 +82,14 @@ public class SeriesService {
         return getSeries(seriesId).getMetadata();
     }
 
-    public synchronized Map<String, String> updateMetadata(String seriesId, Map<String, String> metadata) throws IOException {
-
+    public Map<String, String> updateMetadata(String seriesId, Map<String, String> metadata) {
         if (properties.isReadOnly()) {
             throw new IllegalStateException("database is read only");
         }
-
-        Series series = getSeries(seriesId);
-        return series.updateMetadata(metadata);
+        return getSeries(seriesId).updateMetadata(metadata);
     }
 
-    public synchronized void deleteSeries(String seriesId) {
+    public void deleteSeries(String seriesId) {
 
         if (properties.isReadOnly()) {
             throw new IllegalStateException("database is read only");
@@ -106,12 +111,11 @@ public class SeriesService {
         }
     }
 
-    public List<SeriesDefinition> findSeries(Pattern pattern, Map<String, String> metadata) {
+    public List<Series> findSeries(Pattern pattern, Map<String, String> metadata) {
         return seriesMap.values().parallelStream()
             .filter(s -> matchesMetadata(s, metadata))
-            .map(Series::getDefinition)
-            .filter(s -> pattern.matcher(s.id()).matches())
-            .sorted(Comparator.comparing(SeriesDefinition::id))
+            .filter(s -> pattern.matcher(s.getDefinition().id()).matches())
+            .sorted(Comparator.comparing(s -> s.getDefinition().id()))
             .toList();
     }
 
@@ -132,7 +136,7 @@ public class SeriesService {
         return true;
     }
 
-    public synchronized SeriesDefinition createSeries(SeriesDefinition seriesDefinition) throws IOException {
+    public SeriesDefinition createSeries(SeriesDefinition seriesDefinition) {
 
         if (properties.isReadOnly()) {
             throw new IllegalStateException("database is read only");
@@ -142,19 +146,15 @@ public class SeriesService {
             throw new IllegalArgumentException(String.format("series (%s) already exists", seriesDefinition.id()));
         }
 
-        File seriesRoot = new File(Util.checkDirectory(properties.getRoot()), String.valueOf(UlidCreator.getUlid()));
-        Series series = new Series(seriesRoot, seriesDefinition);
-        seriesMap.put(seriesDefinition.id(), series);
-
-        return seriesDefinition;
+        File seriesRoot = new File(Util.checkDirectory(properties.getRoot()), UlidCreator.getUlid().toLowerCase());
+        return seriesMap.computeIfAbsent(seriesDefinition.id(), id -> new Series(seriesRoot, seriesDefinition))
+            .getDefinition();
     }
 
     public void set(String seriesId, ZonedDateTime dateTime, String value) {
-
         if (properties.isReadOnly()) {
             throw new IllegalStateException("database is read only");
         }
-
         getSeries(seriesId).set(dateTime, value);
     }
 
@@ -176,22 +176,19 @@ public class SeriesService {
 
         List<Range<ZonedDateTime>> ranges = calculateRanges(range, interval, maxSize);
         findSeries(pattern, metadata).parallelStream()
-            .forEach(definition -> {
-                Series series = getSeries(definition.id());
-                result.put(definition.id(), series.get(ranges, includeNull, timeAggregation));
-            });
+            .forEach(series -> result.put(series.getDefinition().id(), series.get(ranges, includeNull, timeAggregation)));
 
         if ((result.size() > 1) && (seriesAggregation != null)) {
             Map<ZonedDateTime, Number> combined = new ConcurrentSkipListMap<>();
-            for (Range<ZonedDateTime> rr : ranges) {
-                Stream<? extends Number> stream = result.values().stream().map(map -> map.get(rr.lowerEndpoint()));
+            for (Range<ZonedDateTime> r : ranges) {
+                Stream<? extends Number> stream = result.values().stream().map(map -> map.get(r.lowerEndpoint()));
                 Optional<? extends Number> aggregate = PartitionFactory.aggregate(stream, seriesAggregation);
                 if (includeNull || aggregate.isPresent()) {
-                    combined.put(rr.lowerEndpoint(), aggregate.orElse(null));
+                    combined.put(r.lowerEndpoint(), aggregate.orElse(null));
                 }
             }
             result.clear();
-            result.put("aggregation", combined);
+            result.put("result", combined);
         }
 
         return result;
@@ -202,16 +199,10 @@ public class SeriesService {
         int count = properties.getMaxQuerySize();
 
         if ((maxSize != null) && (maxSize < count)) {
-            if (maxSize < 1) {
-                throw new IllegalArgumentException();
-            }
             count = maxSize;
         }
 
         if (interval != null) {
-            if (interval < 1) {
-                throw new IllegalArgumentException();
-            }
             Duration duration = Duration.ofSeconds(interval);
             int intervalCount = (int) Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(duration) + 1;
             if (intervalCount < count) {
@@ -230,4 +221,5 @@ public class SeriesService {
         }
         return ranges;
     }
+
 }

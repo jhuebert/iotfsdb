@@ -23,17 +23,17 @@ import java.util.stream.Stream;
 public class PartitionFactory {
 
     public static Partition<?> create(SeriesType seriesType, File file, LocalDateTime start, Period period, Duration interval) {
-        if (seriesType == SeriesType.BYTE) {
+        if (seriesType == SeriesType.INT1) {
             return new BytePartition(file, start, period, interval);
-        } else if (seriesType == SeriesType.DOUBLE) {
+        } else if (seriesType == SeriesType.FLOAT8) {
             return new DoublePartition(file, start, period, interval);
-        } else if (seriesType == SeriesType.FLOAT) {
+        } else if (seriesType == SeriesType.FLOAT4) {
             return new FloatPartition(file, start, period, interval);
-        } else if (seriesType == SeriesType.INTEGER) {
+        } else if (seriesType == SeriesType.INT4) {
             return new IntegerPartition(file, start, period, interval);
-        } else if (seriesType == SeriesType.LONG) {
+        } else if (seriesType == SeriesType.INT8) {
             return new LongPartition(file, start, period, interval);
-        } else if (seriesType == SeriesType.SHORT) {
+        } else if (seriesType == SeriesType.INT2) {
             return new ShortPartition(file, start, period, interval);
         } else {
             throw new IllegalArgumentException(String.format("series type %s not supported", seriesType));

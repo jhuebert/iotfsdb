@@ -41,7 +41,7 @@ public class IntegerPartitionTest {
     }
 
     @Test
-    public void testCreate() throws Exception {
+    public void testCreate() {
         try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
             assertThat(partition.size()).isEqualTo(24);
             assertThat(file.exists()).isEqualTo(true);
@@ -76,15 +76,15 @@ public class IntegerPartitionTest {
         raf.close();
         try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 10; i++) {
-                assertThat(partition.get(i)).isEqualTo((int) 0);
+                assertThat(partition.get(i)).isEqualTo(0);
             }
-            partition.set(0, (int) 100);
-            assertThat(partition.get(0)).isEqualTo((int) 100);
+            partition.set(0, 100);
+            assertThat(partition.get(0)).isEqualTo(100);
         }
     }
 
     @Test
-    public void testGetRangeEmpty() throws Exception {
+    public void testGetRangeEmpty() {
         try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
             LocalDateTime testTime = START.plusHours(12);
             List<Integer> result = partition.get(Range.closedOpen(testTime, testTime));
@@ -93,34 +93,34 @@ public class IntegerPartitionTest {
     }
 
     @Test
-    public void testGetRangeAllExact() throws Exception {
+    public void testGetRangeAllExact() {
         try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
             Integer[] expected = new Integer[24];
             for (int i = 0; i < 24; i++) {
-                partition.set(i, (int) i);
-                expected[i] = (int) i;
+                partition.set(i, i);
+                expected[i] = i;
             }
             assertThat(partition.get(Range.closed(START, START.plus(PERIOD).minusNanos(1)))).isEqualTo(Arrays.asList(expected));
         }
     }
 
     @Test
-    public void testGetRangeSingle() throws Exception {
+    public void testGetRangeSingle() {
         try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
-                partition.set(i, (int) i);
+                partition.set(i, i);
             }
             LocalDateTime testTime = START.plusHours(12);
             List<Integer> result = partition.get(Range.closed(testTime, testTime));
-            assertThat(result).isEqualTo(List.of((int) 12));
+            assertThat(result).isEqualTo(List.of(12));
         }
     }
 
     @Test
-    public void testGetRangeContained() throws Exception {
+    public void testGetRangeContained() {
         try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
-                partition.set(i, (int) i);
+                partition.set(i, i);
             }
             Integer[] expected = new Integer[]{4, 5, 6, 7, 8};
             assertThat(partition.get(Range.closed(START.plusHours(4), START.plusHours(8)))).isEqualTo(Arrays.asList(expected));
@@ -128,10 +128,10 @@ public class IntegerPartitionTest {
     }
 
     @Test
-    public void testGetRangeLowerOverlap() throws Exception {
+    public void testGetRangeLowerOverlap() {
         try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
-                partition.set(i, (int) i);
+                partition.set(i, i);
             }
             Integer[] expected = new Integer[]{0, 1, 2, 3, 4};
             assertThat(partition.get(Range.closed(START.minusHours(4), START.plusHours(4)))).isEqualTo(Arrays.asList(expected));
@@ -139,10 +139,10 @@ public class IntegerPartitionTest {
     }
 
     @Test
-    public void testGetRangeUpperOverlap() throws Exception {
+    public void testGetRangeUpperOverlap() {
         try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
-                partition.set(i, (int) i);
+                partition.set(i, i);
             }
             Integer[] expected = new Integer[]{20, 21, 22, 23};
             assertThat(partition.get(Range.closed(START.plus(PERIOD).minusHours(4), START.plus(PERIOD).plusHours(4)))).isEqualTo(Arrays.asList(expected));
@@ -150,19 +150,19 @@ public class IntegerPartitionTest {
     }
 
     @Test
-    public void testGetRangeCompleteOverlap() throws Exception {
+    public void testGetRangeCompleteOverlap() {
         try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
             Integer[] expected = new Integer[24];
             for (int i = 0; i < 24; i++) {
-                partition.set(i, (int) i);
-                expected[i] = (int) i;
+                partition.set(i, i);
+                expected[i] = i;
             }
             assertThat(partition.get(Range.closed(START.minusHours(4), START.plus(PERIOD).plusHours(4)))).isEqualTo(Arrays.asList(expected));
         }
     }
 
     @Test
-    public void testSetAndGetIndex() throws Exception {
+    public void testSetAndGetIndex() {
         try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
 
             for (int i = 0; i < 24; i++) {
@@ -170,11 +170,11 @@ public class IntegerPartitionTest {
             }
 
             for (int i = 0; i < 24; i++) {
-                partition.set(i, (int) i);
+                partition.set(i, i);
             }
 
             for (int i = 0; i < 24; i++) {
-                assertThat(partition.get(i)).isEqualTo((int) i);
+                assertThat(partition.get(i)).isEqualTo(i);
             }
 
             for (int i = 0; i < 24; i++) {
@@ -188,7 +188,7 @@ public class IntegerPartitionTest {
     }
 
     @Test
-    public void testSetAndGetDateTime() throws Exception {
+    public void testSetAndGetDateTime() {
         try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
 
             for (int i = 0; i < 24; i++) {
@@ -196,11 +196,11 @@ public class IntegerPartitionTest {
             }
 
             for (int i = 0; i < 24; i++) {
-                partition.set(START.plusHours(i), (int) i);
+                partition.set(START.plusHours(i), i);
             }
 
             for (int i = 0; i < 24; i++) {
-                assertThat(partition.get(START.plusHours(i))).isEqualTo((int) i);
+                assertThat(partition.get(START.plusHours(i))).isEqualTo(i);
             }
 
             for (int i = 0; i < 24; i++) {
@@ -214,7 +214,7 @@ public class IntegerPartitionTest {
     }
 
     @Test
-    public void testSetAndGetDateTimeText() throws Exception {
+    public void testSetAndGetDateTimeText() {
         try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
 
             for (int i = 0; i < 24; i++) {
@@ -222,11 +222,11 @@ public class IntegerPartitionTest {
             }
 
             for (int i = 0; i < 24; i++) {
-                partition.set(START.plusHours(i), String.valueOf((int) i));
+                partition.set(START.plusHours(i), String.valueOf(i));
             }
 
             for (int i = 0; i < 24; i++) {
-                assertThat(partition.get(START.plusHours(i))).isEqualTo((int) i);
+                assertThat(partition.get(START.plusHours(i))).isEqualTo(i);
             }
 
             for (int i = 0; i < 24; i++) {

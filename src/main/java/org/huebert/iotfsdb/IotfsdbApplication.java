@@ -8,12 +8,13 @@ import org.huebert.iotfsdb.service.SeriesService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
+@EnableScheduling
 @SpringBootApplication
 public class IotfsdbApplication {
 
@@ -32,16 +33,16 @@ public class IotfsdbApplication {
         }
 
         @Override
-        public void run(String... args) throws Exception {
-//            for (int i = 0; i < 100; i++) {
+        public void run(String... args) {
+//            for (int i = 0; i < 1; i++) {
 //                createSeries();
 //            }
 //            log.info("done");
         }
 
-        private void createSeries() throws IOException {
+        private void createSeries() {
             int valueInterval = 60;
-            SeriesDefinition seriesDefinition = new SeriesDefinition("float-month-60-" + UUID.randomUUID(), SeriesType.FLOAT, valueInterval, PartitionPeriod.MONTH);
+            SeriesDefinition seriesDefinition = new SeriesDefinition("float-month-60-" + UUID.randomUUID(), SeriesType.FLOAT4, valueInterval, PartitionPeriod.MONTH);
             log.info("series: {}", seriesDefinition.id());
             seriesService.createSeries(seriesDefinition);
             ZonedDateTime end = ZonedDateTime.now();
