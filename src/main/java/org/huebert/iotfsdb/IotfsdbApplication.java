@@ -1,5 +1,6 @@
 package org.huebert.iotfsdb;
 
+import com.github.f4b6a3.ulid.UlidCreator;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.series.PartitionPeriod;
 import org.huebert.iotfsdb.series.SeriesDefinition;
@@ -12,7 +13,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
-import java.util.UUID;
 
 @EnableScheduling
 @SpringBootApplication
@@ -42,15 +42,20 @@ public class IotfsdbApplication {
 
         private void createSeries() {
             int valueInterval = 60;
-            SeriesDefinition seriesDefinition = new SeriesDefinition("float-month-60-" + UUID.randomUUID(), SeriesType.FLOAT4, valueInterval, PartitionPeriod.MONTH);
-            log.info("series: {}", seriesDefinition.id());
+            SeriesDefinition seriesDefinition = SeriesDefinition.builder()
+                .id("float-month-60-" + UlidCreator.getUlid().toLowerCase())
+                .type(SeriesType.FLOAT4)
+                .interval(valueInterval)
+                .partition(PartitionPeriod.MONTH)
+                .build();
+            log.info("series: {}", seriesDefinition.getId());
             seriesService.createSeries(seriesDefinition);
             ZonedDateTime end = ZonedDateTime.now();
             log.info("end: {}", end);
             ZonedDateTime dateTime = end.minusMonths(12);
             log.info("start: {}", dateTime);
             while (dateTime.isBefore(end)) {
-                seriesService.set(seriesDefinition.id(), dateTime, String.valueOf(Math.random() * 10.0 + 60.0));
+                seriesService.set(seriesDefinition.getId(), dateTime, String.valueOf(Math.random() * 10.0 + 60.0));
                 dateTime = dateTime.plusSeconds(valueInterval);
             }
         }

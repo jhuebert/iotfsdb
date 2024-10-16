@@ -77,13 +77,13 @@ public class Series implements AutoCloseable {
             throw new IllegalArgumentException(String.format("series directory (%s) contains no files", root));
         }
 
-        PartitionPeriod partitionPeriod = definition.partition();
+        PartitionPeriod partitionPeriod = definition.getPartition();
         Stream.of(files)
             .filter(File::isFile)
             .filter(file -> partitionPeriod == PartitionPeriod.findMatch(file.getName()))
             .forEach(file -> {
                 LocalDateTime start = partitionPeriod.parseStart(file.getName());
-                Partition<?> partition = PartitionFactory.create(definition.type(), file, start, partitionPeriod.getPeriod(), Duration.ofSeconds(definition.interval()));
+                Partition<?> partition = PartitionFactory.create(definition.getType(), file, start, partitionPeriod.getPeriod(), Duration.ofSeconds(definition.getInterval()));
                 rangeMap.put(partition.getRange(), partition);
             });
     }
@@ -96,7 +96,6 @@ public class Series implements AutoCloseable {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        SeriesDefinition.checkValid(seriesDefinition);
         return seriesDefinition;
     }
 
@@ -159,11 +158,11 @@ public class Series implements AutoCloseable {
         try {
             Partition<?> partition = rangeMap.get(local);
             if (partition == null) {
-                PartitionPeriod partitionPeriod = definition.partition();
+                PartitionPeriod partitionPeriod = definition.getPartition();
                 String filename = partitionPeriod.getFilename(local);
                 File file = new File(Util.checkDirectory(root), filename);
                 LocalDateTime start = partitionPeriod.parseStart(filename);
-                partition = PartitionFactory.create(definition.type(), file, start, partitionPeriod.getPeriod(), Duration.of(definition.interval(), ChronoUnit.SECONDS));
+                partition = PartitionFactory.create(definition.getType(), file, start, partitionPeriod.getPeriod(), Duration.of(definition.getInterval(), ChronoUnit.SECONDS));
                 rangeMap.put(partition.getRange(), partition);
             }
             partition.set(local, value);

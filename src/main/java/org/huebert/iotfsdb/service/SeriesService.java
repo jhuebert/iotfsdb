@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.IotfsdbProperties;
 import org.huebert.iotfsdb.partition.Partition;
 import org.huebert.iotfsdb.partition.PartitionFactory;
-import org.huebert.iotfsdb.series.Aggregation;
+import org.huebert.iotfsdb.rest.DataRequest;
 import org.huebert.iotfsdb.series.Series;
 import org.huebert.iotfsdb.series.SeriesDefinition;
 import org.huebert.iotfsdb.util.Util;
@@ -55,7 +55,7 @@ public class SeriesService {
             .filter(File::isDirectory)
             .forEach(file -> {
                 Series series = new Series(file);
-                seriesMap.put(series.getDefinition().id(), series);
+                seriesMap.put(series.getDefinition().getId(), series);
             });
     }
 
@@ -114,15 +114,15 @@ public class SeriesService {
     public List<Series> findSeries(Pattern pattern, Map<String, String> metadata) {
         return seriesMap.values().parallelStream()
             .filter(s -> matchesMetadata(s, metadata))
-            .filter(s -> pattern.matcher(s.getDefinition().id()).matches())
-            .sorted(Comparator.comparing(s -> s.getDefinition().id()))
+            .filter(s -> pattern.matcher(s.getDefinition().getId()).matches())
+            .sorted(Comparator.comparing(s -> s.getDefinition().getId()))
             .toList();
     }
 
     private boolean matchesMetadata(Series series, Map<String, String> metadata) {
         Map<String, String> seriesMetadata = series.getMetadata();
 
-        if (metadata.isEmpty()) {
+        if ((metadata == null) || metadata.isEmpty()) {
             return true;
         } else if (metadata.size() > seriesMetadata.size()) {
             return false;
@@ -136,19 +136,18 @@ public class SeriesService {
         return true;
     }
 
-    public SeriesDefinition createSeries(SeriesDefinition seriesDefinition) {
+    public void createSeries(SeriesDefinition definition) {
 
         if (properties.isReadOnly()) {
             throw new IllegalStateException("database is read only");
         }
 
-        if (seriesMap.containsKey(seriesDefinition.id())) {
-            throw new IllegalArgumentException(String.format("series (%s) already exists", seriesDefinition.id()));
+        if (seriesMap.containsKey(definition.getId())) {
+            throw new IllegalArgumentException(String.format("series (%s) already exists", definition.getId()));
         }
 
         File seriesRoot = new File(Util.checkDirectory(properties.getRoot()), UlidCreator.getUlid().toLowerCase());
-        return seriesMap.computeIfAbsent(seriesDefinition.id(), id -> new Series(seriesRoot, seriesDefinition))
-            .getDefinition();
+        seriesMap.computeIfAbsent(definition.getId(), id -> new Series(seriesRoot, definition));
     }
 
     public void set(String seriesId, ZonedDateTime dateTime, String value) {
@@ -158,32 +157,23 @@ public class SeriesService {
         getSeries(seriesId).set(dateTime, value);
     }
 
-    public Map<String, Map<ZonedDateTime, ? extends Number>> get(
-        Pattern pattern,
-        Map<String, String> metadata,
-        Range<ZonedDateTime> range,
-        Integer interval,
-        Integer maxSize,
-        boolean includeNull,
-        Aggregation timeAggregation,
-        Aggregation seriesAggregation
-    ) {
+    public Map<String, Map<ZonedDateTime, ? extends Number>> get(DataRequest request) {
 
         Map<String, Map<ZonedDateTime, ? extends Number>> result = new ConcurrentSkipListMap<>();
-        if (range.isEmpty()) {
+        if (request.getRange().isEmpty()) {
             return result;
         }
 
-        List<Range<ZonedDateTime>> ranges = calculateRanges(range, interval, maxSize);
-        findSeries(pattern, metadata).parallelStream()
-            .forEach(series -> result.put(series.getDefinition().id(), series.get(ranges, includeNull, timeAggregation)));
+        List<Range<ZonedDateTime>> ranges = calculateRanges(request);
+        findSeries(request.getPattern(), request.getMetadata()).parallelStream()
+            .forEach(series -> result.put(series.getDefinition().getId(), series.get(ranges, request.isIncludeNull(), request.getAggregation1())));
 
-        if ((result.size() > 1) && (seriesAggregation != null)) {
+        if ((result.size() > 1) && (request.getAggregation2() != null)) {
             Map<ZonedDateTime, Number> combined = new ConcurrentSkipListMap<>();
             for (Range<ZonedDateTime> r : ranges) {
                 Stream<? extends Number> stream = result.values().stream().map(map -> map.get(r.lowerEndpoint()));
-                Optional<? extends Number> aggregate = PartitionFactory.aggregate(stream, seriesAggregation);
-                if (includeNull || aggregate.isPresent()) {
+                Optional<? extends Number> aggregate = PartitionFactory.aggregate(stream, request.getAggregation2());
+                if (request.isIncludeNull() || aggregate.isPresent()) {
                     combined.put(r.lowerEndpoint(), aggregate.orElse(null));
                 }
             }
@@ -194,16 +184,18 @@ public class SeriesService {
         return result;
     }
 
-    private List<Range<ZonedDateTime>> calculateRanges(Range<ZonedDateTime> range, Integer interval, Integer maxSize) {
+    private List<Range<ZonedDateTime>> calculateRanges(DataRequest request) {
 
         int count = properties.getMaxQuerySize();
 
+        Integer maxSize = request.getMaxSize();
         if ((maxSize != null) && (maxSize < count)) {
             count = maxSize;
         }
 
-        if (interval != null) {
-            Duration duration = Duration.ofSeconds(interval);
+        Range<ZonedDateTime> range = request.getRange();
+        if (request.getInterval() != null) {
+            Duration duration = Duration.ofSeconds(request.getInterval());
             int intervalCount = (int) Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(duration) + 1;
             if (intervalCount < count) {
                 count = intervalCount;

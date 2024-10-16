@@ -1,5 +1,9 @@
 package org.huebert.iotfsdb.rest;
 
+import com.github.f4b6a3.ulid.UlidCreator;
+import com.google.common.base.Stopwatch;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.series.Series;
 import org.huebert.iotfsdb.series.SeriesDefinition;
@@ -16,7 +20,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -37,60 +40,81 @@ public class SeriesController {
     }
 
     @PostMapping
-    public SeriesDefinition createSeries(@RequestBody SeriesDefinition seriesDefinition) {
-        log.info("createSeries: seriesDefinition={}", seriesDefinition);
-        SeriesDefinition.checkValid(seriesDefinition);
-        return seriesService.createSeries(seriesDefinition);
+    @ResponseStatus(ACCEPTED)
+    public void createSeries(@Valid @RequestBody SeriesDefinition definition) {
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        String trace = UlidCreator.getUlid().toLowerCase();
+        log.info("createSeries(request): trace={}, definition={}", trace, definition);
+        seriesService.createSeries(definition);
+        log.info("createSeries(response): trace={}, elapsed={}", trace, stopwatch.stop());
     }
 
     @GetMapping("{id}")
     public SeriesDefinition getSeries(@PathVariable("id") String id) {
-        log.info("getSeries: id={}", id);
-        return seriesService.getSeriesDefinition(id);
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        String trace = UlidCreator.getUlid().toLowerCase();
+        log.info("getSeries(request): trace={}, id={}", trace, id);
+        SeriesDefinition definition = seriesService.getSeriesDefinition(id);
+        log.info("getSeries(response): trace={}, elapsed={}, definition={}", trace, stopwatch.stop(), definition);
+        return definition;
     }
 
     @DeleteMapping("{id}")
     @ResponseStatus(NO_CONTENT)
     public void deleteSeries(@PathVariable("id") String id) {
-        log.info("deleteSeries: id={}", id);
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        String trace = UlidCreator.getUlid().toLowerCase();
+        log.info("deleteSeries(request): trace={}, id={}", trace, id);
         seriesService.deleteSeries(id);
+        log.info("deleteSeries(response): trace={}, elapsed={}", trace, stopwatch.stop());
     }
 
     @GetMapping
     public List<SeriesDefinition> findSeries(
         @RequestParam(name = "pattern", required = false, defaultValue = ".*") Pattern pattern,
-        @RequestParam Map<String, String> metadata
+        @RequestParam(name = "metadata", required = false) Map<String, String> metadata
     ) {
-        Map<String, String> trimmedMetadata = new HashMap<>(metadata);
-        trimmedMetadata.keySet().remove("pattern");
-        log.info("findSeries: pattern={}, metadata={}", pattern, trimmedMetadata);
-        return seriesService.findSeries(pattern, trimmedMetadata).stream()
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        String trace = UlidCreator.getUlid().toLowerCase();
+        log.info("findSeries(request): trace={}, pattern={}, metadata={}", trace, pattern, metadata);
+        List<SeriesDefinition> definitions = seriesService.findSeries(pattern, metadata).stream()
             .map(Series::getDefinition)
             .toList();
+        log.info("findSeries(response): trace={}, elapsed={}, definitions={}", trace, stopwatch.stop(), definitions);
+        return definitions;
     }
 
     @GetMapping("{id}/metadata")
     public Map<String, String> getMetadata(@PathVariable("id") String id) {
-        log.info("getMetadata: id={}", id);
-        return seriesService.getMetadata(id);
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        String trace = UlidCreator.getUlid().toLowerCase();
+        log.info("getMetadata(request): trace={}, id={}", trace, id);
+        Map<String, String> metadata = seriesService.getMetadata(id);
+        log.info("getMetadata(response): trace={}, elapsed={}, metadata={}", trace, stopwatch.stop(), metadata);
+        return metadata;
     }
 
     @PutMapping("{id}/metadata")
     @ResponseStatus(ACCEPTED)
-    public void updateMetadata(@PathVariable("id") String id, @RequestBody Map<String, String> metadata) {
-        log.info("updateMetadata: id={}, metadata={}", id, metadata);
+    public void updateMetadata(@PathVariable("id") String id, @NotNull @RequestBody Map<String, String> metadata) {
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        String trace = UlidCreator.getUlid().toLowerCase();
+        log.info("updateMetadata(request): trace={}, id={}, metadata={}", trace, id, metadata);
         if (metadata == null) {
             throw new ResponseStatusException(BAD_REQUEST, "metadata is null");
         }
         seriesService.updateMetadata(id, metadata);
+        log.info("updateMetadata(response): trace={}, elapsed={}", trace, stopwatch.stop());
     }
 
     @PostMapping("{id}/data")
     @ResponseStatus(ACCEPTED)
-    public void set(@PathVariable("id") String id, @RequestBody DataValue dataValue) {
-        log.info("set: id={}, dataValue={}", id, dataValue);
-        DataValue.checkValid(dataValue);
-        seriesService.set(id, dataValue.dateTime(), dataValue.value());
+    public void set(@PathVariable("id") String id, @NotNull @Valid @RequestBody DataValue dataValue) {
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        String trace = UlidCreator.getUlid().toLowerCase();
+        log.info("set(request): trace={}, id={}, dataValue={}", trace, id, dataValue);
+        seriesService.set(id, dataValue.getDateTime(), dataValue.getValue());
+        log.info("set(response): trace={}, elapsed={}", trace, stopwatch.stop());
     }
 
 }

@@ -1,21 +1,20 @@
 package org.huebert.iotfsdb.rest;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
+import lombok.Data;
+
 import java.time.ZonedDateTime;
 
-public record DataValue(
-    ZonedDateTime dateTime,
-    String value
-) {
+@Data
+@Builder
+public class DataValue {
 
-    public static void checkValid(DataValue dataValue) {
+    @NotNull
+    private ZonedDateTime dateTime;
 
-        if (dataValue == null) {
-            throw new IllegalArgumentException("data value is null");
-        }
+    @NotBlank
+    private String value;
 
-        if (dataValue.dateTime == null) {
-            throw new IllegalArgumentException("date and time is null");
-        }
-
-    }
 }

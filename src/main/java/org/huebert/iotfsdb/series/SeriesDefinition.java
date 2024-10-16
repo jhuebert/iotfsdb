@@ -1,43 +1,32 @@
 package org.huebert.iotfsdb.series;
 
-import org.apache.logging.log4j.util.Strings;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class SeriesDefinition {
 
-public record SeriesDefinition(
-    String id,
-    SeriesType type,
-    int interval,
-    PartitionPeriod partition
-) {
+    @NotBlank
+    private String id;
 
-    public static void checkValid(SeriesDefinition seriesDefinition) {
+    @NotNull
+    private SeriesType type;
 
-        if (seriesDefinition == null) {
-            throw new IllegalArgumentException("series is null");
-        }
+    @NotNull
+    @Min(1)
+    @Max(86400)
+    private int interval;
 
-        if (Strings.isBlank(seriesDefinition.id)) {
-            throw new IllegalArgumentException("id is blank");
-        }
-
-        if (seriesDefinition.type == null) {
-            throw new IllegalArgumentException("type is null");
-        }
-
-        if (seriesDefinition.partition == null) {
-            throw new IllegalArgumentException("partition period is null");
-        }
-
-        if (seriesDefinition.interval < 1) {
-            throw new IllegalArgumentException("value interval must be at least 1");
-        }
-
-        if (seriesDefinition.interval > Duration.of(1, ChronoUnit.DAYS).getSeconds()) {
-            throw new IllegalArgumentException("value interval must be no more than one day");
-        }
-
-    }
+    @NotNull
+    private PartitionPeriod partition;
 
 }
