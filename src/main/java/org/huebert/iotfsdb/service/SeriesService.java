@@ -8,6 +8,7 @@ import org.huebert.iotfsdb.IotfsdbProperties;
 import org.huebert.iotfsdb.partition.Partition;
 import org.huebert.iotfsdb.partition.PartitionFactory;
 import org.huebert.iotfsdb.rest.DataRequest;
+import org.huebert.iotfsdb.rest.DataValue;
 import org.huebert.iotfsdb.series.Series;
 import org.huebert.iotfsdb.series.SeriesDefinition;
 import org.huebert.iotfsdb.util.Tuple;
@@ -158,11 +159,15 @@ public class SeriesService {
         seriesMap.computeIfAbsent(definition.getId(), id -> new Series(seriesRoot, definition));
     }
 
-    public void set(String seriesId, ZonedDateTime dateTime, String value) {
+    public void set(String seriesId, Iterable<DataValue> dataValues) {
         if (properties.isReadOnly()) {
             throw new IllegalStateException("database is read only");
         }
-        getSeries(seriesId).set(dateTime, value);
+        getSeries(seriesId).set(dataValues);
+    }
+
+    public void set(String seriesId, DataValue dataValue) {
+        set(seriesId, List.of(dataValue));
     }
 
     public Map<String, Map<ZonedDateTime, ? extends Number>> get(DataRequest request) {

@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.partition.Partition;
 import org.huebert.iotfsdb.partition.PartitionFactory;
+import org.huebert.iotfsdb.rest.DataValue;
 import org.huebert.iotfsdb.util.Tuple;
 import org.huebert.iotfsdb.util.Util;
 
@@ -150,25 +151,29 @@ public class Series implements AutoCloseable {
         return result;
     }
 
-    public void set(ZonedDateTime dateTime, String value) {
-
-        LocalDateTime local = Util.convertToUtc(dateTime);
-
+    public void set(Iterable<DataValue> dataValues) {
         rwLock.writeLock().lock();
         try {
-            Partition<?> partition = rangeMap.get(local);
-            if (partition == null) {
-                PartitionPeriod partitionPeriod = definition.getPartition();
-                String filename = partitionPeriod.getFilename(local);
-                File file = new File(Util.checkDirectory(root), filename);
-                LocalDateTime start = partitionPeriod.parseStart(filename);
-                partition = PartitionFactory.create(definition.getType(), file, start, partitionPeriod.getPeriod(), Duration.of(definition.getInterval(), ChronoUnit.SECONDS));
-                rangeMap.put(partition.getRange(), partition);
+            for (DataValue dataValue : dataValues) {
+                LocalDateTime local = Util.convertToUtc(dataValue.getDateTime());
+                Partition<?> partition = rangeMap.get(local);
+                if (partition == null) {
+                    PartitionPeriod partitionPeriod = definition.getPartition();
+                    String filename = partitionPeriod.getFilename(local);
+                    File file = new File(Util.checkDirectory(root), filename);
+                    LocalDateTime start = partitionPeriod.parseStart(filename);
+                    partition = PartitionFactory.create(definition.getType(), file, start, partitionPeriod.getPeriod(), Duration.of(definition.getInterval(), ChronoUnit.SECONDS));
+                    rangeMap.put(partition.getRange(), partition);
+                }
+                partition.set(local, dataValue.getValue());
             }
-            partition.set(local, value);
         } finally {
             rwLock.writeLock().unlock();
         }
+    }
+
+    public void set(DataValue dataValue) {
+        set(List.of(dataValue));
     }
 
     public void closeIfIdle() {

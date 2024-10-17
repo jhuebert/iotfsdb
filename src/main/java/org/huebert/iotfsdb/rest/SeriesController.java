@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import static org.springframework.http.HttpStatus.ACCEPTED;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
 
@@ -40,7 +39,7 @@ public class SeriesController {
     }
 
     @PostMapping
-    @ResponseStatus(ACCEPTED)
+    @ResponseStatus(NO_CONTENT)
     public void createSeries(@Valid @RequestBody SeriesDefinition definition) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         String trace = UlidCreator.getUlid().toLowerCase();
@@ -95,7 +94,7 @@ public class SeriesController {
     }
 
     @PutMapping("{id}/metadata")
-    @ResponseStatus(ACCEPTED)
+    @ResponseStatus(NO_CONTENT)
     public void updateMetadata(@PathVariable("id") String id, @NotNull @RequestBody Map<String, String> metadata) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         String trace = UlidCreator.getUlid().toLowerCase();
@@ -108,12 +107,22 @@ public class SeriesController {
     }
 
     @PostMapping("{id}/data")
-    @ResponseStatus(ACCEPTED)
+    @ResponseStatus(NO_CONTENT)
     public void set(@PathVariable("id") String id, @NotNull @Valid @RequestBody DataValue dataValue) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         String trace = UlidCreator.getUlid().toLowerCase();
         log.debug("set(request): trace={}, id={}, dataValue={}", trace, id, dataValue);
-        seriesService.set(id, dataValue.getDateTime(), dataValue.getValue());
+        seriesService.set(id, dataValue);
+        log.debug("set(response): trace={}, elapsed={}", trace, stopwatch.stop());
+    }
+
+    @PostMapping("{id}/data/bulk")
+    @ResponseStatus(NO_CONTENT)
+    public void set(@PathVariable("id") String id, @NotNull @Valid @RequestBody List<DataValue> dataValues) {
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        String trace = UlidCreator.getUlid().toLowerCase();
+        log.debug("set(request): trace={}, id={}, dataValues={}", trace, id, dataValues.size());
+        seriesService.set(id, dataValues);
         log.debug("set(response): trace={}, elapsed={}", trace, stopwatch.stop());
     }
 
