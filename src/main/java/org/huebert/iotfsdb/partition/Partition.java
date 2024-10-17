@@ -31,12 +31,6 @@ import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
 @Slf4j
 public abstract class Partition<T extends Number> extends AbstractList<T> implements RandomAccess, AutoCloseable {
 
-    // Partition can be considered idle if it hasn't been updated in the last 5 minutes
-    public static final int IDLE_TIME_MS = 300000;
-
-    // Sync if necessary every minute
-    public static final int SYNC_TIME_MS = 60000;
-
     private final File file;
 
     private final int size;
@@ -235,24 +229,30 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
     }
 
     // Requires write lock
-    public void closeIfIdle() {
+    public boolean closeIfIdle() {
+        boolean result = false;
         if (open) {
             if (idle) {
                 close();
+                result = true;
             } else {
                 idle = true;
             }
         }
+        return result;
     }
 
     // Requires write lock
-    public void sync() {
+    public boolean sync() {
+        boolean result = false;
         if (syncEnd > syncStart) {
             log.debug("sync: file={}, start={}, end={}", file, syncStart, syncEnd);
             mappedByteBuffer.force(syncStart, syncEnd - syncStart);
             syncStart = Integer.MAX_VALUE;
             syncEnd = Integer.MIN_VALUE;
+            result = true;
         }
+        return result;
     }
 
 }

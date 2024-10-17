@@ -176,19 +176,19 @@ public class Series implements AutoCloseable {
         set(List.of(dataValue));
     }
 
-    public void closeIfIdle() {
+    public long closeIfIdle() {
         rwLock.writeLock().lock();
         try {
-            rangeMap.asMapOfRanges().values().forEach(Partition::closeIfIdle);
+            return rangeMap.asMapOfRanges().values().stream().map(Partition::closeIfIdle).filter(r -> r).count();
         } finally {
             rwLock.writeLock().unlock();
         }
     }
 
-    public void sync() {
+    public long sync() {
         rwLock.writeLock().lock();
         try {
-            rangeMap.asMapOfRanges().values().forEach(Partition::sync);
+            return rangeMap.asMapOfRanges().values().stream().map(Partition::sync).filter(r -> r).count();
         } finally {
             rwLock.writeLock().unlock();
         }

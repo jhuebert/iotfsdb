@@ -1,11 +1,11 @@
 package org.huebert.iotfsdb.service;
 
 import com.github.f4b6a3.ulid.UlidCreator;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Range;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.IotfsdbProperties;
-import org.huebert.iotfsdb.partition.Partition;
 import org.huebert.iotfsdb.partition.PartitionFactory;
 import org.huebert.iotfsdb.rest.DataRequest;
 import org.huebert.iotfsdb.rest.DataValue;
@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -61,18 +62,22 @@ public class SeriesService {
             });
     }
 
-    @Scheduled(fixedRate = Partition.IDLE_TIME_MS)
+    @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     public void closeIfIdle() {
-        log.debug("closing idle files - started");
-        seriesMap.values().parallelStream().forEach(Series::closeIfIdle);
-        log.debug("closing idle files - complete");
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        String trace = UlidCreator.getUlid().toLowerCase();
+        log.debug("closeIfIdle(request): trace={}", trace);
+        long count = seriesMap.values().parallelStream().map(Series::closeIfIdle).mapToLong(a -> a).sum();
+        log.debug("closeIfIdle(response): trace={}, elapsed={}, count={}", trace, stopwatch.stop(), count);
     }
 
-    @Scheduled(fixedRate = Partition.SYNC_TIME_MS)
+    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
     public void sync() {
-        log.debug("syncing files - started");
-        seriesMap.values().parallelStream().forEach(Series::sync);
-        log.debug("syncing files - complete");
+        Stopwatch stopwatch = Stopwatch.createStarted();
+        String trace = UlidCreator.getUlid().toLowerCase();
+        log.debug("sync(request): trace={}", trace);
+        long count = seriesMap.values().parallelStream().map(Series::sync).mapToLong(a -> a).sum();
+        log.debug("sync(response): trace={}, elapsed={}, count={}", trace, stopwatch.stop(), count);
     }
 
     private Series getSeries(String seriesId) {
