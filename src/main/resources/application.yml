@@ -1,6 +1,8 @@
 spring:
   application:
     name: iotfsdb
+  main:
+    banner-mode: off
 
 iotfsdb:
   root:

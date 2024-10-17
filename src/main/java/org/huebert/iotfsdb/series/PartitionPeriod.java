@@ -39,6 +39,23 @@ public enum PartitionPeriod {
         return null;
     }
 
+    public LocalDateTime getStart(LocalDateTime dateTime) {
+
+        int year = dateTime.getYear();
+
+        int month = 1;
+        if (this != YEAR) {
+            month = dateTime.getMonthValue();
+        }
+
+        int day = 1;
+        if (this == DAY) {
+            day = dateTime.getDayOfMonth();
+        }
+
+        return LocalDateTime.of(year, month, day, 0, 0, 0);
+    }
+
     public String getFilename(LocalDateTime dateTime) {
         return formatter.format(dateTime);
     }

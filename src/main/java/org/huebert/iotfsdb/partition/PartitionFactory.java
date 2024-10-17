@@ -43,6 +43,7 @@ public class PartitionFactory {
     public static Optional<? extends Number> aggregate(Stream<? extends Number> stream, Aggregation aggregation) {
 
         Stream<? extends Number> nonNullStream = stream.filter(Objects::nonNull);
+        //TODO Have a boolean that allows the existence of any null to make the entire result null?
 
         if (aggregation == Aggregation.COUNT) {
             return Optional.of(nonNullStream.count());

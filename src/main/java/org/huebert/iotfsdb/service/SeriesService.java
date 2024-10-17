@@ -71,15 +71,6 @@ public class SeriesService {
         log.debug("closeIfIdle(response): trace={}, elapsed={}, count={}", trace, stopwatch.stop(), count);
     }
 
-    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
-    public void sync() {
-        Stopwatch stopwatch = Stopwatch.createStarted();
-        String trace = UlidCreator.getUlid().toLowerCase();
-        log.debug("sync(request): trace={}", trace);
-        long count = seriesMap.values().parallelStream().map(Series::sync).mapToLong(a -> a).sum();
-        log.debug("sync(response): trace={}, elapsed={}, count={}", trace, stopwatch.stop(), count);
-    }
-
     private Series getSeries(String seriesId) {
         Series series = seriesMap.get(seriesId);
         if (series == null) {

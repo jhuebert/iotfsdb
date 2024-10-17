@@ -9,9 +9,11 @@ import org.huebert.iotfsdb.util.Util;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.file.OpenOption;
+import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -23,13 +25,14 @@ import java.util.function.BiFunction;
 import static java.nio.channels.FileChannel.MapMode.READ_ONLY;
 import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
 
-/**
- * This class is not thread safe and relies on external synchronization.
- *
- * @param <T> Type of data in this partition
- */
 @Slf4j
 public abstract class Partition<T extends Number> extends AbstractList<T> implements RandomAccess, AutoCloseable {
+
+    private static final OpenOption[] OPEN_OPTIONS_CREATE = new OpenOption[]{StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.DSYNC, StandardOpenOption.CREATE_NEW};
+
+    private static final OpenOption[] OPEN_OPTIONS_READ = new OpenOption[]{StandardOpenOption.READ};
+
+    private static final OpenOption[] OPEN_OPTIONS_READ_WRITE = new OpenOption[]{StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.DSYNC};
 
     private final File file;
 
@@ -61,7 +64,7 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
 
     private int syncEnd = Integer.MIN_VALUE;
 
-    private RandomAccessFile randomAccessFile;
+    private FileChannel fileChannel;
 
     private MappedByteBuffer mappedByteBuffer;
 
@@ -111,8 +114,8 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
 
             try {
                 int numBytes = size << bitShift;
-                this.randomAccessFile = new RandomAccessFile(file, "rw");
-                this.mappedByteBuffer = randomAccessFile.getChannel().map(READ_WRITE, 0, numBytes);
+                this.fileChannel = FileChannel.open(file.toPath(), OPEN_OPTIONS_CREATE);
+                this.mappedByteBuffer = fileChannel.map(READ_WRITE, 0, numBytes);
                 for (int i = 0; i < numBytes; i += typeSize) {
                     putType.apply(mappedByteBuffer, i, null);
                 }
@@ -166,7 +169,6 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
         return getType.apply(mappedByteBuffer, byteOffset);
     }
 
-    // Requires write lock
     @Override
     public T set(int index, T element) {
         log.debug("set: file={}, index={}, value={}", file, index, element);
@@ -193,9 +195,8 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
                 if (!open) {
                     log.debug("open: file={}", file);
                     try {
-                        randomAccessFile = new RandomAccessFile(file, readOnly ? "r" : "rw");
-                        mappedByteBuffer = randomAccessFile.getChannel()
-                            .map(this.readOnly ? READ_ONLY : READ_WRITE, 0, file.length());
+                        fileChannel = FileChannel.open(file.toPath(), this.readOnly ? OPEN_OPTIONS_READ : OPEN_OPTIONS_READ_WRITE);
+                        mappedByteBuffer = fileChannel.map(this.readOnly ? READ_ONLY : READ_WRITE, 0, file.length());
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -206,29 +207,27 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
         idle = false;
     }
 
-    // Requires write lock
     @Override
     public void close() {
+        if (open) {
+            synchronized (this) {
+                if (open) {
+                    log.debug("close: file={}", file);
 
-        if (!open) {
-            return;
+                    try {
+                        fileChannel.close();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    mappedByteBuffer = null;
+                    fileChannel = null;
+                    open = false;
+                }
+            }
         }
-
-        sync();
-
-        log.debug("close: file={}", file);
-        try {
-            randomAccessFile.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-        randomAccessFile = null;
-        mappedByteBuffer = null;
-        open = false;
     }
 
-    // Requires write lock
     public boolean closeIfIdle() {
         boolean result = false;
         if (open) {
@@ -238,19 +237,6 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
             } else {
                 idle = true;
             }
-        }
-        return result;
-    }
-
-    // Requires write lock
-    public boolean sync() {
-        boolean result = false;
-        if (syncEnd > syncStart) {
-            log.debug("sync: file={}, start={}, end={}", file, syncStart, syncEnd);
-            mappedByteBuffer.force(syncStart, syncEnd - syncStart);
-            syncStart = Integer.MAX_VALUE;
-            syncEnd = Integer.MIN_VALUE;
-            result = true;
         }
         return result;
     }
