@@ -10,6 +10,7 @@ import org.huebert.iotfsdb.partition.PartitionFactory;
 import org.huebert.iotfsdb.rest.DataRequest;
 import org.huebert.iotfsdb.series.Series;
 import org.huebert.iotfsdb.series.SeriesDefinition;
+import org.huebert.iotfsdb.util.Tuple;
 import org.huebert.iotfsdb.util.Util;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -23,10 +24,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -60,10 +61,17 @@ public class SeriesService {
     }
 
     @Scheduled(fixedRate = Partition.IDLE_TIME_MS)
-    public void closeIfIdleOrSync() {
-        log.debug("closing or syncing idle files - started");
-        seriesMap.values().parallelStream().forEach(Series::closeIfIdleOrSync);
-        log.debug("closing or syncing idle files - complete");
+    public void closeIfIdle() {
+        log.debug("closing idle files - started");
+        seriesMap.values().parallelStream().forEach(Series::closeIfIdle);
+        log.debug("closing idle files - complete");
+    }
+
+    @Scheduled(fixedRate = Partition.SYNC_TIME_MS)
+    public void sync() {
+        log.debug("syncing files - started");
+        seriesMap.values().parallelStream().forEach(Series::sync);
+        log.debug("syncing files - complete");
     }
 
     private Series getSeries(String seriesId) {
@@ -170,13 +178,15 @@ public class SeriesService {
 
         if ((result.size() > 1) && (request.getAggregation2() != null)) {
             Map<ZonedDateTime, Number> combined = new ConcurrentSkipListMap<>();
-            for (Range<ZonedDateTime> r : ranges) {
-                Stream<? extends Number> stream = result.values().stream().map(map -> map.get(r.lowerEndpoint()));
-                Optional<? extends Number> aggregate = PartitionFactory.aggregate(stream, request.getAggregation2());
-                if (request.isIncludeNull() || aggregate.isPresent()) {
-                    combined.put(r.lowerEndpoint(), aggregate.orElse(null));
-                }
-            }
+            result.values().stream()
+                .flatMap(map -> map.entrySet().stream())
+                .collect(Collectors.groupingBy(Map.Entry::getKey)).entrySet().stream()
+                .map(e -> {
+                    Stream<? extends Number> stream = e.getValue().stream().map(Map.Entry::getValue);
+                    return new Tuple<>(e.getKey(), PartitionFactory.aggregate(stream, request.getAggregation2()).orElse(null));
+                })
+                .filter(t -> request.isIncludeNull() || (t.value() != null))
+                .forEach(t -> combined.put(t.key(), t.value()));
             result.clear();
             result.put("result", combined);
         }

@@ -44,18 +44,18 @@ public class SeriesController {
     public void createSeries(@Valid @RequestBody SeriesDefinition definition) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         String trace = UlidCreator.getUlid().toLowerCase();
-        log.info("createSeries(request): trace={}, definition={}", trace, definition);
+        log.debug("createSeries(request): trace={}, definition={}", trace, definition);
         seriesService.createSeries(definition);
-        log.info("createSeries(response): trace={}, elapsed={}", trace, stopwatch.stop());
+        log.debug("createSeries(response): trace={}, elapsed={}", trace, stopwatch.stop());
     }
 
     @GetMapping("{id}")
     public SeriesDefinition getSeries(@PathVariable("id") String id) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         String trace = UlidCreator.getUlid().toLowerCase();
-        log.info("getSeries(request): trace={}, id={}", trace, id);
+        log.debug("getSeries(request): trace={}, id={}", trace, id);
         SeriesDefinition definition = seriesService.getSeriesDefinition(id);
-        log.info("getSeries(response): trace={}, elapsed={}, definition={}", trace, stopwatch.stop(), definition);
+        log.debug("getSeries(response): trace={}, elapsed={}, definition={}", trace, stopwatch.stop(), definition);
         return definition;
     }
 
@@ -64,9 +64,9 @@ public class SeriesController {
     public void deleteSeries(@PathVariable("id") String id) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         String trace = UlidCreator.getUlid().toLowerCase();
-        log.info("deleteSeries(request): trace={}, id={}", trace, id);
+        log.debug("deleteSeries(request): trace={}, id={}", trace, id);
         seriesService.deleteSeries(id);
-        log.info("deleteSeries(response): trace={}, elapsed={}", trace, stopwatch.stop());
+        log.debug("deleteSeries(response): trace={}, elapsed={}", trace, stopwatch.stop());
     }
 
     @GetMapping
@@ -76,11 +76,11 @@ public class SeriesController {
     ) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         String trace = UlidCreator.getUlid().toLowerCase();
-        log.info("findSeries(request): trace={}, pattern={}, metadata={}", trace, pattern, metadata);
+        log.debug("findSeries(request): trace={}, pattern={}, metadata={}", trace, pattern, metadata);
         List<SeriesDefinition> definitions = seriesService.findSeries(pattern, metadata).stream()
             .map(Series::getDefinition)
             .toList();
-        log.info("findSeries(response): trace={}, elapsed={}, definitions={}", trace, stopwatch.stop(), definitions);
+        log.debug("findSeries(response): trace={}, elapsed={}, definitions={}", trace, stopwatch.stop(), definitions);
         return definitions;
     }
 
@@ -88,9 +88,9 @@ public class SeriesController {
     public Map<String, String> getMetadata(@PathVariable("id") String id) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         String trace = UlidCreator.getUlid().toLowerCase();
-        log.info("getMetadata(request): trace={}, id={}", trace, id);
+        log.debug("getMetadata(request): trace={}, id={}", trace, id);
         Map<String, String> metadata = seriesService.getMetadata(id);
-        log.info("getMetadata(response): trace={}, elapsed={}, metadata={}", trace, stopwatch.stop(), metadata);
+        log.debug("getMetadata(response): trace={}, elapsed={}, metadata={}", trace, stopwatch.stop(), metadata);
         return metadata;
     }
 
@@ -99,12 +99,12 @@ public class SeriesController {
     public void updateMetadata(@PathVariable("id") String id, @NotNull @RequestBody Map<String, String> metadata) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         String trace = UlidCreator.getUlid().toLowerCase();
-        log.info("updateMetadata(request): trace={}, id={}, metadata={}", trace, id, metadata);
+        log.debug("updateMetadata(request): trace={}, id={}, metadata={}", trace, id, metadata);
         if (metadata == null) {
             throw new ResponseStatusException(BAD_REQUEST, "metadata is null");
         }
         seriesService.updateMetadata(id, metadata);
-        log.info("updateMetadata(response): trace={}, elapsed={}", trace, stopwatch.stop());
+        log.debug("updateMetadata(response): trace={}, elapsed={}", trace, stopwatch.stop());
     }
 
     @PostMapping("{id}/data")
@@ -112,9 +112,9 @@ public class SeriesController {
     public void set(@PathVariable("id") String id, @NotNull @Valid @RequestBody DataValue dataValue) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         String trace = UlidCreator.getUlid().toLowerCase();
-        log.info("set(request): trace={}, id={}, dataValue={}", trace, id, dataValue);
+        log.debug("set(request): trace={}, id={}, dataValue={}", trace, id, dataValue);
         seriesService.set(id, dataValue.getDateTime(), dataValue.getValue());
-        log.info("set(response): trace={}, elapsed={}", trace, stopwatch.stop());
+        log.debug("set(response): trace={}, elapsed={}", trace, stopwatch.stop());
     }
 
 }

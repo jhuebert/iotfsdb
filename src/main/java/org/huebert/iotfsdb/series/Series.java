@@ -171,10 +171,19 @@ public class Series implements AutoCloseable {
         }
     }
 
-    public void closeIfIdleOrSync() {
+    public void closeIfIdle() {
         rwLock.writeLock().lock();
         try {
-            rangeMap.asMapOfRanges().values().forEach(Partition::closeIfIdleOrSync);
+            rangeMap.asMapOfRanges().values().forEach(Partition::closeIfIdle);
+        } finally {
+            rwLock.writeLock().unlock();
+        }
+    }
+
+    public void sync() {
+        rwLock.writeLock().lock();
+        try {
+            rangeMap.asMapOfRanges().values().forEach(Partition::sync);
         } finally {
             rwLock.writeLock().unlock();
         }
@@ -189,4 +198,5 @@ public class Series implements AutoCloseable {
             rwLock.writeLock().unlock();
         }
     }
+
 }

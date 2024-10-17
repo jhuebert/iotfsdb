@@ -27,9 +27,9 @@ public class SeriesDataController {
     public Map<String, Map<ZonedDateTime, ? extends Number>> findData(@Valid DataRequest request) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         String trace = UlidCreator.getUlid().toLowerCase();
-        log.info("findData(request): trace={}, request={}", trace, request);
+        log.debug("findData(request): trace={}, request={}", trace, request);
         Map<String, Map<ZonedDateTime, ? extends Number>> result = seriesService.get(request);
-        log.info("findData(response): trace={}, elapsed={}, size={}", trace, stopwatch.stop(), result.size());
+        log.debug("findData(response): trace={}, elapsed={}, size={}", trace, stopwatch.stop(), result.size());
         return result;
     }
 

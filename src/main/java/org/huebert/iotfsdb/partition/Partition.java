@@ -34,8 +34,8 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
     // Partition can be considered idle if it hasn't been updated in the last 5 minutes
     public static final int IDLE_TIME_MS = 300000;
 
-    // Synchronize no more often than once per second
-    private static final int SYNC_TIME_MS = 1000;
+    // Sync if necessary every minute
+    public static final int SYNC_TIME_MS = 60000;
 
     private final File file;
 
@@ -45,6 +45,10 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
 
     private final int bitShift;
 
+    private final Duration interval;
+
+    private final boolean readOnly;
+
     private final BiFunction<ByteBuffer, Integer, T> getType;
 
     private final TriFunction<ByteBuffer, Integer, T, ByteBuffer> putType;
@@ -52,24 +56,16 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
     private final Function<String, T> convertText;
 
     @Getter
-    private volatile boolean open;
-
-    @Getter
-    private final Duration interval;
-
-    @Getter
     private final Range<LocalDateTime> range;
 
     @Getter
-    private final boolean readOnly;
+    private volatile boolean open;
 
-    private long lastSet;
+    private volatile boolean idle = true;
 
-    private long lastSync;
+    private int syncStart = Integer.MAX_VALUE;
 
-    private int syncStart;
-
-    private int syncEnd;
+    private int syncEnd = Integer.MIN_VALUE;
 
     private RandomAccessFile randomAccessFile;
 
@@ -134,7 +130,6 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
 
         }
 
-        clearSyncStatus();
     }
 
     public List<T> get(Range<LocalDateTime> range) {
@@ -177,6 +172,7 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
         return getType.apply(mappedByteBuffer, byteOffset);
     }
 
+    // Requires write lock
     @Override
     public T set(int index, T element) {
         log.debug("set: file={}, index={}, value={}", file, index, element);
@@ -185,8 +181,6 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
             throw new IllegalStateException("file is read only");
         }
 
-        long current = System.currentTimeMillis();
-        lastSet = current;
         open();
 
         int byteOffset = index << bitShift;
@@ -195,10 +189,6 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
 
         syncStart = Math.min(syncStart, byteOffset);
         syncEnd = Math.max(syncEnd, byteOffset + typeSize);
-
-        if (lastSync < current - SYNC_TIME_MS) {
-            sync();
-        }
 
         return previous;
     }
@@ -216,57 +206,53 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
                         throw new RuntimeException(e);
                     }
                     open = true;
-                    clearSyncStatus();
                 }
             }
         }
+        idle = false;
     }
 
+    // Requires write lock
     @Override
     public void close() {
-        if (open) {
-            synchronized (this) {
-                if (open) {
 
-                    sync();
-
-                    log.debug("close: file={}", file);
-                    try {
-                        randomAccessFile.close();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-
-                    randomAccessFile = null;
-                    mappedByteBuffer = null;
-                    open = false;
-                }
-            }
+        if (!open) {
+            return;
         }
+
+        sync();
+
+        log.debug("close: file={}", file);
+        try {
+            randomAccessFile.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        randomAccessFile = null;
+        mappedByteBuffer = null;
+        open = false;
     }
 
-    public void closeIfIdleOrSync() {
+    // Requires write lock
+    public void closeIfIdle() {
         if (open) {
-            if (lastSet < System.currentTimeMillis() - IDLE_TIME_MS) {
+            if (idle) {
                 close();
             } else {
-                sync();
+                idle = true;
             }
         }
     }
 
-    private void sync() {
+    // Requires write lock
+    public void sync() {
         if (syncEnd > syncStart) {
-            log.debug("force: file={}, start={}, end={}", file, syncStart, syncEnd);
+            log.debug("sync: file={}, start={}, end={}", file, syncStart, syncEnd);
             mappedByteBuffer.force(syncStart, syncEnd - syncStart);
-            clearSyncStatus();
+            syncStart = Integer.MAX_VALUE;
+            syncEnd = Integer.MIN_VALUE;
         }
-    }
-
-    private void clearSyncStatus() {
-        lastSync = System.currentTimeMillis();
-        syncStart = Integer.MAX_VALUE;
-        syncEnd = Integer.MIN_VALUE;
     }
 
 }
