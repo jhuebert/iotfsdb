@@ -196,7 +196,7 @@ public class FloatPartitionTest {
             }
 
             for (int i = 0; i < 24; i++) {
-                partition.set(START.plusHours(i), (float) i);
+                partition.set(START.plusHours(i), i);
             }
 
             for (int i = 0; i < 24; i++) {
@@ -205,32 +205,6 @@ public class FloatPartitionTest {
 
             for (int i = 0; i < 24; i++) {
                 partition.set(START.plusHours(i), (Float) null);
-            }
-
-            for (int i = 0; i < 24; i++) {
-                assertThat(partition.get(START.plusHours(i))).isEqualTo(null);
-            }
-        }
-    }
-
-    @Test
-    public void testSetAndGetDateTimeText() throws Exception {
-        try (FloatPartition partition = new FloatPartition(file, START, PERIOD, INTERVAL)) {
-
-            for (int i = 0; i < 24; i++) {
-                assertThat(partition.get(START.plusHours(i))).isEqualTo(null);
-            }
-
-            for (int i = 0; i < 24; i++) {
-                partition.set(START.plusHours(i), String.valueOf((float) i));
-            }
-
-            for (int i = 0; i < 24; i++) {
-                assertThat(partition.get(START.plusHours(i))).isEqualTo((float) i);
-            }
-
-            for (int i = 0; i < 24; i++) {
-                partition.set(START.plusHours(i), (String) null);
             }
 
             for (int i = 0; i < 24; i++) {

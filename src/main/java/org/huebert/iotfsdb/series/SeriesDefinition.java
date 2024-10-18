@@ -19,7 +19,7 @@ public class SeriesDefinition {
     private String id;
 
     @NotNull
-    private SeriesType type;
+    private NumberType type;
 
     @NotNull
     @Min(1)

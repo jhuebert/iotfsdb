@@ -2,16 +2,18 @@ package org.huebert.iotfsdb.service;
 
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.google.common.base.Stopwatch;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.IotfsdbProperties;
 import org.huebert.iotfsdb.partition.PartitionFactory;
-import org.huebert.iotfsdb.rest.DataRequest;
-import org.huebert.iotfsdb.rest.DataValue;
+import org.huebert.iotfsdb.rest.schema.FindDataRequest;
+import org.huebert.iotfsdb.rest.schema.FindDataResponse;
+import org.huebert.iotfsdb.rest.schema.SeriesData;
+import org.huebert.iotfsdb.series.Reducer;
 import org.huebert.iotfsdb.series.Series;
 import org.huebert.iotfsdb.series.SeriesDefinition;
-import org.huebert.iotfsdb.util.Tuple;
 import org.huebert.iotfsdb.util.Util;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -21,12 +23,12 @@ import java.io.File;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -53,6 +55,8 @@ public class SeriesService {
             throw new IllegalArgumentException(String.format("database directory (%s) contains no files", root));
         }
 
+        // TODO Log
+
         Stream.of(files)
             .parallel()
             .filter(File::isDirectory)
@@ -60,6 +64,8 @@ public class SeriesService {
                 Series series = new Series(file);
                 seriesMap.put(series.getDefinition().getId(), series);
             });
+
+        // TODO Log
     }
 
     @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
@@ -71,7 +77,7 @@ public class SeriesService {
         log.debug("closeIfIdle(response): trace={}, elapsed={}, count={}", trace, stopwatch.stop(), count);
     }
 
-    private Series getSeries(String seriesId) {
+    public Series getSeries(String seriesId) {
         Series series = seriesMap.get(seriesId);
         if (series == null) {
             throw new IllegalArgumentException(String.format("series (%s) does not exist", seriesId));
@@ -79,15 +85,8 @@ public class SeriesService {
         return series;
     }
 
-    public SeriesDefinition getSeriesDefinition(String seriesId) {
-        return getSeries(seriesId).getDefinition();
-    }
-
-    public Map<String, String> getMetadata(String seriesId) {
-        return getSeries(seriesId).getMetadata();
-    }
-
     public Map<String, String> updateMetadata(String seriesId, Map<String, String> metadata) {
+        // TODO Log
         if (properties.isReadOnly()) {
             throw new IllegalStateException("database is read only");
         }
@@ -95,6 +94,7 @@ public class SeriesService {
     }
 
     public void deleteSeries(String seriesId) {
+        // TODO Log
 
         if (properties.isReadOnly()) {
             throw new IllegalStateException("database is read only");
@@ -117,6 +117,7 @@ public class SeriesService {
     }
 
     public List<Series> findSeries(Pattern pattern, Map<String, String> metadata) {
+        // TODO Log
         return seriesMap.values().parallelStream()
             .filter(s -> matchesMetadata(s, metadata))
             .filter(s -> pattern.matcher(s.getDefinition().getId()).matches())
@@ -142,6 +143,7 @@ public class SeriesService {
     }
 
     public void createSeries(SeriesDefinition definition) {
+        // TODO Log
 
         if (properties.isReadOnly()) {
             throw new IllegalStateException("database is read only");
@@ -155,51 +157,83 @@ public class SeriesService {
         seriesMap.computeIfAbsent(definition.getId(), id -> new Series(seriesRoot, definition));
     }
 
-    public void set(String seriesId, Iterable<DataValue> dataValues) {
+    public void insert(String seriesId, Iterable<SeriesData> dataValues) {
+        // TODO Log
         if (properties.isReadOnly()) {
             throw new IllegalStateException("database is read only");
         }
         getSeries(seriesId).set(dataValues);
     }
 
-    public void set(String seriesId, DataValue dataValue) {
-        set(seriesId, List.of(dataValue));
+    public void insert(String seriesId, SeriesData dataValue) {
+        insert(seriesId, List.of(dataValue));
     }
 
-    public Map<String, Map<ZonedDateTime, ? extends Number>> get(DataRequest request) {
+    public List<FindDataResponse> find(FindDataRequest request) {
+        // TODO Log
 
-        Map<String, Map<ZonedDateTime, ? extends Number>> result = new ConcurrentSkipListMap<>();
         if (request.getRange().isEmpty()) {
+            return List.of();
+        }
+
+        List<Series> series = findSeries(request.getPattern(), request.getMetadata());
+        if (series.isEmpty()) {
+            return List.of();
+        }
+
+        List<Range<ZonedDateTime>> ranges = getRanges(request);
+
+        List<FindDataResponse> result = series.parallelStream()
+            .map(s -> FindDataResponse.builder()
+                .series(s.getDefinition().getId())
+                .metadata(s.getMetadata())
+                .data(s.get(ranges, request.isIncludeNull(), request.getTimeReducer()))
+                .build())
+            .filter(r -> !r.getData().isEmpty())
+            .sorted(Comparator.comparing(FindDataResponse::getSeries))
+            .toList();
+
+        if (request.getSeriesReducer() == null) {
             return result;
         }
 
-        List<Range<ZonedDateTime>> ranges = calculateRanges(request);
-        findSeries(request.getPattern(), request.getMetadata()).parallelStream()
-            .forEach(series -> result.put(series.getDefinition().getId(), series.get(ranges, request.isIncludeNull(), request.getAggregation1())));
-
-        if ((result.size() > 1) && (request.getAggregation2() != null)) {
-            Map<ZonedDateTime, Number> combined = new ConcurrentSkipListMap<>();
-            result.values().stream()
-                .flatMap(map -> map.entrySet().stream())
-                .collect(Collectors.groupingBy(Map.Entry::getKey)).entrySet().stream()
-                .map(e -> {
-                    Stream<? extends Number> stream = e.getValue().stream().map(Map.Entry::getValue);
-                    return new Tuple<>(e.getKey(), PartitionFactory.aggregate(stream, request.getAggregation2()).orElse(null));
-                })
-                .filter(t -> request.isIncludeNull() || (t.value() != null))
-                .forEach(t -> combined.put(t.key(), t.value()));
-            result.clear();
-            result.put("result", combined);
-        }
-
-        return result;
+        return List.of(reduce(result, request.getSeriesReducer(), request.isIncludeNull()));
     }
 
-    private List<Range<ZonedDateTime>> calculateRanges(DataRequest request) {
+    private FindDataResponse reduce(List<FindDataResponse> result, Reducer reducer, boolean includeNull) {
+
+        Map<ZonedDateTime, List<SeriesData>> grouped = result.parallelStream()
+            .map(FindDataResponse::getData)
+            .flatMap(Collection::stream)
+            .collect(Collectors.groupingBy(SeriesData::getTime));
+
+        List<SeriesData> data = grouped.entrySet().parallelStream()
+            .map(e -> {
+                Stream<? extends Number> stream = e.getValue().stream().map(SeriesData::getValue);
+                Number value = PartitionFactory.reduce(stream, reducer).orElse(null);
+                return SeriesData.builder().time(e.getKey()).value(value).build();
+            })
+            .filter(t -> includeNull || (t.getValue() != null))
+            .sorted(Comparator.comparing(SeriesData::getTime))
+            .toList();
+
+        Map<String, String> metadata = result.stream()
+            .map(FindDataResponse::getMetadata)
+            .reduce(Map.of(), (a, b) -> Maps.difference(a, b).entriesInCommon());
+
+        return FindDataResponse.builder()
+            .series("reduced")
+            .metadata(metadata)
+            .data(data)
+            .build();
+    }
+
+    private List<Range<ZonedDateTime>> getRanges(FindDataRequest request) {
+        // TODO Log
 
         int count = properties.getMaxQuerySize();
 
-        Integer maxSize = request.getMaxSize();
+        Integer maxSize = request.getSize();
         if ((maxSize != null) && (maxSize < count)) {
             count = maxSize;
         }

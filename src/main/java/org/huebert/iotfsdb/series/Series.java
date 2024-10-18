@@ -9,22 +9,18 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.partition.Partition;
 import org.huebert.iotfsdb.partition.PartitionFactory;
-import org.huebert.iotfsdb.rest.DataValue;
-import org.huebert.iotfsdb.util.Tuple;
+import org.huebert.iotfsdb.rest.schema.SeriesData;
 import org.huebert.iotfsdb.util.Util;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.LinkedHashMap;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,6 +35,8 @@ public class Series implements AutoCloseable {
 
     private final ConcurrentMap<LocalDateTime, Partition<?>> partitionMap;
 
+    private volatile RangeMap<LocalDateTime, Partition<?>> cachedRangeMap = null;
+
     @Getter
     private final File root;
 
@@ -49,6 +47,7 @@ public class Series implements AutoCloseable {
     private Map<String, String> metadata;
 
     public Series(File root, SeriesDefinition definition) {
+        // TODO Log
 
         if (!root.mkdirs()) {
             throw new RuntimeException(String.format("unable to create series directory (%s)", root));
@@ -71,6 +70,7 @@ public class Series implements AutoCloseable {
     }
 
     public Series(File root) {
+        // TODO Log
         this.root = Util.checkDirectory(root);
         this.definition = readDefinition(root);
         this.metadata = readMetadata(root);
@@ -86,7 +86,7 @@ public class Series implements AutoCloseable {
             .filter(file -> partitionPeriod == PartitionPeriod.findMatch(file.getName()))
             .map(file -> {
                 LocalDateTime start = partitionPeriod.parseStart(file.getName());
-                return PartitionFactory.create(definition.getType(), file, start, partitionPeriod.getPeriod(), Duration.ofSeconds(definition.getInterval()));
+                return PartitionFactory.create(definition, file, start);
             })
             .collect(Collectors.toMap(p -> p.getRange().lowerEndpoint(), p -> p)));
     }
@@ -115,6 +115,7 @@ public class Series implements AutoCloseable {
     }
 
     public Map<String, String> updateMetadata(Map<String, String> metadata) {
+        // TODO Log
         try {
             File metadataFile = Util.checkFileWrite(new File(root, METADATA_JSON));
             mapper.writeValue(metadataFile, metadata);
@@ -125,56 +126,69 @@ public class Series implements AutoCloseable {
         }
     }
 
-    public Map<ZonedDateTime, ? extends Number> get(List<Range<ZonedDateTime>> ranges, boolean includeNull, Aggregation aggregation) {
+    public List<SeriesData> get(List<Range<ZonedDateTime>> ranges, boolean includeNull, Reducer reducer) {
+        // TODO Log
 
-        Map<ZonedDateTime, Number> result = new LinkedHashMap<>();
         if (ranges.isEmpty()) {
-            return result;
+            return List.of();
         }
 
-        RangeMap<LocalDateTime, Partition<?>> rangeMap = TreeRangeMap.create();
-        partitionMap.values().forEach(p -> rangeMap.put(p.getRange(), p));
+        RangeMap<LocalDateTime, Partition<?>> rangeMap = getRangeMap();
 
-        ranges.parallelStream()
+        return ranges.parallelStream()
             .map(current -> {
                 Range<LocalDateTime> local = Util.convertToUtc(current);
                 Stream<? extends Number> stream = rangeMap.subRangeMap(local).asMapOfRanges().values().stream()
                     .flatMap(partition -> partition.get(local).stream());
-                return new Tuple<>(current.lowerEndpoint(), PartitionFactory.aggregate(stream, aggregation).orElse(null));
+                return SeriesData.builder().time(current.lowerEndpoint()).value(PartitionFactory.reduce(stream, reducer).orElse(null)).build();
             })
-            .filter(t -> includeNull || (t.value() != null))
-            .forEachOrdered(t -> result.put(t.key(), t.value()));
-
-        return result;
+            .filter(t -> includeNull || (t.getValue() != null))
+            .sorted(Comparator.comparing(SeriesData::getTime))
+            .toList();
     }
 
-    public void set(Iterable<DataValue> dataValues) {
+    private RangeMap<LocalDateTime, Partition<?>> getRangeMap() {
+        RangeMap<LocalDateTime, Partition<?>> rangeMap = cachedRangeMap;
+        if (rangeMap == null) {
+            rangeMap = TreeRangeMap.create();
+            for (Partition<?> p : partitionMap.values()) {
+                rangeMap.put(p.getRange(), p);
+            }
+            cachedRangeMap = rangeMap;
+        }
+        return rangeMap;
+    }
+
+    public void set(Iterable<SeriesData> values) {
+        // TODO Log
         PartitionPeriod partitionPeriod = definition.getPartition();
-        for (DataValue dataValue : dataValues) {
-            LocalDateTime local = Util.convertToUtc(dataValue.getDateTime());
+        for (SeriesData value : values) {
+            LocalDateTime local = Util.convertToUtc(value.getTime());
             LocalDateTime start = partitionPeriod.getStart(local);
-            partitionMap.computeIfAbsent(start, this::create).set(local, dataValue.getValue());
+            partitionMap.computeIfAbsent(start, this::create).set(local, value.getValue());
         }
     }
 
     private Partition<?> create(LocalDateTime start) {
-        PartitionPeriod partitionPeriod = definition.getPartition();
-        String filename = partitionPeriod.getFilename(start);
-        Duration duration = Duration.of(definition.getInterval(), ChronoUnit.SECONDS);
+        String filename = definition.getPartition().getFilename(start);
         File file = new File(Util.checkDirectory(root), filename);
-        return PartitionFactory.create(definition.getType(), file, start, partitionPeriod.getPeriod(), duration);
+        Partition<?> result = PartitionFactory.create(definition, file, start);
+        cachedRangeMap = null;
+        return result;
     }
 
-    public void set(DataValue dataValue) {
+    public void set(SeriesData dataValue) {
         set(List.of(dataValue));
     }
 
     public long closeIfIdle() {
+        // TODO Log
         return partitionMap.values().stream().map(Partition::closeIfIdle).filter(r -> r).count();
     }
 
     @Override
     public void close() {
+        // TODO Log
         partitionMap.values().forEach(Partition::close);
     }
 

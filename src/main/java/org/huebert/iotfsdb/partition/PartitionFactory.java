@@ -4,8 +4,9 @@ import com.google.common.collect.LinkedHashMultiset;
 import com.google.common.collect.Multiset;
 import com.google.common.math.Quantiles;
 import lombok.experimental.UtilityClass;
-import org.huebert.iotfsdb.series.Aggregation;
-import org.huebert.iotfsdb.series.SeriesType;
+import org.huebert.iotfsdb.series.NumberType;
+import org.huebert.iotfsdb.series.Reducer;
+import org.huebert.iotfsdb.series.SeriesDefinition;
 
 import java.io.File;
 import java.time.Duration;
@@ -22,38 +23,41 @@ import java.util.stream.Stream;
 @UtilityClass
 public class PartitionFactory {
 
-    public static Partition<?> create(SeriesType seriesType, File file, LocalDateTime start, Period period, Duration interval) {
-        if (seriesType == SeriesType.INT1) {
+    public static Partition<?> create(SeriesDefinition definition, File file, LocalDateTime start) {
+        NumberType numberType = definition.getType();
+        Period period = definition.getPartition().getPeriod();
+        Duration interval = Duration.ofSeconds(definition.getInterval());
+        if (numberType == NumberType.INT1) {
             return new BytePartition(file, start, period, interval);
-        } else if (seriesType == SeriesType.FLOAT8) {
+        } else if (numberType == NumberType.FLOAT8) {
             return new DoublePartition(file, start, period, interval);
-        } else if (seriesType == SeriesType.FLOAT4) {
+        } else if (numberType == NumberType.FLOAT4) {
             return new FloatPartition(file, start, period, interval);
-        } else if (seriesType == SeriesType.INT4) {
+        } else if (numberType == NumberType.INT4) {
             return new IntegerPartition(file, start, period, interval);
-        } else if (seriesType == SeriesType.INT8) {
+        } else if (numberType == NumberType.INT8) {
             return new LongPartition(file, start, period, interval);
-        } else if (seriesType == SeriesType.INT2) {
+        } else if (numberType == NumberType.INT2) {
             return new ShortPartition(file, start, period, interval);
         } else {
-            throw new IllegalArgumentException(String.format("series type %s not supported", seriesType));
+            throw new IllegalArgumentException(String.format("series type %s not supported", numberType));
         }
     }
 
-    public static Optional<? extends Number> aggregate(Stream<? extends Number> stream, Aggregation aggregation) {
+    public static Optional<? extends Number> reduce(Stream<? extends Number> stream, Reducer reducer) {
 
         Stream<? extends Number> nonNullStream = stream.filter(Objects::nonNull);
         //TODO Have a boolean that allows the existence of any null to make the entire result null?
 
-        if (aggregation == Aggregation.COUNT) {
+        if (reducer == Reducer.COUNT) {
             return Optional.of(nonNullStream.count());
-        } else if (aggregation == Aggregation.FIRST) {
+        } else if (reducer == Reducer.FIRST) {
             return nonNullStream.findFirst();
-        } else if (aggregation == Aggregation.LAST) {
+        } else if (reducer == Reducer.LAST) {
             return nonNullStream.reduce((a, b) -> b);
-        } else if (aggregation == Aggregation.COUNT_DISTINCT) {
+        } else if (reducer == Reducer.COUNT_DISTINCT) {
             return Optional.of(nonNullStream.distinct().count());
-        } else if (aggregation == Aggregation.MODE) {
+        } else if (reducer == Reducer.MODE) {
             List<? extends Number> list = nonNullStream.toList();
             if (list.isEmpty()) {
                 return Optional.empty();
@@ -68,17 +72,17 @@ public class PartitionFactory {
         DoubleStream doubleStream = nonNullStream.mapToDouble(Number::doubleValue);
 
         OptionalDouble result;
-        if (aggregation == Aggregation.AVERAGE) {
+        if (reducer == Reducer.AVERAGE) {
             result = doubleStream.average();
-        } else if (aggregation == Aggregation.SUM) {
+        } else if (reducer == Reducer.SUM) {
             result = OptionalDouble.of(doubleStream.sum());
-        } else if (aggregation == Aggregation.MINIMUM) {
+        } else if (reducer == Reducer.MINIMUM) {
             result = doubleStream.min();
-        } else if (aggregation == Aggregation.MAXIMUM) {
+        } else if (reducer == Reducer.MAXIMUM) {
             result = doubleStream.max();
-        } else if (aggregation == Aggregation.SQUARE_SUM) {
+        } else if (reducer == Reducer.SQUARE_SUM) {
             result = OptionalDouble.of(doubleStream.map(v -> v * v).sum());
-        } else if (aggregation == Aggregation.MEDIAN) {
+        } else if (reducer == Reducer.MEDIAN) {
             double[] array = doubleStream.toArray();
             if (array.length < 1) {
                 result = OptionalDouble.empty();
@@ -86,7 +90,7 @@ public class PartitionFactory {
                 result = OptionalDouble.of(Quantiles.median().compute(array));
             }
         } else {
-            throw new IllegalArgumentException(String.format("aggregation %s not supported", aggregation));
+            throw new IllegalArgumentException(String.format("reducer %s not supported", reducer));
         }
 
         if (result.isEmpty()) {

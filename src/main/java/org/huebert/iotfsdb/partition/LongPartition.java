@@ -9,7 +9,7 @@ import java.time.Period;
 public class LongPartition extends Partition<Long> {
 
     protected LongPartition(File file, LocalDateTime start, Period period, Duration interval) {
-        super(file, start, period, interval, Long.BYTES, LongPartition::getValue, LongPartition::putValue, Long::parseLong);
+        super(file, start, period, interval, Long.BYTES, LongPartition::getValue, LongPartition::putValue);
     }
 
     private static Long getValue(ByteBuffer byteBuffer, Integer byteOffset) {
@@ -17,8 +17,8 @@ public class LongPartition extends Partition<Long> {
         return result == Long.MIN_VALUE ? null : result;
     }
 
-    private static ByteBuffer putValue(ByteBuffer byteBuffer, Integer byteOffset, Long value) {
-        return byteBuffer.putLong(byteOffset, value == null ? Long.MIN_VALUE : value);
+    private static ByteBuffer putValue(ByteBuffer byteBuffer, Integer byteOffset, Number value) {
+        return byteBuffer.putLong(byteOffset, value == null ? Long.MIN_VALUE : value.longValue());
     }
 
 }

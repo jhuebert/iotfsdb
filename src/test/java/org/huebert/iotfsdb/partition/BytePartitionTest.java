@@ -70,7 +70,7 @@ public class BytePartitionTest {
             for (int i = 0; i < 40; i++) {
                 assertThat(partition.get(i)).isEqualTo((byte) 0);
             }
-            partition.set(0, (byte) 100);
+            partition.set(0, 100);
             assertThat(partition.get(0)).isEqualTo((byte) 100);
         }
     }
@@ -89,7 +89,7 @@ public class BytePartitionTest {
         try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
             Byte[] expected = new Byte[24];
             for (int i = 0; i < 24; i++) {
-                partition.set(i, (byte) i);
+                partition.set(i, i);
                 expected[i] = (byte) i;
             }
             assertThat(partition.get(Range.closed(START, START.plus(PERIOD).minusNanos(1)))).isEqualTo(Arrays.asList(expected));
@@ -100,7 +100,7 @@ public class BytePartitionTest {
     public void testGetRangeSingle() throws Exception {
         try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
-                partition.set(i, (byte) i);
+                partition.set(i, i);
             }
             LocalDateTime testTime = START.plusHours(12);
             List<Byte> result = partition.get(Range.closed(testTime, testTime));
@@ -112,7 +112,7 @@ public class BytePartitionTest {
     public void testGetRangeContained() throws Exception {
         try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
-                partition.set(i, (byte) i);
+                partition.set(i, i);
             }
             Byte[] expected = new Byte[]{4, 5, 6, 7, 8};
             assertThat(partition.get(Range.closed(START.plusHours(4), START.plusHours(8)))).isEqualTo(Arrays.asList(expected));
@@ -123,7 +123,7 @@ public class BytePartitionTest {
     public void testGetRangeLowerOverlap() throws Exception {
         try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
-                partition.set(i, (byte) i);
+                partition.set(i, i);
             }
             Byte[] expected = new Byte[]{0, 1, 2, 3, 4};
             assertThat(partition.get(Range.closed(START.minusHours(4), START.plusHours(4)))).isEqualTo(Arrays.asList(expected));
@@ -134,7 +134,7 @@ public class BytePartitionTest {
     public void testGetRangeUpperOverlap() throws Exception {
         try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
-                partition.set(i, (byte) i);
+                partition.set(i, i);
             }
             Byte[] expected = new Byte[]{20, 21, 22, 23};
             assertThat(partition.get(Range.closed(START.plus(PERIOD).minusHours(4), START.plus(PERIOD).plusHours(4)))).isEqualTo(Arrays.asList(expected));
@@ -146,7 +146,7 @@ public class BytePartitionTest {
         try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
             Byte[] expected = new Byte[24];
             for (int i = 0; i < 24; i++) {
-                partition.set(i, (byte) i);
+                partition.set(i, i);
                 expected[i] = (byte) i;
             }
             assertThat(partition.get(Range.closed(START.minusHours(4), START.plus(PERIOD).plusHours(4)))).isEqualTo(Arrays.asList(expected));
@@ -162,7 +162,7 @@ public class BytePartitionTest {
             }
 
             for (int i = 0; i < 24; i++) {
-                partition.set(i, (byte) i);
+                partition.set(i, i);
             }
 
             for (int i = 0; i < 24; i++) {
@@ -188,7 +188,7 @@ public class BytePartitionTest {
             }
 
             for (int i = 0; i < 24; i++) {
-                partition.set(START.plusHours(i), (byte) i);
+                partition.set(START.plusHours(i), i);
             }
 
             for (int i = 0; i < 24; i++) {
@@ -196,33 +196,7 @@ public class BytePartitionTest {
             }
 
             for (int i = 0; i < 24; i++) {
-                partition.set(START.plusHours(i), (Byte) null);
-            }
-
-            for (int i = 0; i < 24; i++) {
-                assertThat(partition.get(START.plusHours(i))).isEqualTo(null);
-            }
-        }
-    }
-
-    @Test
-    public void testSetAndGetDateTimeText() throws Exception {
-        try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
-
-            for (int i = 0; i < 24; i++) {
-                assertThat(partition.get(START.plusHours(i))).isEqualTo(null);
-            }
-
-            for (int i = 0; i < 24; i++) {
-                partition.set(START.plusHours(i), String.valueOf((byte) i));
-            }
-
-            for (int i = 0; i < 24; i++) {
-                assertThat(partition.get(START.plusHours(i))).isEqualTo((byte) i);
-            }
-
-            for (int i = 0; i < 24; i++) {
-                partition.set(START.plusHours(i), (String) null);
+                partition.set(START.plusHours(i), null);
             }
 
             for (int i = 0; i < 24; i++) {

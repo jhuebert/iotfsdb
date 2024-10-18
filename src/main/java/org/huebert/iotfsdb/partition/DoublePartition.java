@@ -9,7 +9,7 @@ import java.time.Period;
 public class DoublePartition extends Partition<Double> {
 
     protected DoublePartition(File file, LocalDateTime start, Period period, Duration interval) {
-        super(file, start, period, interval, Double.BYTES, DoublePartition::getValue, DoublePartition::putValue, Double::parseDouble);
+        super(file, start, period, interval, Double.BYTES, DoublePartition::getValue, DoublePartition::putValue);
     }
 
     private static Double getValue(ByteBuffer byteBuffer, Integer byteOffset) {
@@ -17,8 +17,8 @@ public class DoublePartition extends Partition<Double> {
         return Double.isNaN(result) ? null : result;
     }
 
-    private static ByteBuffer putValue(ByteBuffer byteBuffer, Integer byteOffset, Double value) {
-        return byteBuffer.putDouble(byteOffset, value == null ? Double.NaN : value);
+    private static ByteBuffer putValue(ByteBuffer byteBuffer, Integer byteOffset, Number value) {
+        return byteBuffer.putDouble(byteOffset, value == null ? Double.NaN : value.doubleValue());
     }
 
 }

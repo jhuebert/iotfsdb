@@ -5,6 +5,9 @@ import com.google.common.base.Stopwatch;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import org.huebert.iotfsdb.rest.schema.FindSeriesRequest;
+import org.huebert.iotfsdb.rest.schema.FindSeriesResponse;
+import org.huebert.iotfsdb.rest.schema.SeriesData;
 import org.huebert.iotfsdb.series.Series;
 import org.huebert.iotfsdb.series.SeriesDefinition;
 import org.huebert.iotfsdb.service.SeriesService;
@@ -15,14 +18,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.NO_CONTENT;
@@ -40,47 +41,48 @@ public class SeriesController {
 
     @PostMapping
     @ResponseStatus(NO_CONTENT)
-    public void createSeries(@Valid @RequestBody SeriesDefinition definition) {
+    public void create(@Valid @RequestBody SeriesDefinition definition) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         String trace = UlidCreator.getUlid().toLowerCase();
-        log.debug("createSeries(request): trace={}, definition={}", trace, definition);
+        log.debug("create(request): trace={}, definition={}", trace, definition);
         seriesService.createSeries(definition);
-        log.debug("createSeries(response): trace={}, elapsed={}", trace, stopwatch.stop());
+        log.debug("create(response): trace={}, elapsed={}", trace, stopwatch.stop());
     }
 
     @GetMapping("{id}")
-    public SeriesDefinition getSeries(@PathVariable("id") String id) {
+    public FindSeriesResponse get(@PathVariable("id") String id) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         String trace = UlidCreator.getUlid().toLowerCase();
-        log.debug("getSeries(request): trace={}, id={}", trace, id);
-        SeriesDefinition definition = seriesService.getSeriesDefinition(id);
-        log.debug("getSeries(response): trace={}, elapsed={}, definition={}", trace, stopwatch.stop(), definition);
-        return definition;
+        log.debug("get(request): trace={}, id={}", trace, id);
+        Series series = seriesService.getSeries(id);
+        FindSeriesResponse result = FindSeriesResponse.builder()
+            .definition(series.getDefinition())
+            .metadata(series.getMetadata())
+            .build();
+        log.debug("get(response): trace={}, elapsed={}, result={}", trace, stopwatch.stop(), result);
+        return result;
     }
 
     @DeleteMapping("{id}")
     @ResponseStatus(NO_CONTENT)
-    public void deleteSeries(@PathVariable("id") String id) {
+    public void delete(@PathVariable("id") String id) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         String trace = UlidCreator.getUlid().toLowerCase();
-        log.debug("deleteSeries(request): trace={}, id={}", trace, id);
+        log.debug("delete(request): trace={}, id={}", trace, id);
         seriesService.deleteSeries(id);
-        log.debug("deleteSeries(response): trace={}, elapsed={}", trace, stopwatch.stop());
+        log.debug("delete(response): trace={}, elapsed={}", trace, stopwatch.stop());
     }
 
     @GetMapping
-    public List<SeriesDefinition> findSeries(
-        @RequestParam(name = "pattern", required = false, defaultValue = ".*") Pattern pattern,
-        @RequestParam(name = "metadata", required = false) Map<String, String> metadata
-    ) {
+    public List<FindSeriesResponse> find(@Valid FindSeriesRequest request) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         String trace = UlidCreator.getUlid().toLowerCase();
-        log.debug("findSeries(request): trace={}, pattern={}, metadata={}", trace, pattern, metadata);
-        List<SeriesDefinition> definitions = seriesService.findSeries(pattern, metadata).stream()
-            .map(Series::getDefinition)
+        log.debug("find(request): trace={}, request={}", trace, request);
+        List<FindSeriesResponse> result = seriesService.findSeries(request.getPattern(), request.getMetadata()).stream()
+            .map(s -> FindSeriesResponse.builder().definition(s.getDefinition()).metadata(s.getMetadata()).build())
             .toList();
-        log.debug("findSeries(response): trace={}, elapsed={}, definitions={}", trace, stopwatch.stop(), definitions);
-        return definitions;
+        log.debug("find(response): trace={}, elapsed={}, result={}", trace, stopwatch.stop(), result.size());
+        return result;
     }
 
     @GetMapping("{id}/metadata")
@@ -88,7 +90,7 @@ public class SeriesController {
         Stopwatch stopwatch = Stopwatch.createStarted();
         String trace = UlidCreator.getUlid().toLowerCase();
         log.debug("getMetadata(request): trace={}, id={}", trace, id);
-        Map<String, String> metadata = seriesService.getMetadata(id);
+        Map<String, String> metadata = seriesService.getSeries(id).getMetadata();
         log.debug("getMetadata(response): trace={}, elapsed={}, metadata={}", trace, stopwatch.stop(), metadata);
         return metadata;
     }
@@ -108,22 +110,22 @@ public class SeriesController {
 
     @PostMapping("{id}/data")
     @ResponseStatus(NO_CONTENT)
-    public void set(@PathVariable("id") String id, @NotNull @Valid @RequestBody DataValue dataValue) {
+    public void insert(@PathVariable("id") String id, @NotNull @Valid @RequestBody SeriesData dataValue) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         String trace = UlidCreator.getUlid().toLowerCase();
-        log.debug("set(request): trace={}, id={}, dataValue={}", trace, id, dataValue);
-        seriesService.set(id, dataValue);
-        log.debug("set(response): trace={}, elapsed={}", trace, stopwatch.stop());
+        log.debug("insert(request): trace={}, id={}, dataValue={}", trace, id, dataValue);
+        seriesService.insert(id, dataValue);
+        log.debug("insert(response): trace={}, elapsed={}", trace, stopwatch.stop());
     }
 
-    @PostMapping("{id}/data/bulk")
+    @PostMapping("{id}/data/batch")
     @ResponseStatus(NO_CONTENT)
-    public void set(@PathVariable("id") String id, @NotNull @Valid @RequestBody List<DataValue> dataValues) {
+    public void insert(@PathVariable("id") String id, @NotNull @Valid @RequestBody List<SeriesData> dataValues) {
         Stopwatch stopwatch = Stopwatch.createStarted();
         String trace = UlidCreator.getUlid().toLowerCase();
-        log.debug("set(request): trace={}, id={}, dataValues={}", trace, id, dataValues.size());
-        seriesService.set(id, dataValues);
-        log.debug("set(response): trace={}, elapsed={}", trace, stopwatch.stop());
+        log.debug("insert(request): trace={}, id={}, dataValues={}", trace, id, dataValues.size());
+        seriesService.insert(id, dataValues);
+        log.debug("insert(response): trace={}, elapsed={}", trace, stopwatch.stop());
     }
 
 }

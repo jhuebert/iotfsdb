@@ -214,32 +214,6 @@ public class DoublePartitionTest {
     }
 
     @Test
-    public void testSetAndGetDateTimeText() throws Exception {
-        try (DoublePartition partition = new DoublePartition(file, START, PERIOD, INTERVAL)) {
-
-            for (int i = 0; i < 24; i++) {
-                assertThat(partition.get(START.plusHours(i))).isEqualTo(null);
-            }
-
-            for (int i = 0; i < 24; i++) {
-                partition.set(START.plusHours(i), String.valueOf((double) i));
-            }
-
-            for (int i = 0; i < 24; i++) {
-                assertThat(partition.get(START.plusHours(i))).isEqualTo((double) i);
-            }
-
-            for (int i = 0; i < 24; i++) {
-                partition.set(START.plusHours(i), (String) null);
-            }
-
-            for (int i = 0; i < 24; i++) {
-                assertThat(partition.get(START.plusHours(i))).isEqualTo(null);
-            }
-        }
-    }
-
-    @Test
     public void testCreateOpenAndClose() throws Exception {
         try (DoublePartition partition = new DoublePartition(file, START, PERIOD, INTERVAL)) {
             assertThat(partition.isOpen()).isEqualTo(true);

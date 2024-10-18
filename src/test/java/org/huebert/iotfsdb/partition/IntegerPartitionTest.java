@@ -214,32 +214,6 @@ public class IntegerPartitionTest {
     }
 
     @Test
-    public void testSetAndGetDateTimeText() {
-        try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
-
-            for (int i = 0; i < 24; i++) {
-                assertThat(partition.get(START.plusHours(i))).isEqualTo(null);
-            }
-
-            for (int i = 0; i < 24; i++) {
-                partition.set(START.plusHours(i), String.valueOf(i));
-            }
-
-            for (int i = 0; i < 24; i++) {
-                assertThat(partition.get(START.plusHours(i))).isEqualTo(i);
-            }
-
-            for (int i = 0; i < 24; i++) {
-                partition.set(START.plusHours(i), (String) null);
-            }
-
-            for (int i = 0; i < 24; i++) {
-                assertThat(partition.get(START.plusHours(i))).isEqualTo(null);
-            }
-        }
-    }
-
-    @Test
     public void testCreateOpenAndClose() throws Exception {
         try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
             assertThat(partition.isOpen()).isEqualTo(true);

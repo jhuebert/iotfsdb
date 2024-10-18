@@ -1,6 +1,6 @@
 package org.huebert.iotfsdb.series;
 
-public enum Aggregation {
+public enum Reducer {
     AVERAGE,
     COUNT,
     COUNT_DISTINCT,

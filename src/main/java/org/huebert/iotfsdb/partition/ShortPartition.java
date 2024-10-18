@@ -9,7 +9,7 @@ import java.time.Period;
 public class ShortPartition extends Partition<Short> {
 
     protected ShortPartition(File file, LocalDateTime start, Period period, Duration interval) {
-        super(file, start, period, interval, Short.BYTES, ShortPartition::getValue, ShortPartition::putValue, Short::parseShort);
+        super(file, start, period, interval, Short.BYTES, ShortPartition::getValue, ShortPartition::putValue);
     }
 
     private static Short getValue(ByteBuffer byteBuffer, Integer byteOffset) {
@@ -17,8 +17,8 @@ public class ShortPartition extends Partition<Short> {
         return result == Short.MIN_VALUE ? null : result;
     }
 
-    private static ByteBuffer putValue(ByteBuffer byteBuffer, Integer byteOffset, Short value) {
-        return byteBuffer.putShort(byteOffset, value == null ? Short.MIN_VALUE : value);
+    private static ByteBuffer putValue(ByteBuffer byteBuffer, Integer byteOffset, Number value) {
+        return byteBuffer.putShort(byteOffset, value == null ? Short.MIN_VALUE : value.shortValue());
     }
 
 }

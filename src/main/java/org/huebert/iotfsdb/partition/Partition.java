@@ -1,6 +1,5 @@
 package org.huebert.iotfsdb.partition;
 
-import com.google.common.base.Function;
 import com.google.common.collect.Range;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -48,9 +47,7 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
 
     private final BiFunction<ByteBuffer, Integer, T> getType;
 
-    private final TriFunction<ByteBuffer, Integer, T, ByteBuffer> putType;
-
-    private final Function<String, T> convertText;
+    private final TriFunction<ByteBuffer, Integer, Number, ByteBuffer> putType;
 
     @Getter
     private final Range<LocalDateTime> range;
@@ -75,14 +72,14 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
         Duration interval,
         int typeSize,
         BiFunction<ByteBuffer, Integer, T> getType,
-        TriFunction<ByteBuffer, Integer, T, ByteBuffer> putType,
-        Function<String, T> convertText
+        TriFunction<ByteBuffer, Integer, Number, ByteBuffer> putType
     ) {
+        log.debug("partition(request): file={}, start={}, period={}, interval={}, typeSize={}", file, start, period, interval, typeSize);
+
         this.typeSize = typeSize;
         this.bitShift = (int) Math.rint(Math.log(typeSize) / Math.log(2));
         this.getType = getType;
         this.putType = putType;
-        this.convertText = convertText;
         this.file = file;
 
         LocalDateTime end = start.plus(period);
@@ -127,30 +124,32 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
 
         }
 
+        log.debug("partition(response): file={}, size={}, bitShift={}, readOnly={}, range={}, open={}", this.file, size, bitShift, readOnly, range, open);
     }
 
     public List<T> get(Range<LocalDateTime> range) {
+        log.debug("get(request): file={}, range={}", file, range);
         Range<LocalDateTime> intersection = this.range.intersection(range);
         if (intersection.isEmpty()) {
             return List.of();
         }
         int fromIndex = getIndex(intersection.lowerEndpoint());
         int toIndex = getIndex(intersection.upperEndpoint());
+        log.debug("get(response): file={}, fromIndex={}, toIndex={}", file, fromIndex, toIndex);
         return subList(fromIndex, toIndex + 1);
     }
 
-    public T set(LocalDateTime dateTime, String element) {
-        return set(dateTime, element == null ? null : convertText.apply(element));
-    }
-
-    public T set(LocalDateTime dateTime, T element) {
+    public T set(LocalDateTime dateTime, Number element) {
         int index = getIndex(dateTime);
         return set(index, element);
     }
 
     public T get(LocalDateTime dateTime) {
+        log.debug("get(request): file={}, dateTime={}", file, dateTime);
         int index = getIndex(dateTime);
-        return get(index);
+        T result = get(index);
+        log.debug("get(response): file={}, index={}, result={}", file, index, result);
+        return result;
     }
 
     private int getIndex(LocalDateTime dateTime) {
@@ -170,7 +169,7 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
     }
 
     @Override
-    public T set(int index, T element) {
+    public T set(int index, Number element) {
         log.debug("set: file={}, index={}, value={}", file, index, element);
 
         if (readOnly) {
