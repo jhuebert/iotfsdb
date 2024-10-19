@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.AbstractList;
 import java.util.List;
+import java.util.Objects;
 import java.util.RandomAccess;
 import java.util.function.BiFunction;
 
@@ -37,8 +38,6 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
 
     private final int size;
 
-    private final int typeSize;
-
     private final int bitShift;
 
     private final Duration interval;
@@ -55,11 +54,7 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
     @Getter
     private volatile boolean open;
 
-    private volatile boolean idle = true;
-
-    private int syncStart = Integer.MAX_VALUE;
-
-    private int syncEnd = Integer.MIN_VALUE;
+    private volatile boolean idle;
 
     private FileChannel fileChannel;
 
@@ -74,13 +69,13 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
         BiFunction<ByteBuffer, Integer, T> getType,
         TriFunction<ByteBuffer, Integer, Number, ByteBuffer> putType
     ) {
-        log.debug("partition(request): file={}, start={}, period={}, interval={}, typeSize={}", file, start, period, interval, typeSize);
+        log.debug("Partition(enter): file={}, start={}, period={}, interval={}, typeSize={}", file, start, period, interval, typeSize);
 
-        this.typeSize = typeSize;
         this.bitShift = (int) Math.rint(Math.log(typeSize) / Math.log(2));
         this.getType = getType;
         this.putType = putType;
         this.file = file;
+        this.interval = interval;
 
         LocalDateTime end = start.plus(period);
         this.range = Range.closed(start, end.minusNanos(1));
@@ -99,15 +94,20 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
 
             this.readOnly = !file.canWrite();
             this.open = false;
+            this.idle = true;
             this.size = (int) (numBytes >> bitShift);
-            this.interval = Duration.between(start, end).dividedBy(this.size);
+
+            Duration fileInterval = Duration.between(start, end).dividedBy(this.size);
+            if (!Objects.equals(interval, fileInterval)) {
+                log.warn("input interval ({}) is not the same as the file's calculated interval ({})", interval, fileInterval);
+            }
 
         } else {
 
             this.readOnly = false;
             this.open = true;
+            this.idle = false;
             this.size = (int) Duration.between(start, end).dividedBy(interval);
-            this.interval = interval;
 
             try {
                 int numBytes = size << bitShift;
@@ -124,41 +124,32 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
 
         }
 
-        log.debug("partition(response): file={}, size={}, bitShift={}, readOnly={}, range={}, open={}", this.file, size, bitShift, readOnly, range, open);
+        log.debug("Partition(exit): file={}, size={}, bitShift={}, readOnly={}, range={}, open={}", this.file, size, bitShift, readOnly, range, open);
+    }
+
+    @Override
+    public int size() {
+        return size;
     }
 
     public List<T> get(Range<LocalDateTime> range) {
-        log.debug("get(request): file={}, range={}", file, range);
+        log.debug("get(enter): file={}, range={}", file, range);
         Range<LocalDateTime> intersection = this.range.intersection(range);
         if (intersection.isEmpty()) {
             return List.of();
         }
         int fromIndex = getIndex(intersection.lowerEndpoint());
         int toIndex = getIndex(intersection.upperEndpoint());
-        log.debug("get(response): file={}, fromIndex={}, toIndex={}", file, fromIndex, toIndex);
+        log.debug("get(exit): file={}, fromIndex={}, toIndex={}", file, fromIndex, toIndex);
         return subList(fromIndex, toIndex + 1);
     }
 
-    public T set(LocalDateTime dateTime, Number element) {
-        int index = getIndex(dateTime);
-        return set(index, element);
-    }
-
     public T get(LocalDateTime dateTime) {
-        log.debug("get(request): file={}, dateTime={}", file, dateTime);
+        log.debug("get(enter): file={}, dateTime={}", file, dateTime);
         int index = getIndex(dateTime);
         T result = get(index);
-        log.debug("get(response): file={}, index={}, result={}", file, index, result);
+        log.debug("get(exit): file={}, index={}, result={}", file, index, result);
         return result;
-    }
-
-    private int getIndex(LocalDateTime dateTime) {
-        return (int) Duration.between(range.lowerEndpoint(), dateTime).dividedBy(interval);
-    }
-
-    @Override
-    public int size() {
-        return size;
     }
 
     @Override
@@ -168,9 +159,17 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
         return getType.apply(mappedByteBuffer, byteOffset);
     }
 
+    public T set(LocalDateTime dateTime, Number value) {
+        log.debug("set(enter): file={}, dateTime={}, value={}", file, dateTime, value);
+        int index = getIndex(dateTime);
+        T result = set(index, value);
+        log.debug("set(exit): file={}, index={}, result={}", file, index, result);
+        return result;
+    }
+
     @Override
-    public T set(int index, Number element) {
-        log.debug("set: file={}, index={}, value={}", file, index, element);
+    public T set(int index, Number value) {
+        log.debug("set(enter): file={}, index={}, value={}", file, index, value);
 
         if (readOnly) {
             throw new IllegalStateException("file is read only");
@@ -180,10 +179,9 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
 
         int byteOffset = index << bitShift;
         T previous = getType.apply(mappedByteBuffer, byteOffset);
-        putType.apply(mappedByteBuffer, byteOffset, element);
+        putType.apply(mappedByteBuffer, byteOffset, value);
 
-        syncStart = Math.min(syncStart, byteOffset);
-        syncEnd = Math.max(syncEnd, byteOffset + typeSize);
+        log.debug("set(exit): file={}, byteOffset={}, previous={}", file, byteOffset, previous);
 
         return previous;
     }
@@ -238,6 +236,10 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
             }
         }
         return result;
+    }
+
+    private int getIndex(LocalDateTime dateTime) {
+        return (int) Duration.between(range.lowerEndpoint(), dateTime).dividedBy(interval);
     }
 
 }

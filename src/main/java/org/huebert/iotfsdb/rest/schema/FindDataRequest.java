@@ -4,7 +4,6 @@ import com.google.common.collect.Range;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.huebert.iotfsdb.series.Reducer;
@@ -15,7 +14,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 @Data
-@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class FindDataRequest {

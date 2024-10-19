@@ -1,7 +1,6 @@
 package org.huebert.iotfsdb.service;
 
 import com.github.f4b6a3.ulid.UlidCreator;
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import jakarta.annotation.PostConstruct;
@@ -48,14 +47,13 @@ public class SeriesService {
 
     @PostConstruct
     public void postConstruct() {
+        log.debug("postConstruct(enter): root={}", properties.getRoot());
         File root = Util.checkDirectory(properties.getRoot());
 
         File[] files = root.listFiles();
         if (files == null) {
             throw new IllegalArgumentException(String.format("database directory (%s) contains no files", root));
         }
-
-        // TODO Log
 
         Stream.of(files)
             .parallel()
@@ -65,36 +63,38 @@ public class SeriesService {
                 seriesMap.put(series.getDefinition().getId(), series);
             });
 
-        // TODO Log
+        log.debug("postConstruct(exit): root={}, files={}, seriesMap={}", root, files.length, seriesMap.size());
     }
 
+    // TODO Make configurable
     @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     public void closeIfIdle() {
-        Stopwatch stopwatch = Stopwatch.createStarted();
-        String trace = UlidCreator.getUlid().toLowerCase();
-        log.debug("closeIfIdle(request): trace={}", trace);
+        log.debug("closeIfIdle(enter)");
         long count = seriesMap.values().parallelStream().map(Series::closeIfIdle).mapToLong(a -> a).sum();
-        log.debug("closeIfIdle(response): trace={}, elapsed={}, count={}", trace, stopwatch.stop(), count);
+        log.debug("closeIfIdle(exit): count={}", count);
     }
 
     public Series getSeries(String seriesId) {
+        log.debug("getSeries(enter): seriesId={}", seriesId);
         Series series = seriesMap.get(seriesId);
         if (series == null) {
             throw new IllegalArgumentException(String.format("series (%s) does not exist", seriesId));
         }
+        log.debug("getSeries(exit): seriesRoot={}, seriesDefinition={}", series.getRoot(), series.getDefinition());
         return series;
     }
 
-    public Map<String, String> updateMetadata(String seriesId, Map<String, String> metadata) {
-        // TODO Log
+    public void updateMetadata(String seriesId, Map<String, String> metadata) {
+        log.debug("updateMetadata(enter): seriesId={}, metadata={}", seriesId, metadata);
         if (properties.isReadOnly()) {
             throw new IllegalStateException("database is read only");
         }
-        return getSeries(seriesId).updateMetadata(metadata);
+        getSeries(seriesId).updateMetadata(metadata);
+        log.debug("updateMetadata(exit): seriesId={}, metadata={}", seriesId, metadata);
     }
 
     public void deleteSeries(String seriesId) {
-        // TODO Log
+        log.debug("deleteSeries(enter): seriesId={}", seriesId);
 
         if (properties.isReadOnly()) {
             throw new IllegalStateException("database is read only");
@@ -114,15 +114,19 @@ public class SeriesService {
         if (!FileSystemUtils.deleteRecursively(series.getRoot())) {
             throw new RuntimeException(String.format("unable to delete series (%s)", seriesId));
         }
+
+        log.debug("deleteSeries(exit): seriesId={}", seriesId);
     }
 
     public List<Series> findSeries(Pattern pattern, Map<String, String> metadata) {
-        // TODO Log
-        return seriesMap.values().parallelStream()
+        log.debug("findSeries(enter): pattern={}, metadata={}", pattern, metadata);
+        List<Series> result = seriesMap.values().parallelStream()
             .filter(s -> matchesMetadata(s, metadata))
             .filter(s -> pattern.matcher(s.getDefinition().getId()).matches())
             .sorted(Comparator.comparing(s -> s.getDefinition().getId()))
             .toList();
+        log.debug("findSeries(exit): pattern={}, metadata={}, result={}", pattern, metadata, result.size());
+        return result;
     }
 
     private boolean matchesMetadata(Series series, Map<String, String> metadata) {
@@ -143,7 +147,7 @@ public class SeriesService {
     }
 
     public void createSeries(SeriesDefinition definition) {
-        // TODO Log
+        log.debug("createSeries(enter): definition={}", definition);
 
         if (properties.isReadOnly()) {
             throw new IllegalStateException("database is read only");
@@ -155,29 +159,36 @@ public class SeriesService {
 
         File seriesRoot = new File(Util.checkDirectory(properties.getRoot()), UlidCreator.getUlid().toLowerCase());
         seriesMap.computeIfAbsent(definition.getId(), id -> new Series(seriesRoot, definition));
+
+        log.debug("createSeries(exit): definition={}, seriesRoot={}", definition, seriesRoot);
     }
 
-    public void insert(String seriesId, Iterable<SeriesData> dataValues) {
-        // TODO Log
+    public void insert(String seriesId, List<SeriesData> values) {
+
         if (properties.isReadOnly()) {
             throw new IllegalStateException("database is read only");
         }
-        getSeries(seriesId).set(dataValues);
+        getSeries(seriesId).set(values);
+        log.debug("insert(exit): seriesId={}, values={}", seriesId, values.size());
     }
 
-    public void insert(String seriesId, SeriesData dataValue) {
-        insert(seriesId, List.of(dataValue));
+    public void insert(String seriesId, SeriesData value) {
+        log.debug("insert(enter): seriesId={}, value={}", seriesId, value);
+        insert(seriesId, List.of(value));
+        log.debug("insert(exit): seriesId={}, value={}", seriesId, value);
     }
 
     public List<FindDataResponse> find(FindDataRequest request) {
-        // TODO Log
+        log.debug("find(enter): request={}", request);
 
         if (request.getRange().isEmpty()) {
+            log.debug("find(exit): empty range");
             return List.of();
         }
 
         List<Series> series = findSeries(request.getPattern(), request.getMetadata());
         if (series.isEmpty()) {
+            log.debug("find(exit): no matching series");
             return List.of();
         }
 
@@ -193,19 +204,27 @@ public class SeriesService {
             .sorted(Comparator.comparing(FindDataResponse::getSeries))
             .toList();
 
-        if (request.getSeriesReducer() == null) {
+        log.debug("find(checkpoint): result={}", result.size());
+
+        if (result.isEmpty() || (request.getSeriesReducer() == null)) {
+            log.debug("find(exit): no series reduction");
             return result;
         }
 
-        return List.of(reduce(result, request.getSeriesReducer(), request.isIncludeNull()));
+        List<FindDataResponse> seriesResult = List.of(reduce(result, request.getSeriesReducer(), request.isIncludeNull()));
+        log.debug("find(exit): seriesResult={}", seriesResult.size());
+        return seriesResult;
     }
 
-    private FindDataResponse reduce(List<FindDataResponse> result, Reducer reducer, boolean includeNull) {
+    private FindDataResponse reduce(List<FindDataResponse> responses, Reducer reducer, boolean includeNull) {
+        log.debug("reduce(enter): responses={}, reducer={}, includeNull={}", responses.size(), reducer, includeNull);
 
-        Map<ZonedDateTime, List<SeriesData>> grouped = result.parallelStream()
+        Map<ZonedDateTime, List<SeriesData>> grouped = responses.parallelStream()
             .map(FindDataResponse::getData)
             .flatMap(Collection::stream)
             .collect(Collectors.groupingBy(SeriesData::getTime));
+
+        log.debug("reduce(checkpoint): grouped={}", grouped.size());
 
         List<SeriesData> data = grouped.entrySet().parallelStream()
             .map(e -> {
@@ -217,19 +236,23 @@ public class SeriesService {
             .sorted(Comparator.comparing(SeriesData::getTime))
             .toList();
 
-        Map<String, String> metadata = result.stream()
+        Map<String, String> metadata = responses.stream()
             .map(FindDataResponse::getMetadata)
             .reduce(Map.of(), (a, b) -> Maps.difference(a, b).entriesInCommon());
 
-        return FindDataResponse.builder()
+        FindDataResponse result = FindDataResponse.builder()
             .series("reduced")
             .metadata(metadata)
             .data(data)
             .build();
+
+        log.debug("reduce(checkpoint): metadata={}, data={}", result.getMetadata(), result.getData().size());
+
+        return result;
     }
 
     private List<Range<ZonedDateTime>> getRanges(FindDataRequest request) {
-        // TODO Log
+        log.debug("getRanges(enter): request={}", request);
 
         int count = properties.getMaxQuerySize();
 
@@ -249,6 +272,8 @@ public class SeriesService {
 
         Duration duration = Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(count);
 
+        log.debug("getRanges(checkpoint): count={}, duration={}", count, duration);
+
         List<Range<ZonedDateTime>> ranges = new ArrayList<>(count);
         ZonedDateTime start = range.lowerEndpoint();
         for (int i = 0; i < count; i++) {
@@ -256,6 +281,7 @@ public class SeriesService {
             ranges.add(Range.closed(start, end.minusNanos(1)));
             start = end;
         }
+        log.debug("getRanges(exit): ranges={}", ranges.size());
         return ranges;
     }
 
