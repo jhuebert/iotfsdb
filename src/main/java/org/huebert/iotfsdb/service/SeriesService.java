@@ -1,6 +1,5 @@
 package org.huebert.iotfsdb.service;
 
-import com.github.f4b6a3.ulid.UlidCreator;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
 import jakarta.annotation.PostConstruct;
@@ -157,7 +156,7 @@ public class SeriesService {
             throw new IllegalArgumentException(String.format("series (%s) already exists", definition.getId()));
         }
 
-        File seriesRoot = new File(Util.checkDirectory(properties.getRoot()), UlidCreator.getUlid().toLowerCase());
+        File seriesRoot = new File(Util.checkDirectory(properties.getRoot()), definition.getId());
         seriesMap.computeIfAbsent(definition.getId(), id -> new Series(seriesRoot, definition));
 
         log.debug("createSeries(exit): definition={}, seriesRoot={}", definition, seriesRoot);
@@ -200,7 +199,7 @@ public class SeriesService {
                 .metadata(s.getMetadata())
                 .data(s.get(ranges, request.isIncludeNull(), request.getTimeReducer()))
                 .build())
-            .filter(r -> !r.getData().isEmpty())
+            .filter(r -> r.getData().stream().map(SeriesData::getValue).anyMatch(Objects::nonNull))
             .sorted(Comparator.comparing(FindDataResponse::getSeries))
             .toList();
 
@@ -271,6 +270,11 @@ public class SeriesService {
         }
 
         Duration duration = Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(count);
+
+        if (duration.compareTo(Duration.ofSeconds(1)) < 0) {
+            duration = Duration.ofSeconds(1);
+            count = (int) Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(duration);
+        }
 
         log.debug("getRanges(checkpoint): count={}, duration={}", count, duration);
 
