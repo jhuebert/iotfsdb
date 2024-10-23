@@ -8,7 +8,7 @@ import org.huebert.iotfsdb.series.NumberType;
 import org.huebert.iotfsdb.series.Reducer;
 import org.huebert.iotfsdb.series.SeriesDefinition;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
@@ -23,22 +23,22 @@ import java.util.stream.Stream;
 @UtilityClass
 public class PartitionFactory {
 
-    public static Partition<?> create(SeriesDefinition definition, File file, LocalDateTime start) {
+    public static Partition<?> create(SeriesDefinition definition, Path path, LocalDateTime start) {
         NumberType numberType = definition.getType();
         Period period = definition.getPartition().getPeriod();
         Duration interval = Duration.ofSeconds(definition.getInterval());
         if (numberType == NumberType.INT1) {
-            return new BytePartition(file, start, period, interval);
+            return new BytePartition(path, start, period, interval);
         } else if (numberType == NumberType.FLOAT8) {
-            return new DoublePartition(file, start, period, interval);
+            return new DoublePartition(path, start, period, interval);
         } else if (numberType == NumberType.FLOAT4) {
-            return new FloatPartition(file, start, period, interval);
+            return new FloatPartition(path, start, period, interval);
         } else if (numberType == NumberType.INT4) {
-            return new IntegerPartition(file, start, period, interval);
+            return new IntegerPartition(path, start, period, interval);
         } else if (numberType == NumberType.INT8) {
-            return new LongPartition(file, start, period, interval);
+            return new LongPartition(path, start, period, interval);
         } else if (numberType == NumberType.INT2) {
-            return new ShortPartition(file, start, period, interval);
+            return new ShortPartition(path, start, period, interval);
         } else {
             throw new IllegalArgumentException(String.format("series type %s not supported", numberType));
         }

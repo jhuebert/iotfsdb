@@ -42,7 +42,7 @@ public class BytePartitionTest {
 
     @Test
     public void testCreate() throws Exception {
-        try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
+        try (BytePartition partition = new BytePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             assertThat(partition.size()).isEqualTo(24);
             assertThat(file.exists()).isEqualTo(true);
             assertThat(file.canRead()).isEqualTo(true);
@@ -58,7 +58,7 @@ public class BytePartitionTest {
     @Test
     public void testReadEmpty() throws Exception {
         file.createNewFile();
-        assertThrows(IllegalArgumentException.class, () -> new BytePartition(file, START, PERIOD, INTERVAL));
+        assertThrows(IllegalArgumentException.class, () -> new BytePartition(file.toPath(), START, PERIOD, INTERVAL));
     }
 
     @Test
@@ -66,7 +66,7 @@ public class BytePartitionTest {
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
         raf.setLength(40);
         raf.close();
-        try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
+        try (BytePartition partition = new BytePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 40; i++) {
                 assertThat(partition.get(i)).isEqualTo((byte) 0);
             }
@@ -77,7 +77,7 @@ public class BytePartitionTest {
 
     @Test
     public void testGetRangeEmpty() throws Exception {
-        try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
+        try (BytePartition partition = new BytePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             LocalDateTime testTime = START.plusHours(12);
             List<Byte> result = partition.get(Range.closedOpen(testTime, testTime));
             assertThat(result.size()).isEqualTo(0);
@@ -86,7 +86,7 @@ public class BytePartitionTest {
 
     @Test
     public void testGetRangeAllExact() throws Exception {
-        try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
+        try (BytePartition partition = new BytePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             Byte[] expected = new Byte[24];
             for (int i = 0; i < 24; i++) {
                 partition.set(i, i);
@@ -98,7 +98,7 @@ public class BytePartitionTest {
 
     @Test
     public void testGetRangeSingle() throws Exception {
-        try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
+        try (BytePartition partition = new BytePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
                 partition.set(i, i);
             }
@@ -110,7 +110,7 @@ public class BytePartitionTest {
 
     @Test
     public void testGetRangeContained() throws Exception {
-        try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
+        try (BytePartition partition = new BytePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
                 partition.set(i, i);
             }
@@ -121,7 +121,7 @@ public class BytePartitionTest {
 
     @Test
     public void testGetRangeLowerOverlap() throws Exception {
-        try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
+        try (BytePartition partition = new BytePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
                 partition.set(i, i);
             }
@@ -132,7 +132,7 @@ public class BytePartitionTest {
 
     @Test
     public void testGetRangeUpperOverlap() throws Exception {
-        try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
+        try (BytePartition partition = new BytePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
                 partition.set(i, i);
             }
@@ -143,7 +143,7 @@ public class BytePartitionTest {
 
     @Test
     public void testGetRangeCompleteOverlap() throws Exception {
-        try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
+        try (BytePartition partition = new BytePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             Byte[] expected = new Byte[24];
             for (int i = 0; i < 24; i++) {
                 partition.set(i, i);
@@ -155,7 +155,7 @@ public class BytePartitionTest {
 
     @Test
     public void testSetAndGetIndex() throws Exception {
-        try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
+        try (BytePartition partition = new BytePartition(file.toPath(), START, PERIOD, INTERVAL)) {
 
             for (int i = 0; i < 24; i++) {
                 assertThat(partition.get(i)).isEqualTo(null);
@@ -181,7 +181,7 @@ public class BytePartitionTest {
 
     @Test
     public void testSetAndGetDateTime() throws Exception {
-        try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
+        try (BytePartition partition = new BytePartition(file.toPath(), START, PERIOD, INTERVAL)) {
 
             for (int i = 0; i < 24; i++) {
                 assertThat(partition.get(START.plusHours(i))).isEqualTo(null);
@@ -207,7 +207,7 @@ public class BytePartitionTest {
 
     @Test
     public void testCreateOpenAndClose() throws Exception {
-        try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
+        try (BytePartition partition = new BytePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             assertThat(partition.isOpen()).isEqualTo(true);
 
             partition.close();
@@ -235,7 +235,7 @@ public class BytePartitionTest {
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
         raf.setLength(40);
         raf.close();
-        try (BytePartition partition = new BytePartition(file, START, PERIOD, INTERVAL)) {
+        try (BytePartition partition = new BytePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             assertThat(partition.isOpen()).isEqualTo(false);
 
             partition.close();

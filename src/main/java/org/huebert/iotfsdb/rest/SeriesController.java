@@ -3,6 +3,7 @@ package org.huebert.iotfsdb.rest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import org.huebert.iotfsdb.rest.schema.ArchiveRequest;
 import org.huebert.iotfsdb.rest.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.rest.schema.FindSeriesResponse;
 import org.huebert.iotfsdb.rest.schema.SeriesData;
@@ -92,6 +93,14 @@ public class SeriesController {
         }
         seriesService.updateMetadata(id, metadata);
         log.debug("updateMetadata(exit)");
+    }
+
+    @PostMapping("{id}/archive")
+    @ResponseStatus(NO_CONTENT)
+    public void archive(@PathVariable("id") String id, @NotNull @Valid @RequestBody ArchiveRequest request) {
+        log.debug("archive(enter): id={}, request={}", id, request);
+        seriesService.archiveSeries(id, request);
+        log.debug("archive(exit)");
     }
 
     @PostMapping("{id}/data")

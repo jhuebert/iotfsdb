@@ -1,15 +1,15 @@
 package org.huebert.iotfsdb.partition;
 
-import java.io.File;
 import java.nio.ByteBuffer;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
 
 public class BytePartition extends Partition<Byte> {
 
-    protected BytePartition(File file, LocalDateTime start, Period period, Duration interval) {
-        super(file, start, period, interval, Byte.BYTES, BytePartition::getValue, BytePartition::putValue);
+    protected BytePartition(Path path, LocalDateTime start, Period period, Duration interval) {
+        super(path, start, period, interval, Byte.BYTES, BytePartition::getValue, BytePartition::putValue);
     }
 
     private static Byte getValue(ByteBuffer byteBuffer, Integer byteOffset) {

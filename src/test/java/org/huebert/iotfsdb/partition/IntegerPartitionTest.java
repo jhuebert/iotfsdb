@@ -42,7 +42,7 @@ public class IntegerPartitionTest {
 
     @Test
     public void testCreate() {
-        try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
+        try (IntegerPartition partition = new IntegerPartition(file.toPath(), START, PERIOD, INTERVAL)) {
             assertThat(partition.size()).isEqualTo(24);
             assertThat(file.exists()).isEqualTo(true);
             assertThat(file.canRead()).isEqualTo(true);
@@ -58,7 +58,7 @@ public class IntegerPartitionTest {
     @Test
     public void testReadEmpty() throws Exception {
         file.createNewFile();
-        assertThrows(IllegalArgumentException.class, () -> new IntegerPartition(file, START, PERIOD, INTERVAL));
+        assertThrows(IllegalArgumentException.class, () -> new IntegerPartition(file.toPath(), START, PERIOD, INTERVAL));
     }
 
     @Test
@@ -66,7 +66,7 @@ public class IntegerPartitionTest {
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
         raf.setLength(5);
         raf.close();
-        assertThrows(IllegalArgumentException.class, () -> new IntegerPartition(file, START, PERIOD, INTERVAL));
+        assertThrows(IllegalArgumentException.class, () -> new IntegerPartition(file.toPath(), START, PERIOD, INTERVAL));
     }
 
     @Test
@@ -74,7 +74,7 @@ public class IntegerPartitionTest {
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
         raf.setLength(40);
         raf.close();
-        try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
+        try (IntegerPartition partition = new IntegerPartition(file.toPath(), START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 10; i++) {
                 assertThat(partition.get(i)).isEqualTo(0);
             }
@@ -85,7 +85,7 @@ public class IntegerPartitionTest {
 
     @Test
     public void testGetRangeEmpty() {
-        try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
+        try (IntegerPartition partition = new IntegerPartition(file.toPath(), START, PERIOD, INTERVAL)) {
             LocalDateTime testTime = START.plusHours(12);
             List<Integer> result = partition.get(Range.closedOpen(testTime, testTime));
             assertThat(result.size()).isEqualTo(0);
@@ -94,7 +94,7 @@ public class IntegerPartitionTest {
 
     @Test
     public void testGetRangeAllExact() {
-        try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
+        try (IntegerPartition partition = new IntegerPartition(file.toPath(), START, PERIOD, INTERVAL)) {
             Integer[] expected = new Integer[24];
             for (int i = 0; i < 24; i++) {
                 partition.set(i, i);
@@ -106,7 +106,7 @@ public class IntegerPartitionTest {
 
     @Test
     public void testGetRangeSingle() {
-        try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
+        try (IntegerPartition partition = new IntegerPartition(file.toPath(), START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
                 partition.set(i, i);
             }
@@ -118,7 +118,7 @@ public class IntegerPartitionTest {
 
     @Test
     public void testGetRangeContained() {
-        try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
+        try (IntegerPartition partition = new IntegerPartition(file.toPath(), START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
                 partition.set(i, i);
             }
@@ -129,7 +129,7 @@ public class IntegerPartitionTest {
 
     @Test
     public void testGetRangeLowerOverlap() {
-        try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
+        try (IntegerPartition partition = new IntegerPartition(file.toPath(), START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
                 partition.set(i, i);
             }
@@ -140,7 +140,7 @@ public class IntegerPartitionTest {
 
     @Test
     public void testGetRangeUpperOverlap() {
-        try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
+        try (IntegerPartition partition = new IntegerPartition(file.toPath(), START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
                 partition.set(i, i);
             }
@@ -151,7 +151,7 @@ public class IntegerPartitionTest {
 
     @Test
     public void testGetRangeCompleteOverlap() {
-        try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
+        try (IntegerPartition partition = new IntegerPartition(file.toPath(), START, PERIOD, INTERVAL)) {
             Integer[] expected = new Integer[24];
             for (int i = 0; i < 24; i++) {
                 partition.set(i, i);
@@ -163,7 +163,7 @@ public class IntegerPartitionTest {
 
     @Test
     public void testSetAndGetIndex() {
-        try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
+        try (IntegerPartition partition = new IntegerPartition(file.toPath(), START, PERIOD, INTERVAL)) {
 
             for (int i = 0; i < 24; i++) {
                 assertThat(partition.get(i)).isEqualTo(null);
@@ -189,7 +189,7 @@ public class IntegerPartitionTest {
 
     @Test
     public void testSetAndGetDateTime() {
-        try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
+        try (IntegerPartition partition = new IntegerPartition(file.toPath(), START, PERIOD, INTERVAL)) {
 
             for (int i = 0; i < 24; i++) {
                 assertThat(partition.get(START.plusHours(i))).isEqualTo(null);
@@ -215,7 +215,7 @@ public class IntegerPartitionTest {
 
     @Test
     public void testCreateOpenAndClose() throws Exception {
-        try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
+        try (IntegerPartition partition = new IntegerPartition(file.toPath(), START, PERIOD, INTERVAL)) {
             assertThat(partition.isOpen()).isEqualTo(true);
 
             partition.close();
@@ -243,7 +243,7 @@ public class IntegerPartitionTest {
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
         raf.setLength(40);
         raf.close();
-        try (IntegerPartition partition = new IntegerPartition(file, START, PERIOD, INTERVAL)) {
+        try (IntegerPartition partition = new IntegerPartition(file.toPath(), START, PERIOD, INTERVAL)) {
             assertThat(partition.isOpen()).isEqualTo(false);
 
             partition.close();

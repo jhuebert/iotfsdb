@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
+import com.google.common.collect.Streams;
 import com.google.common.collect.TreeRangeMap;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -12,8 +13,11 @@ import org.huebert.iotfsdb.partition.PartitionFactory;
 import org.huebert.iotfsdb.rest.schema.SeriesData;
 import org.huebert.iotfsdb.util.Util;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Comparator;
@@ -27,9 +31,11 @@ import java.util.stream.Stream;
 @Slf4j
 public class Series implements AutoCloseable {
 
-    private static final String METADATA_JSON = "metadata.json";
+    private static final String ARCHIVE_ZIP = "archive.zip";
 
     private static final String DEFINITION_JSON = "definition.json";
+
+    private static final String METADATA_JSON = "metadata.json";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -38,7 +44,7 @@ public class Series implements AutoCloseable {
     private volatile RangeMap<LocalDateTime, Partition<?>> cachedRangeMap = null;
 
     @Getter
-    private final File root;
+    private final Path root;
 
     @Getter
     private final SeriesDefinition definition;
@@ -46,21 +52,22 @@ public class Series implements AutoCloseable {
     @Getter
     private Map<String, String> metadata;
 
-    public Series(File root, SeriesDefinition definition) {
+    public Series(Path root, SeriesDefinition definition) {
         log.debug("Series(enter): root={}, definition={}", root, definition);
 
-        if (!root.mkdirs()) {
-            throw new RuntimeException(String.format("unable to create series directory (%s)", root));
-        }
-        this.root = root;
+        this.root = Util.createDirectories(root);
 
         try {
 
             this.definition = definition;
-            MAPPER.writeValue(new File(root, DEFINITION_JSON), definition);
+            MAPPER.writeValue(root.resolve(DEFINITION_JSON).toFile(), definition);
 
             this.metadata = Map.of();
-            MAPPER.writeValue(new File(root, METADATA_JSON), metadata);
+            MAPPER.writeValue(root.resolve(METADATA_JSON).toFile(), metadata);
+
+            Path archiveFile = root.resolve(ARCHIVE_ZIP);
+            try (FileSystem ignored = FileSystems.newFileSystem(archiveFile, Map.of("create", "true"))) {
+            }
 
             this.partitionMap = new ConcurrentHashMap<>();
 
@@ -71,49 +78,49 @@ public class Series implements AutoCloseable {
         log.debug("Series(exit): root={}", root);
     }
 
-    public Series(File root) {
+    public Series(Path root) {
         log.debug("Series(enter): root={}", root);
 
         this.root = Util.checkDirectory(root);
 
-        File definitionFile = Util.checkFile(new File(root, DEFINITION_JSON));
+        Path definitionFile = Util.checkFile(root.resolve(DEFINITION_JSON));
         try {
-            this.definition = MAPPER.readValue(definitionFile, SeriesDefinition.class);
+            this.definition = MAPPER.readValue(definitionFile.toFile(), SeriesDefinition.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        File metadataFile = Util.checkFile(new File(root, METADATA_JSON));
+        Path metadataFile = Util.checkFile(root.resolve(METADATA_JSON));
         try {
-            this.metadata = MAPPER.readValue(metadataFile, new TypeReference<>() {
+            this.metadata = MAPPER.readValue(metadataFile.toFile(), new TypeReference<>() {
             });
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        File[] files = root.listFiles();
-        if (files == null) {
-            throw new IllegalArgumentException(String.format("series directory (%s) contains no files", root));
-        }
-
+        Path archiveFile = root.resolve(ARCHIVE_ZIP);
         PartitionPeriod partitionPeriod = definition.getPartition();
-        this.partitionMap = new ConcurrentHashMap<>(Stream.of(files)
-            .filter(File::isFile)
-            .filter(file -> partitionPeriod == PartitionPeriod.findMatch(file.getName()))
-            .map(file -> {
-                LocalDateTime start = partitionPeriod.parseStart(file.getName());
-                return PartitionFactory.create(definition, file, start);
-            })
-            .collect(Collectors.toMap(p -> p.getRange().lowerEndpoint(), p -> p)));
+        try (FileSystem archive = FileSystems.newFileSystem(archiveFile, Map.of("create", "true"))) {
+            this.partitionMap = new ConcurrentHashMap<>(Streams.concat(Util.list(archive.getPath("/")), Util.list(root))
+                .filter(Files::isRegularFile)
+                .filter(path -> partitionPeriod == PartitionPeriod.findMatch(path.getFileName().toString()))
+                .map(path -> {
+                    LocalDateTime start = partitionPeriod.parseStart(path.getFileName().toString());
+                    return PartitionFactory.create(definition, path, start);
+                })
+                .collect(Collectors.toMap(p -> p.getRange().lowerEndpoint(), p -> p)));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         log.debug("Series(exit): root={}, definition={}, metadata={}, partitionMap={}", root, definition, metadata, partitionMap.size());
     }
 
     public void updateMetadata(Map<String, String> metadata) {
         log.debug("updateMetadata(enter): root={}, metadata={}", root, metadata);
-        File metadataFile = Util.checkFileWrite(new File(root, METADATA_JSON));
+        Path metadataFile = Util.checkFileWrite(root.resolve(METADATA_JSON));
         try {
-            MAPPER.writeValue(metadataFile, metadata);
+            MAPPER.writeValue(metadataFile.toFile(), metadata);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -164,6 +171,49 @@ public class Series implements AutoCloseable {
         log.debug("set(exit): root={}, values={}", root, values.size());
     }
 
+    public void archive(Range<ZonedDateTime> range) {
+        log.debug("archive(enter): root={}, range={}", root, range);
+
+        if (range.isEmpty()) {
+            log.debug("archive(exit): root={}, empty range", root);
+            return;
+        }
+
+        RangeMap<LocalDateTime, Partition<?>> rangeMap = getRangeMap();
+
+        LocalDateTime now = Util.convertToUtc(ZonedDateTime.now());
+        Range<LocalDateTime> local = Util.convertToUtc(range);
+
+        try (FileSystem archive = FileSystems.newFileSystem(root.resolve(ARCHIVE_ZIP), Map.of("create", "true"))) {
+            rangeMap.subRangeMap(local).asMapOfRanges().values().stream()
+                .filter(e -> !e.getUri().getScheme().equals("jar"))
+                .filter(e -> !e.getRange().contains(now))
+                .filter(e -> local.encloses(e.getRange()))
+                .forEach(p -> {
+                    Path uncompressedPath = Path.of(p.getUri());
+                    log.debug("archiving {}", uncompressedPath);
+
+                    LocalDateTime start = p.getRange().lowerEndpoint();
+                    partitionMap.remove(start).close();
+
+                    Path compressedPath = archive.getPath(uncompressedPath.getFileName().toString());
+                    Util.copy(uncompressedPath, compressedPath);
+                    partitionMap.put(start, PartitionFactory.create(definition, compressedPath, start));
+
+                    try {
+                        Files.deleteIfExists(uncompressedPath);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            this.cachedRangeMap = null;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        log.debug("archive(exit): root={}", root);
+    }
+
     @Override
     public void close() {
         log.debug("close(enter): root={}", root);
@@ -171,7 +221,7 @@ public class Series implements AutoCloseable {
         log.debug("close(exit): root={}", root);
     }
 
-    public long closeIfIdle() {
+    public long closeIdlePartitions() {
         log.debug("closeIfIdle(enter): root={}", root);
         long result = partitionMap.values().stream().map(Partition::closeIfIdle).filter(r -> r).count();
         log.debug("closeIfIdle(exit): root={}, result={}", root, result);
@@ -181,10 +231,10 @@ public class Series implements AutoCloseable {
     private Partition<?> create(LocalDateTime start) {
         log.debug("create(enter): root={}, start={}", root, start);
         String filename = definition.getPartition().getFilename(start);
-        File file = new File(Util.checkDirectory(root), filename);
-        Partition<?> result = PartitionFactory.create(definition, file, start);
+        Path path = Util.checkDirectory(root).resolve(filename);
+        Partition<?> result = PartitionFactory.create(definition, path, start);
         cachedRangeMap = null;
-        log.debug("create(exit): root={}, file={}", root, file);
+        log.debug("create(exit): root={}, path={}", root, path);
         return result;
     }
 

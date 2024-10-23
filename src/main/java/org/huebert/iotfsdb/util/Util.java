@@ -2,56 +2,109 @@ package org.huebert.iotfsdb.util;
 
 import com.google.common.collect.Range;
 
-import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class Util {
 
-    public static File checkFile(File file) {
+    public static Path unzipToTempFile(Path archiveZip, String path) {
+        try (ZipFile zipFile = new ZipFile(archiveZip.toFile())) {
+            ZipEntry entry = zipFile.getEntry(path);
+            try (InputStream inputStream = zipFile.getInputStream(entry)) {
+                String series = archiveZip.getParent().getFileName().toString();
+                String prefix = String.join("-", "iotfsdb", series, path);
+                Path tempFile = Files.createTempFile(prefix, "");
+                Files.copy(inputStream, tempFile);
+                return tempFile;
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
-        if (file == null) {
+    public static Stream<Path> list(Path path) {
+        try {
+            return Files.list(path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Path createDirectories(Path path) {
+        try {
+            return Files.createDirectories(path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Path copy(Path from, Path to) {
+        try {
+            return Files.copy(from, to);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static long size(Path path) {
+        try {
+            return Files.size(path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Path checkFile(Path path) {
+
+        if (path == null) {
             throw new IllegalArgumentException("file is null");
         }
 
-        if (!file.exists()) {
-            throw new IllegalArgumentException(String.format("file (%s) does not exist", file));
+        if (!Files.exists(path)) {
+            throw new IllegalArgumentException(String.format("file (%s) does not exist", path));
         }
 
-        if (!file.isFile()) {
-            throw new IllegalArgumentException(String.format("path (%s) is not a file", file));
+        if (!Files.isRegularFile(path)) {
+            throw new IllegalArgumentException(String.format("path (%s) is not a file", path));
         }
 
-        if (!file.canRead()) {
-            throw new IllegalArgumentException(String.format("unable to read file (%s)", file));
+        if (!Files.isReadable(path)) {
+            throw new IllegalArgumentException(String.format("unable to read file (%s)", path));
         }
 
-        return file;
+        return path;
     }
 
-    public static File checkFileWrite(File file) {
-        if (!file.canWrite()) {
-            throw new IllegalArgumentException(String.format("unable to write file (%s)", file));
+    public static Path checkFileWrite(Path path) {
+        if (!Files.isWritable(path)) {
+            throw new IllegalArgumentException(String.format("unable to write file (%s)", path));
         }
-        return checkFile(file);
+        return checkFile(path);
     }
 
-    public static File checkDirectory(File dir) {
+    public static Path checkDirectory(Path dir) {
 
         if (dir == null) {
             throw new IllegalArgumentException("dir is null");
         }
 
-        if (!dir.exists()) {
+        if (!Files.exists(dir)) {
             throw new IllegalArgumentException(String.format("directory (%s) does not exist", dir));
         }
 
-        if (!dir.isDirectory()) {
+        if (!Files.isDirectory(dir)) {
             throw new IllegalArgumentException(String.format("path (%s) is not a directory", dir));
         }
 
-        if (!dir.canRead()) {
+        if (!Files.isReadable(dir)) {
             throw new IllegalArgumentException(String.format("unable to read directory (%s)", dir));
         }
 

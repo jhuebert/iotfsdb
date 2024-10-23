@@ -2,10 +2,10 @@ package org.huebert.iotfsdb.service;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Range;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.IotfsdbProperties;
 import org.huebert.iotfsdb.partition.PartitionFactory;
+import org.huebert.iotfsdb.rest.schema.ArchiveRequest;
 import org.huebert.iotfsdb.rest.schema.FindDataRequest;
 import org.huebert.iotfsdb.rest.schema.FindDataResponse;
 import org.huebert.iotfsdb.rest.schema.SeriesData;
@@ -17,7 +17,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 
-import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -41,35 +42,26 @@ public class SeriesService {
     private final Map<String, Series> seriesMap = new ConcurrentHashMap<>();
 
     public SeriesService(IotfsdbProperties properties) {
+        log.debug("SeriesService(enter): properties={}", properties);
         this.properties = properties;
-    }
 
-    @PostConstruct
-    public void postConstruct() {
-        log.debug("postConstruct(enter): root={}", properties.getRoot());
-        File root = Util.checkDirectory(properties.getRoot());
+        Path root = Util.checkDirectory(properties.getRoot());
 
-        File[] files = root.listFiles();
-        if (files == null) {
-            throw new IllegalArgumentException(String.format("database directory (%s) contains no files", root));
-        }
-
-        Stream.of(files)
+        Util.list(root)
             .parallel()
-            .filter(File::isDirectory)
+            .filter(Files::isDirectory)
             .forEach(file -> {
                 Series series = new Series(file);
                 seriesMap.put(series.getDefinition().getId(), series);
             });
 
-        log.debug("postConstruct(exit): root={}, files={}, seriesMap={}", root, files.length, seriesMap.size());
+        log.debug("SeriesService(exit): root={}, seriesMap={}", root, seriesMap.size());
     }
 
-    // TODO Make configurable
-    @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
-    public void closeIfIdle() {
+    @Scheduled(fixedRateString = "${iotfsdb.max-idle-seconds}", timeUnit = TimeUnit.SECONDS)
+    public void closeIdlePartitions() {
         log.debug("closeIfIdle(enter)");
-        long count = seriesMap.values().parallelStream().map(Series::closeIfIdle).mapToLong(a -> a).sum();
+        long count = seriesMap.values().parallelStream().map(Series::closeIdlePartitions).mapToLong(a -> a).sum();
         log.debug("closeIfIdle(exit): count={}", count);
     }
 
@@ -110,11 +102,22 @@ public class SeriesService {
             throw new RuntimeException(e);
         }
 
-        if (!FileSystemUtils.deleteRecursively(series.getRoot())) {
+        if (!FileSystemUtils.deleteRecursively(series.getRoot().toFile())) {
             throw new RuntimeException(String.format("unable to delete series (%s)", seriesId));
         }
 
+        //TODO Delete from archive
+
         log.debug("deleteSeries(exit): seriesId={}", seriesId);
+    }
+
+    public void archiveSeries(String seriesId, ArchiveRequest request) {
+        log.debug("archiveSeries(enter): seriesId={}, request={}", seriesId, request);
+        if (properties.isReadOnly()) {
+            throw new IllegalStateException("database is read only");
+        }
+        getSeries(seriesId).archive(request.getRange());
+        log.debug("archiveSeries(exit): seriesId={}", seriesId);
     }
 
     public List<Series> findSeries(Pattern pattern, Map<String, String> metadata) {
@@ -156,7 +159,7 @@ public class SeriesService {
             throw new IllegalArgumentException(String.format("series (%s) already exists", definition.getId()));
         }
 
-        File seriesRoot = new File(Util.checkDirectory(properties.getRoot()), definition.getId());
+        Path seriesRoot = Util.checkDirectory(properties.getRoot()).resolve(definition.getId());
         seriesMap.computeIfAbsent(definition.getId(), id -> new Series(seriesRoot, definition));
 
         log.debug("createSeries(exit): definition={}, seriesRoot={}", definition, seriesRoot);

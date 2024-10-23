@@ -31,17 +31,17 @@ public class PartitionFactoryTest {
             .build();
 
         definition.setType(NumberType.INT1);
-        assertThat(PartitionFactory.create(definition, file, LocalDateTime.now()).size()).isEqualTo(40);
+        assertThat(PartitionFactory.create(definition, file.toPath(), LocalDateTime.now()).size()).isEqualTo(40);
         definition.setType(NumberType.FLOAT8);
-        assertThat(PartitionFactory.create(definition, file, LocalDateTime.now()).size()).isEqualTo(5);
+        assertThat(PartitionFactory.create(definition, file.toPath(), LocalDateTime.now()).size()).isEqualTo(5);
         definition.setType(NumberType.FLOAT4);
-        assertThat(PartitionFactory.create(definition, file, LocalDateTime.now()).size()).isEqualTo(10);
+        assertThat(PartitionFactory.create(definition, file.toPath(), LocalDateTime.now()).size()).isEqualTo(10);
         definition.setType(NumberType.INT4);
-        assertThat(PartitionFactory.create(definition, file, LocalDateTime.now()).size()).isEqualTo(10);
+        assertThat(PartitionFactory.create(definition, file.toPath(), LocalDateTime.now()).size()).isEqualTo(10);
         definition.setType(NumberType.INT8);
-        assertThat(PartitionFactory.create(definition, file, LocalDateTime.now()).size()).isEqualTo(5);
+        assertThat(PartitionFactory.create(definition, file.toPath(), LocalDateTime.now()).size()).isEqualTo(5);
         definition.setType(NumberType.INT2);
-        assertThat(PartitionFactory.create(definition, file, LocalDateTime.now()).size()).isEqualTo(20);
+        assertThat(PartitionFactory.create(definition, file.toPath(), LocalDateTime.now()).size()).isEqualTo(20);
 
         file.delete();
     }

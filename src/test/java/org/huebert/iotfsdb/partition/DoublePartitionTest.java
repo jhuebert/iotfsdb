@@ -42,7 +42,7 @@ public class DoublePartitionTest {
 
     @Test
     public void testCreate() throws Exception {
-        try (DoublePartition partition = new DoublePartition(file, START, PERIOD, INTERVAL)) {
+        try (DoublePartition partition = new DoublePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             assertThat(partition.size()).isEqualTo(24);
             assertThat(file.exists()).isEqualTo(true);
             assertThat(file.canRead()).isEqualTo(true);
@@ -58,7 +58,7 @@ public class DoublePartitionTest {
     @Test
     public void testReadEmpty() throws Exception {
         file.createNewFile();
-        assertThrows(IllegalArgumentException.class, () -> new DoublePartition(file, START, PERIOD, INTERVAL));
+        assertThrows(IllegalArgumentException.class, () -> new DoublePartition(file.toPath(), START, PERIOD, INTERVAL));
     }
 
     @Test
@@ -66,7 +66,7 @@ public class DoublePartitionTest {
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
         raf.setLength(5);
         raf.close();
-        assertThrows(IllegalArgumentException.class, () -> new DoublePartition(file, START, PERIOD, INTERVAL));
+        assertThrows(IllegalArgumentException.class, () -> new DoublePartition(file.toPath(), START, PERIOD, INTERVAL));
     }
 
     @Test
@@ -74,7 +74,7 @@ public class DoublePartitionTest {
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
         raf.setLength(80);
         raf.close();
-        try (DoublePartition partition = new DoublePartition(file, START, PERIOD, INTERVAL)) {
+        try (DoublePartition partition = new DoublePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 10; i++) {
                 assertThat(partition.get(i)).isEqualTo(0.0f);
             }
@@ -85,7 +85,7 @@ public class DoublePartitionTest {
 
     @Test
     public void testGetRangeEmpty() throws Exception {
-        try (DoublePartition partition = new DoublePartition(file, START, PERIOD, INTERVAL)) {
+        try (DoublePartition partition = new DoublePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             LocalDateTime testTime = START.plusHours(12);
             List<Double> result = partition.get(Range.closedOpen(testTime, testTime));
             assertThat(result.size()).isEqualTo(0);
@@ -94,7 +94,7 @@ public class DoublePartitionTest {
 
     @Test
     public void testGetRangeAllExact() throws Exception {
-        try (DoublePartition partition = new DoublePartition(file, START, PERIOD, INTERVAL)) {
+        try (DoublePartition partition = new DoublePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             Double[] expected = new Double[24];
             for (int i = 0; i < 24; i++) {
                 partition.set(i, (double) i);
@@ -106,7 +106,7 @@ public class DoublePartitionTest {
 
     @Test
     public void testGetRangeSingle() throws Exception {
-        try (DoublePartition partition = new DoublePartition(file, START, PERIOD, INTERVAL)) {
+        try (DoublePartition partition = new DoublePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
                 partition.set(i, (double) i);
             }
@@ -118,7 +118,7 @@ public class DoublePartitionTest {
 
     @Test
     public void testGetRangeContained() throws Exception {
-        try (DoublePartition partition = new DoublePartition(file, START, PERIOD, INTERVAL)) {
+        try (DoublePartition partition = new DoublePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
                 partition.set(i, (double) i);
             }
@@ -129,7 +129,7 @@ public class DoublePartitionTest {
 
     @Test
     public void testGetRangeLowerOverlap() throws Exception {
-        try (DoublePartition partition = new DoublePartition(file, START, PERIOD, INTERVAL)) {
+        try (DoublePartition partition = new DoublePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
                 partition.set(i, (double) i);
             }
@@ -140,7 +140,7 @@ public class DoublePartitionTest {
 
     @Test
     public void testGetRangeUpperOverlap() throws Exception {
-        try (DoublePartition partition = new DoublePartition(file, START, PERIOD, INTERVAL)) {
+        try (DoublePartition partition = new DoublePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             for (int i = 0; i < 24; i++) {
                 partition.set(i, (double) i);
             }
@@ -151,7 +151,7 @@ public class DoublePartitionTest {
 
     @Test
     public void testGetRangeCompleteOverlap() throws Exception {
-        try (DoublePartition partition = new DoublePartition(file, START, PERIOD, INTERVAL)) {
+        try (DoublePartition partition = new DoublePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             Double[] expected = new Double[24];
             for (int i = 0; i < 24; i++) {
                 partition.set(i, (double) i);
@@ -163,7 +163,7 @@ public class DoublePartitionTest {
 
     @Test
     public void testSetAndGetIndex() throws Exception {
-        try (DoublePartition partition = new DoublePartition(file, START, PERIOD, INTERVAL)) {
+        try (DoublePartition partition = new DoublePartition(file.toPath(), START, PERIOD, INTERVAL)) {
 
             for (int i = 0; i < 24; i++) {
                 assertThat(partition.get(i)).isEqualTo(null);
@@ -189,7 +189,7 @@ public class DoublePartitionTest {
 
     @Test
     public void testSetAndGetDateTime() throws Exception {
-        try (DoublePartition partition = new DoublePartition(file, START, PERIOD, INTERVAL)) {
+        try (DoublePartition partition = new DoublePartition(file.toPath(), START, PERIOD, INTERVAL)) {
 
             for (int i = 0; i < 24; i++) {
                 assertThat(partition.get(START.plusHours(i))).isEqualTo(null);
@@ -215,7 +215,7 @@ public class DoublePartitionTest {
 
     @Test
     public void testCreateOpenAndClose() throws Exception {
-        try (DoublePartition partition = new DoublePartition(file, START, PERIOD, INTERVAL)) {
+        try (DoublePartition partition = new DoublePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             assertThat(partition.isOpen()).isEqualTo(true);
 
             partition.close();
@@ -243,7 +243,7 @@ public class DoublePartitionTest {
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
         raf.setLength(40);
         raf.close();
-        try (DoublePartition partition = new DoublePartition(file, START, PERIOD, INTERVAL)) {
+        try (DoublePartition partition = new DoublePartition(file.toPath(), START, PERIOD, INTERVAL)) {
             assertThat(partition.isOpen()).isEqualTo(false);
 
             partition.close();
