@@ -106,8 +106,6 @@ public class SeriesService {
             throw new RuntimeException(String.format("unable to delete series (%s)", seriesId));
         }
 
-        //TODO Delete from archive
-
         log.debug("deleteSeries(exit): seriesId={}", seriesId);
     }
 
