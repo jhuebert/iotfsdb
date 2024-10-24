@@ -1,5 +1,6 @@
 package org.huebert.iotfsdb.rest.schema;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.Range;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -31,6 +32,7 @@ public class ReduceRequest {
 
     private Reducer reducer;
 
+    @JsonIgnore
     public Range<ZonedDateTime> getRange() {
         return Range.closed(from, to);
     }

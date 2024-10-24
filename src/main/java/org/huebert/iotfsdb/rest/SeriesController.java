@@ -41,7 +41,7 @@ public class SeriesController {
         this.seriesService = seriesService;
     }
 
-    @Operation(summary = "Create new series", description = "")
+    @Operation(tags = "Series", summary = "Create new series", description = "")
     @PostMapping
     @ResponseStatus(NO_CONTENT)
     public void create(@NotNull @Valid @RequestBody SeriesDefinition definition) {
@@ -50,7 +50,7 @@ public class SeriesController {
         log.debug("create(exit)");
     }
 
-    @Operation(summary = "Get series details", description = "")
+    @Operation(tags = "Series", summary = "Get series details", description = "")
     @GetMapping("{id}")
     public FindSeriesResponse get(@PathVariable("id") String id) {
         log.debug("get(enter): id={}", id);
@@ -63,6 +63,7 @@ public class SeriesController {
         return result;
     }
 
+    @Operation(tags = "Series", summary = "Delete a series", description = "")
     @DeleteMapping("{id}")
     @ResponseStatus(NO_CONTENT)
     public void delete(@PathVariable("id") String id) {
@@ -71,6 +72,7 @@ public class SeriesController {
         log.debug("delete(exit)");
     }
 
+    @Operation(tags = "Series", summary = "Finds series that match search parameters", description = "")
     @GetMapping
     public List<FindSeriesResponse> find(@NotNull @Valid FindSeriesRequest request) {
         log.debug("find(enter): request={}", request);
@@ -81,6 +83,7 @@ public class SeriesController {
         return result;
     }
 
+    @Operation(tags = "Series", summary = "Retrieves the metadata for a series", description = "")
     @GetMapping("{id}/metadata")
     public Map<String, String> getMetadata(@PathVariable("id") String id) {
         log.debug("getMetadata(enter): id={}", id);
@@ -89,6 +92,7 @@ public class SeriesController {
         return metadata;
     }
 
+    @Operation(tags = "Series", summary = "Updates metadata for a series", description = "")
     @PutMapping("{id}/metadata")
     @ResponseStatus(NO_CONTENT)
     public void updateMetadata(@PathVariable("id") String id, @NotNull @Valid @RequestBody Map<String, String> metadata) {
@@ -100,6 +104,7 @@ public class SeriesController {
         log.debug("updateMetadata(exit)");
     }
 
+    @Operation(tags = "Series", summary = "Reduces the data interval for partitions fully contained in the input range", description = "")
     @PostMapping("{id}/reduce")
     @ResponseStatus(NO_CONTENT)
     public void reduce(@PathVariable("id") String id, @NotNull @Valid @RequestBody ReduceRequest request) {
@@ -108,6 +113,7 @@ public class SeriesController {
         log.debug("reduce(exit)");
     }
 
+    @Operation(tags = "Series", summary = "Gets statistics for a series", description = "")
     @GetMapping("{id}/stats")
     public SeriesStats stats(@PathVariable("id") String id) {
         log.debug("stats(enter): id={}", id);
@@ -116,6 +122,7 @@ public class SeriesController {
         return result;
     }
 
+    @Operation(tags = "Series", summary = "Compresses partitions fully contained in the input range", description = "")
     @PostMapping("{id}/unarchive")
     @ResponseStatus(NO_CONTENT)
     public void unarchive(@PathVariable("id") String id, @NotNull @Valid @RequestBody ArchiveRequest request) {
@@ -124,6 +131,7 @@ public class SeriesController {
         log.debug("unarchive(exit)");
     }
 
+    @Operation(tags = "Series", summary = "Decompresses partitions fully contained in the input range", description = "")
     @PostMapping("{id}/archive")
     @ResponseStatus(NO_CONTENT)
     public void archive(@PathVariable("id") String id, @NotNull @Valid @RequestBody ArchiveRequest request) {
@@ -132,6 +140,7 @@ public class SeriesController {
         log.debug("archive(exit)");
     }
 
+    @Operation(tags = "Series", summary = "Inserts data for a series", description = "")
     @PostMapping("{id}/data")
     @ResponseStatus(NO_CONTENT)
     public void insert(@PathVariable("id") String id, @NotNull @Valid @RequestBody SeriesData dataValue) {
@@ -140,6 +149,7 @@ public class SeriesController {
         log.debug("insert(exit)");
     }
 
+    @Operation(tags = "Series", summary = "Bulk inserts data for a series", description = "")
     @PostMapping("{id}/data/batch")
     @ResponseStatus(NO_CONTENT)
     public void insert(@PathVariable("id") String id, @NotNull @Valid @RequestBody List<SeriesData> dataValues) {

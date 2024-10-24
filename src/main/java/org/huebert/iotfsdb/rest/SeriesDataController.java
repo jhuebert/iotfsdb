@@ -1,5 +1,6 @@
 package org.huebert.iotfsdb.rest;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +31,7 @@ public class SeriesDataController {
         this.seriesService = seriesService;
     }
 
+    @Operation(tags = "Data", summary = "Finds data matching the input parameters")
     @GetMapping
     public List<FindDataResponse> find(@NotNull @Valid FindDataRequest request) {
         log.debug("find(enter): request={}", request);
@@ -38,6 +40,7 @@ public class SeriesDataController {
         return result;
     }
 
+    @Operation(tags = "Data", summary = "Bulk insert of data")
     @PostMapping
     @ResponseStatus(NO_CONTENT)
     public void insert(@NotNull @Valid @RequestBody List<InsertRequest> request) {
@@ -47,6 +50,7 @@ public class SeriesDataController {
         log.debug("insert(exit)");
     }
 
+    @Operation(tags = "Data", summary = "Series statistics for the entire database")
     @GetMapping("stats")
     public SeriesStats stats() {
         log.debug("stats(enter)");

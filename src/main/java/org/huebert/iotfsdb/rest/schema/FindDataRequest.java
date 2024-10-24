@@ -1,5 +1,6 @@
 package org.huebert.iotfsdb.rest.schema;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.Range;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -43,6 +44,7 @@ public class FindDataRequest {
     @NotNull
     private Map<String, String> metadata = new HashMap<>();
 
+    @JsonIgnore
     public Range<ZonedDateTime> getRange() {
         return Range.closed(from, to);
     }

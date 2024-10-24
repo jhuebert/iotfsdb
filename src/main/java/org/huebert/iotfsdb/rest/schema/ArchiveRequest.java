@@ -1,5 +1,6 @@
 package org.huebert.iotfsdb.rest.schema;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.Range;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,7 @@ public class ArchiveRequest {
     @NotNull
     private ZonedDateTime to;
 
+    @JsonIgnore
     public Range<ZonedDateTime> getRange() {
         return Range.closed(from, to);
     }
