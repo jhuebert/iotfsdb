@@ -1,12 +1,15 @@
 package org.huebert.iotfsdb.rest;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.rest.schema.ArchiveRequest;
 import org.huebert.iotfsdb.rest.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.rest.schema.FindSeriesResponse;
+import org.huebert.iotfsdb.rest.schema.ReduceRequest;
 import org.huebert.iotfsdb.rest.schema.SeriesData;
+import org.huebert.iotfsdb.rest.schema.SeriesStats;
 import org.huebert.iotfsdb.series.Series;
 import org.huebert.iotfsdb.series.SeriesDefinition;
 import org.huebert.iotfsdb.service.SeriesService;
@@ -38,6 +41,7 @@ public class SeriesController {
         this.seriesService = seriesService;
     }
 
+    @Operation(summary = "Create new series", description = "")
     @PostMapping
     @ResponseStatus(NO_CONTENT)
     public void create(@NotNull @Valid @RequestBody SeriesDefinition definition) {
@@ -46,6 +50,7 @@ public class SeriesController {
         log.debug("create(exit)");
     }
 
+    @Operation(summary = "Get series details", description = "")
     @GetMapping("{id}")
     public FindSeriesResponse get(@PathVariable("id") String id) {
         log.debug("get(enter): id={}", id);
@@ -93,6 +98,30 @@ public class SeriesController {
         }
         seriesService.updateMetadata(id, metadata);
         log.debug("updateMetadata(exit)");
+    }
+
+    @PostMapping("{id}/reduce")
+    @ResponseStatus(NO_CONTENT)
+    public void reduce(@PathVariable("id") String id, @NotNull @Valid @RequestBody ReduceRequest request) {
+        log.debug("reduce(enter): id={}, request={}", id, request);
+        // TODO
+        log.debug("reduce(exit)");
+    }
+
+    @GetMapping("{id}/stats")
+    public SeriesStats stats(@PathVariable("id") String id) {
+        log.debug("stats(enter): id={}", id);
+        SeriesStats result = seriesService.getSeriesStats(id);
+        log.debug("stats(exit): result={}", result);
+        return result;
+    }
+
+    @PostMapping("{id}/unarchive")
+    @ResponseStatus(NO_CONTENT)
+    public void unarchive(@PathVariable("id") String id, @NotNull @Valid @RequestBody ArchiveRequest request) {
+        log.debug("unarchive(enter): id={}, request={}", id, request);
+        seriesService.unarchiveSeries(id, request);
+        log.debug("unarchive(exit)");
     }
 
     @PostMapping("{id}/archive")

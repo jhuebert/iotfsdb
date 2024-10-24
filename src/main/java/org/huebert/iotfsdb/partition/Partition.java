@@ -45,6 +45,7 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
 
     private final int size;
 
+    @Getter
     private final long numBytes;
 
     private final int bitShift;
@@ -103,14 +104,14 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
                 throw new IllegalArgumentException(String.format("file (%s) size (%d) is not a valid multiple", uri, numBytes));
             }
 
-            this.readOnly = !Files.isWritable(path);
+            this.readOnly = uri.getScheme().equals("jar") || !Files.isWritable(path);
             this.open = false;
             this.idle = true;
             this.size = (int) (numBytes >> bitShift);
 
             Duration fileInterval = Duration.between(start, end).dividedBy(this.size);
             if (!Objects.equals(interval, fileInterval)) {
-                log.warn("input interval ({}) is not the same as the file's calculated interval ({})", interval, fileInterval);
+                log.debug("input interval ({}) is not the same as the file's calculated interval ({})", interval, fileInterval);
             }
 
         } else {

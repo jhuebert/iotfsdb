@@ -15,6 +15,26 @@ import java.util.zip.ZipFile;
 
 public class Util {
 
+    public static ZonedDateTime min(ZonedDateTime a, ZonedDateTime b) {
+        if ((a == null) || (b == null)) {
+            if (a != null) {
+                return a;
+            }
+            return b;
+        }
+        return a.compareTo(b) <= 0 ? a : b;
+    }
+
+    public static ZonedDateTime max(ZonedDateTime a, ZonedDateTime b) {
+        if ((a == null) || (b == null)) {
+            if (a != null) {
+                return a;
+            }
+            return b;
+        }
+        return a.compareTo(b) >= 0 ? a : b;
+    }
+
     public static Path unzipToTempFile(Path archiveZip, String path) {
         try (ZipFile zipFile = new ZipFile(archiveZip.toFile())) {
             ZipEntry entry = zipFile.getEntry(path);

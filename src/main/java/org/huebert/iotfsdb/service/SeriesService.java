@@ -9,6 +9,7 @@ import org.huebert.iotfsdb.rest.schema.ArchiveRequest;
 import org.huebert.iotfsdb.rest.schema.FindDataRequest;
 import org.huebert.iotfsdb.rest.schema.FindDataResponse;
 import org.huebert.iotfsdb.rest.schema.SeriesData;
+import org.huebert.iotfsdb.rest.schema.SeriesStats;
 import org.huebert.iotfsdb.series.Reducer;
 import org.huebert.iotfsdb.series.Series;
 import org.huebert.iotfsdb.series.SeriesDefinition;
@@ -75,6 +76,33 @@ public class SeriesService {
         return series;
     }
 
+    public SeriesStats getSeriesStats(String seriesId) {
+        log.debug("getSeriesStats(enter): seriesId={}", seriesId);
+        Series series = seriesMap.get(seriesId);
+        if (series == null) {
+            throw new IllegalArgumentException(String.format("series (%s) does not exist", seriesId));
+        }
+        SeriesStats result = series.getStats();
+        log.debug("getSeriesStats(exit): seriesRoot={}, result={}", series.getRoot(), result);
+        return result;
+    }
+
+    public SeriesStats getCombinedStats() {
+        log.debug("getCombinedStats(enter)");
+        SeriesStats result = seriesMap.keySet().parallelStream().map(this::getSeriesStats).reduce(SeriesStats.builder().build(), (a, b) -> SeriesStats.builder()
+            .regularSize(a.getRegularSize() + b.getRegularSize())
+            .regularNumPartitions(a.getRegularNumPartitions() + b.getRegularNumPartitions())
+            .archiveSize(a.getArchiveSize() + b.getArchiveSize())
+            .archiveNumPartitions(a.getArchiveNumPartitions() + b.getArchiveNumPartitions())
+            .totalSize(a.getTotalSize() + b.getTotalSize())
+            .totalNumPartitions(a.getTotalNumPartitions() + b.getTotalNumPartitions())
+            .from(Util.min(a.getFrom(), b.getFrom()))
+            .to(Util.max(a.getTo(), b.getTo()))
+            .build());
+        log.debug("getCombinedStats(exit): result={}", result);
+        return result;
+    }
+
     public void updateMetadata(String seriesId, Map<String, String> metadata) {
         log.debug("updateMetadata(enter): seriesId={}, metadata={}", seriesId, metadata);
         if (properties.isReadOnly()) {
@@ -116,6 +144,15 @@ public class SeriesService {
         }
         getSeries(seriesId).archive(request.getRange());
         log.debug("archiveSeries(exit): seriesId={}", seriesId);
+    }
+
+    public void unarchiveSeries(String seriesId, ArchiveRequest request) {
+        log.debug("unarchiveSeries(enter): seriesId={}, request={}", seriesId, request);
+        if (properties.isReadOnly()) {
+            throw new IllegalStateException("database is read only");
+        }
+        getSeries(seriesId).unarchive(request.getRange());
+        log.debug("unarchiveSeries(exit): seriesId={}", seriesId);
     }
 
     public List<Series> findSeries(Pattern pattern, Map<String, String> metadata) {

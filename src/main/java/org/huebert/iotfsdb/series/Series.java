@@ -4,13 +4,16 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
+import com.google.common.collect.RangeSet;
 import com.google.common.collect.Streams;
 import com.google.common.collect.TreeRangeMap;
+import com.google.common.collect.TreeRangeSet;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.partition.Partition;
 import org.huebert.iotfsdb.partition.PartitionFactory;
 import org.huebert.iotfsdb.rest.schema.SeriesData;
+import org.huebert.iotfsdb.rest.schema.SeriesStats;
 import org.huebert.iotfsdb.util.Util;
 
 import java.io.IOException;
@@ -19,6 +22,7 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -212,6 +216,77 @@ public class Series implements AutoCloseable {
         }
 
         log.debug("archive(exit): root={}", root);
+    }
+
+    public void unarchive(Range<ZonedDateTime> range) {
+        log.debug("unarchive(enter): root={}, range={}", root, range);
+
+        if (range.isEmpty()) {
+            log.debug("unarchive(exit): root={}, empty range", root);
+            return;
+        }
+
+        RangeMap<LocalDateTime, Partition<?>> rangeMap = getRangeMap();
+        Range<LocalDateTime> local = Util.convertToUtc(range);
+
+        rangeMap.subRangeMap(local).asMapOfRanges().values().stream()
+            .filter(e -> e.getUri().getScheme().equals("jar"))
+            .filter(e -> local.encloses(e.getRange()))
+            .forEach(p -> {
+                try (FileSystem archive = FileSystems.newFileSystem(p.getUri(), Map.of("create", "true"))) {
+                    Path compressedPath = Path.of(p.getUri());
+                    log.debug("unarchiving {}", compressedPath);
+
+                    LocalDateTime start = p.getRange().lowerEndpoint();
+                    partitionMap.remove(start).close();
+
+                    Path uncompressedPath = root.resolve(compressedPath.getFileName().toString());
+                    Util.copy(compressedPath, uncompressedPath);
+                    partitionMap.put(start, PartitionFactory.create(definition, uncompressedPath, start));
+
+                    Files.deleteIfExists(compressedPath);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        this.cachedRangeMap = null;
+
+        log.debug("unarchive(exit): root={}", root);
+    }
+
+    public SeriesStats getStats() {
+
+        long regularSize = 0;
+        long regularPartitions = 0;
+        ZonedDateTime from = null;
+        ZonedDateTime to = null;
+
+        if (!partitionMap.isEmpty()) {
+            RangeSet<LocalDateTime> rangeSet = TreeRangeSet.create();
+            for (Partition<?> partition : partitionMap.values()) {
+                rangeSet.add(partition.getRange());
+                if (!partition.getUri().getScheme().equals("jar")) {
+                    regularSize += Util.size(Path.of(partition.getUri()));
+                    regularPartitions++;
+                }
+            }
+            Range<LocalDateTime> span = rangeSet.span();
+            from = ZonedDateTime.of(span.lowerEndpoint(), ZoneOffset.UTC);
+            to = ZonedDateTime.of(span.upperEndpoint(), ZoneOffset.UTC);
+        }
+
+        long archiveSize = Util.size(root.resolve(ARCHIVE_ZIP));
+
+        return SeriesStats.builder()
+            .regularSize(regularSize)
+            .archiveSize(archiveSize)
+            .totalSize(regularSize + archiveSize)
+            .regularNumPartitions(regularPartitions)
+            .archiveNumPartitions(partitionMap.size() - regularPartitions)
+            .totalNumPartitions(partitionMap.size())
+            .from(from)
+            .to(to)
+            .build();
     }
 
     @Override

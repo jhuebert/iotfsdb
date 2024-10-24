@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.rest.schema.FindDataRequest;
 import org.huebert.iotfsdb.rest.schema.FindDataResponse;
 import org.huebert.iotfsdb.rest.schema.InsertRequest;
+import org.huebert.iotfsdb.rest.schema.SeriesStats;
 import org.huebert.iotfsdb.service.SeriesService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,6 +45,14 @@ public class SeriesDataController {
         request.parallelStream()
             .forEach(e -> seriesService.insert(e.getSeries(), e.getValues()));
         log.debug("insert(exit)");
+    }
+
+    @GetMapping("stats")
+    public SeriesStats stats() {
+        log.debug("stats(enter)");
+        SeriesStats result = seriesService.getCombinedStats();
+        log.debug("stats(exit): result={}", result);
+        return result;
     }
 
 }
