@@ -43,9 +43,11 @@ public class Series implements AutoCloseable {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private final ConcurrentMap<LocalDateTime, Partition<?>> partitionMap;
+    private static final Map<String, String> CREATE_ZIP = Map.of("create", "true");
 
-    private volatile RangeMap<LocalDateTime, Partition<?>> cachedRangeMap = null;
+    private final ConcurrentMap<LocalDateTime, Partition> partitionMap;
+
+    private volatile RangeMap<LocalDateTime, Partition> cachedRangeMap = null;
 
     @Getter
     private final Path root;
@@ -59,7 +61,12 @@ public class Series implements AutoCloseable {
     public Series(Path root, SeriesDefinition definition) {
         log.debug("Series(enter): root={}, definition={}", root, definition);
 
-        this.root = Util.createDirectories(root);
+        this.root = root;
+        try {
+            Files.createDirectories(root);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
         try {
 
@@ -70,7 +77,7 @@ public class Series implements AutoCloseable {
             MAPPER.writeValue(root.resolve(METADATA_JSON).toFile(), metadata);
 
             Path archiveFile = root.resolve(ARCHIVE_ZIP);
-            try (FileSystem ignored = FileSystems.newFileSystem(archiveFile, Map.of("create", "true"))) {
+            try (FileSystem ignored = FileSystems.newFileSystem(archiveFile, CREATE_ZIP)) {
             }
 
             this.partitionMap = new ConcurrentHashMap<>();
@@ -104,7 +111,7 @@ public class Series implements AutoCloseable {
 
         Path archiveFile = root.resolve(ARCHIVE_ZIP);
         PartitionPeriod partitionPeriod = definition.getPartition();
-        try (FileSystem archive = FileSystems.newFileSystem(archiveFile, Map.of("create", "true"))) {
+        try (FileSystem archive = FileSystems.newFileSystem(archiveFile, CREATE_ZIP)) {
             this.partitionMap = new ConcurrentHashMap<>(Streams.concat(Util.list(archive.getPath("/")), Util.list(root))
                 .filter(Files::isRegularFile)
                 .filter(path -> partitionPeriod == PartitionPeriod.findMatch(path.getFileName().toString()))
@@ -140,7 +147,7 @@ public class Series implements AutoCloseable {
             return List.of();
         }
 
-        RangeMap<LocalDateTime, Partition<?>> rangeMap = getRangeMap();
+        RangeMap<LocalDateTime, Partition> rangeMap = getRangeMap();
 
         List<SeriesData> result = ranges.parallelStream()
             .map(current -> {
@@ -183,12 +190,12 @@ public class Series implements AutoCloseable {
             return;
         }
 
-        RangeMap<LocalDateTime, Partition<?>> rangeMap = getRangeMap();
+        RangeMap<LocalDateTime, Partition> rangeMap = getRangeMap();
 
         LocalDateTime now = Util.convertToUtc(ZonedDateTime.now());
         Range<LocalDateTime> local = Util.convertToUtc(range);
 
-        try (FileSystem archive = FileSystems.newFileSystem(root.resolve(ARCHIVE_ZIP), Map.of("create", "true"))) {
+        try (FileSystem archive = FileSystems.newFileSystem(root.resolve(ARCHIVE_ZIP), CREATE_ZIP)) {
             rangeMap.subRangeMap(local).asMapOfRanges().values().stream()
                 .filter(e -> !e.getUri().getScheme().equals("jar"))
                 .filter(e -> !e.getRange().contains(now))
@@ -201,7 +208,13 @@ public class Series implements AutoCloseable {
                     partitionMap.remove(start).close();
 
                     Path compressedPath = archive.getPath(uncompressedPath.getFileName().toString());
-                    Util.copy(uncompressedPath, compressedPath);
+
+                    try {
+                        Files.copy(uncompressedPath, compressedPath);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
                     partitionMap.put(start, PartitionFactory.create(definition, compressedPath, start));
 
                     try {
@@ -226,14 +239,14 @@ public class Series implements AutoCloseable {
             return;
         }
 
-        RangeMap<LocalDateTime, Partition<?>> rangeMap = getRangeMap();
+        RangeMap<LocalDateTime, Partition> rangeMap = getRangeMap();
         Range<LocalDateTime> local = Util.convertToUtc(range);
 
         rangeMap.subRangeMap(local).asMapOfRanges().values().stream()
             .filter(e -> e.getUri().getScheme().equals("jar"))
             .filter(e -> local.encloses(e.getRange()))
             .forEach(p -> {
-                try (FileSystem archive = FileSystems.newFileSystem(p.getUri(), Map.of("create", "true"))) {
+                try (FileSystem archive = FileSystems.newFileSystem(p.getUri(), CREATE_ZIP)) {
                     Path compressedPath = Path.of(p.getUri());
                     log.debug("unarchiving {}", compressedPath);
 
@@ -241,7 +254,13 @@ public class Series implements AutoCloseable {
                     partitionMap.remove(start).close();
 
                     Path uncompressedPath = root.resolve(compressedPath.getFileName().toString());
-                    Util.copy(compressedPath, uncompressedPath);
+
+                    try {
+                        Files.copy(compressedPath, uncompressedPath);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
                     partitionMap.put(start, PartitionFactory.create(definition, uncompressedPath, start));
 
                     Files.deleteIfExists(compressedPath);
@@ -263,7 +282,7 @@ public class Series implements AutoCloseable {
 
         if (!partitionMap.isEmpty()) {
             RangeSet<LocalDateTime> rangeSet = TreeRangeSet.create();
-            for (Partition<?> partition : partitionMap.values()) {
+            for (Partition partition : partitionMap.values()) {
                 rangeSet.add(partition.getRange());
                 if (!partition.getUri().getScheme().equals("jar")) {
                     regularSize += Util.size(Path.of(partition.getUri()));
@@ -303,22 +322,22 @@ public class Series implements AutoCloseable {
         return result;
     }
 
-    private Partition<?> create(LocalDateTime start) {
+    private Partition create(LocalDateTime start) {
         log.debug("create(enter): root={}, start={}", root, start);
         String filename = definition.getPartition().getFilename(start);
         Path path = Util.checkDirectory(root).resolve(filename);
-        Partition<?> result = PartitionFactory.create(definition, path, start);
+        Partition result = PartitionFactory.create(definition, path, start);
         cachedRangeMap = null;
         log.debug("create(exit): root={}, path={}", root, path);
         return result;
     }
 
-    private RangeMap<LocalDateTime, Partition<?>> getRangeMap() {
-        RangeMap<LocalDateTime, Partition<?>> rangeMap = cachedRangeMap;
+    private RangeMap<LocalDateTime, Partition> getRangeMap() {
+        RangeMap<LocalDateTime, Partition> rangeMap = cachedRangeMap;
         if (rangeMap == null) {
             log.debug("getRangeMap: root={}", root);
             rangeMap = TreeRangeMap.create();
-            for (Partition<?> p : partitionMap.values()) {
+            for (Partition p : partitionMap.values()) {
                 rangeMap.put(p.getRange(), p);
             }
             cachedRangeMap = rangeMap;

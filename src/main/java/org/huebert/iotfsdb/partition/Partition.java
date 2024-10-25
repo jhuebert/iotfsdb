@@ -3,12 +3,11 @@ package org.huebert.iotfsdb.partition;
 import com.google.common.collect.Range;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.huebert.iotfsdb.util.TriFunction;
+import org.huebert.iotfsdb.partition.adapter.PartitionAdapter;
 import org.huebert.iotfsdb.util.Util;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.FileSystem;
@@ -26,13 +25,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.RandomAccess;
-import java.util.function.BiFunction;
 
 import static java.nio.channels.FileChannel.MapMode.READ_ONLY;
 import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
 
 @Slf4j
-public abstract class Partition<T extends Number> extends AbstractList<T> implements RandomAccess, AutoCloseable {
+public class Partition extends AbstractList<Number> implements RandomAccess, AutoCloseable {
 
     private static final OpenOption[] OPEN_OPTIONS_CREATE = new OpenOption[]{StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.DSYNC, StandardOpenOption.CREATE_NEW};
 
@@ -40,13 +38,21 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
 
     private static final OpenOption[] OPEN_OPTIONS_READ_WRITE = new OpenOption[]{StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.DSYNC};
 
+    private static final Map<String, String> CREATE_ZIP = Map.of("create", "true");
+
     @Getter
     private final URI uri;
 
-    private final int size;
-
     @Getter
     private final long numBytes;
+
+    @Getter
+    private final Range<LocalDateTime> range;
+
+    @Getter
+    private volatile boolean open;
+
+    private final int size;
 
     private final int bitShift;
 
@@ -54,15 +60,7 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
 
     private final boolean readOnly;
 
-    private final BiFunction<ByteBuffer, Integer, T> getType;
-
-    private final TriFunction<ByteBuffer, Integer, Number, ByteBuffer> putType;
-
-    @Getter
-    private final Range<LocalDateTime> range;
-
-    @Getter
-    private volatile boolean open;
+    private final PartitionAdapter adapter;
 
     private volatile boolean idle;
 
@@ -77,17 +75,14 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
         LocalDateTime start,
         Period period,
         Duration interval,
-        int typeSize,
-        BiFunction<ByteBuffer, Integer, T> getType,
-        TriFunction<ByteBuffer, Integer, Number, ByteBuffer> putType
+        PartitionAdapter adapter
     ) {
-        log.debug("Partition(enter): uri={}, start={}, period={}, interval={}, typeSize={}", path, start, period, interval, typeSize);
+        log.debug("Partition(enter): uri={}, start={}, period={}, interval={}, typeSize={}", path, start, period, interval, adapter.getTypeSize());
 
-        this.bitShift = (int) Math.rint(Math.log(typeSize) / Math.log(2));
-        this.getType = getType;
-        this.putType = putType;
+        this.bitShift = (int) Math.rint(Math.log(adapter.getTypeSize()) / Math.log(2));
         this.uri = path.toUri();
         this.interval = interval;
+        this.adapter = adapter;
 
         LocalDateTime end = start.plus(period);
         this.range = Range.closed(start, end.minusNanos(1));
@@ -100,7 +95,7 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
                 throw new IllegalArgumentException(String.format("file (%s) is empty", uri));
             }
 
-            if (numBytes % typeSize != 0) {
+            if (numBytes % adapter.getTypeSize() != 0) {
                 throw new IllegalArgumentException(String.format("file (%s) size (%d) is not a valid multiple", uri, numBytes));
             }
 
@@ -125,8 +120,8 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
                 numBytes = (long) size << bitShift;
                 this.fileChannel = FileChannel.open(path, OPEN_OPTIONS_CREATE);
                 this.mappedByteBuffer = fileChannel.map(READ_WRITE, 0, numBytes);
-                for (int i = 0; i < numBytes; i += typeSize) {
-                    putType.apply(mappedByteBuffer, i, null);
+                for (int i = 0; i < numBytes; i += adapter.getTypeSize()) {
+                    adapter.put(mappedByteBuffer, i, null);
                 }
                 mappedByteBuffer.rewind();
                 mappedByteBuffer.force();
@@ -144,7 +139,7 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
         return size;
     }
 
-    public List<T> get(Range<LocalDateTime> range) {
+    public List<Number> get(Range<LocalDateTime> range) {
         log.debug("get(enter): uri={}, range={}", uri, range);
         Range<LocalDateTime> intersection = this.range.intersection(range);
         if (intersection.isEmpty()) {
@@ -156,31 +151,31 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
         return subList(fromIndex, toIndex + 1);
     }
 
-    public T get(LocalDateTime dateTime) {
+    public Number get(LocalDateTime dateTime) {
         log.debug("get(enter): uri={}, dateTime={}", uri, dateTime);
         int index = getIndex(dateTime);
-        T result = get(index);
+        Number result = get(index);
         log.debug("get(exit): uri={}, index={}, result={}", uri, index, result);
         return result;
     }
 
     @Override
-    public T get(int index) {
+    public Number get(int index) {
         open();
         int byteOffset = index << bitShift;
-        return getType.apply(mappedByteBuffer, byteOffset);
+        return adapter.get(mappedByteBuffer, byteOffset);
     }
 
-    public T set(LocalDateTime dateTime, Number value) {
+    public Number set(LocalDateTime dateTime, Number value) {
         log.debug("set(enter): uri={}, dateTime={}, value={}", uri, dateTime, value);
         int index = getIndex(dateTime);
-        T result = set(index, value);
+        Number result = set(index, value);
         log.debug("set(exit): uri={}, index={}, result={}", uri, index, result);
         return result;
     }
 
     @Override
-    public T set(int index, Number value) {
+    public Number set(int index, Number value) {
         log.debug("set(enter): uri={}, index={}, value={}", uri, index, value);
 
         if (readOnly) {
@@ -190,8 +185,8 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
         open();
 
         int byteOffset = index << bitShift;
-        T previous = getType.apply(mappedByteBuffer, byteOffset);
-        putType.apply(mappedByteBuffer, byteOffset, value);
+        Number previous = adapter.get(mappedByteBuffer, byteOffset);
+        adapter.put(mappedByteBuffer, byteOffset, value);
 
         log.debug("set(exit): uri={}, byteOffset={}, previous={}", uri, byteOffset, previous);
 
@@ -209,7 +204,7 @@ public abstract class Partition<T extends Number> extends AbstractList<T> implem
                         Path toOpen;
                         if (uri.getScheme().equals("jar")) {
                             tempPath = Files.createTempFile("iotfsdb-partition-", "");
-                            try (FileSystem archive = FileSystems.newFileSystem(uri, Map.of("create", "true"))) {
+                            try (FileSystem ignored = FileSystems.newFileSystem(uri, CREATE_ZIP)) {
                                 log.debug("copying {} to temp file {}", uri, tempPath);
                                 toOpen = Files.copy(Path.of(uri), tempPath, StandardCopyOption.REPLACE_EXISTING);
                             }

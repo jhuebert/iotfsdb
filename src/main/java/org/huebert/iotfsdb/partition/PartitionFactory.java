@@ -4,6 +4,12 @@ import com.google.common.collect.LinkedHashMultiset;
 import com.google.common.collect.Multiset;
 import com.google.common.math.Quantiles;
 import lombok.experimental.UtilityClass;
+import org.huebert.iotfsdb.partition.adapter.BytePartition;
+import org.huebert.iotfsdb.partition.adapter.DoublePartition;
+import org.huebert.iotfsdb.partition.adapter.FloatPartition;
+import org.huebert.iotfsdb.partition.adapter.IntegerPartition;
+import org.huebert.iotfsdb.partition.adapter.PartitionAdapter;
+import org.huebert.iotfsdb.partition.adapter.ShortPartition;
 import org.huebert.iotfsdb.series.NumberType;
 import org.huebert.iotfsdb.series.Reducer;
 import org.huebert.iotfsdb.series.SeriesDefinition;
@@ -14,6 +20,7 @@ import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
@@ -23,25 +30,25 @@ import java.util.stream.Stream;
 @UtilityClass
 public class PartitionFactory {
 
-    public static Partition<?> create(SeriesDefinition definition, Path path, LocalDateTime start) {
-        NumberType numberType = definition.getType();
+    private static final Map<NumberType, PartitionAdapter> ADAPTER_MAP = Map.of(
+        NumberType.FLOAT4, new FloatPartition(),
+        NumberType.FLOAT8, new DoublePartition(),
+        NumberType.INT1, new BytePartition(),
+        NumberType.INT2, new ShortPartition(),
+        NumberType.INT4, new IntegerPartition(),
+        NumberType.INT8, new DoublePartition()
+    );
+
+    public static Partition create(SeriesDefinition definition, Path path, LocalDateTime start) {
+
+        PartitionAdapter adapter = ADAPTER_MAP.get(definition.getType());
+        if (adapter == null) {
+            throw new IllegalArgumentException(String.format("series type %s not supported", definition.getType()));
+        }
+
         Period period = definition.getPartition().getPeriod();
         Duration interval = Duration.ofSeconds(definition.getInterval());
-        if (numberType == NumberType.INT1) {
-            return new BytePartition(path, start, period, interval);
-        } else if (numberType == NumberType.FLOAT8) {
-            return new DoublePartition(path, start, period, interval);
-        } else if (numberType == NumberType.FLOAT4) {
-            return new FloatPartition(path, start, period, interval);
-        } else if (numberType == NumberType.INT4) {
-            return new IntegerPartition(path, start, period, interval);
-        } else if (numberType == NumberType.INT8) {
-            return new LongPartition(path, start, period, interval);
-        } else if (numberType == NumberType.INT2) {
-            return new ShortPartition(path, start, period, interval);
-        } else {
-            throw new IllegalArgumentException(String.format("series type %s not supported", numberType));
-        }
+        return new Partition(path, start, period, interval, adapter);
     }
 
     public static Optional<? extends Number> reduce(Stream<? extends Number> stream, Reducer reducer) {

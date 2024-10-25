@@ -1,6 +1,7 @@
 package org.huebert.iotfsdb.partition;
 
 import com.google.common.collect.Range;
+import org.huebert.iotfsdb.partition.adapter.FloatPartition;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,7 +19,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class FloatPartitionTest {
+public class PartitionTest {
 
     private static final LocalDateTime START = LocalDateTime.parse("2024-10-10T00:00:00");
 
@@ -30,7 +31,7 @@ public class FloatPartitionTest {
 
     @BeforeEach
     public void beforeEach() throws IOException {
-        file = File.createTempFile(FloatPartitionTest.class.getSimpleName(), "");
+        file = File.createTempFile(PartitionTest.class.getSimpleName(), "");
         file.deleteOnExit();
         file.delete();
     }
@@ -41,8 +42,8 @@ public class FloatPartitionTest {
     }
 
     @Test
-    public void testCreate() throws Exception {
-        try (FloatPartition partition = new FloatPartition(file.toPath(), START, PERIOD, INTERVAL)) {
+    public void testCreate() {
+        try (Partition partition = new Partition(file.toPath(), START, PERIOD, INTERVAL, new FloatPartition())) {
             assertThat(partition.size()).isEqualTo(24);
             assertThat(file.exists()).isEqualTo(true);
             assertThat(file.canRead()).isEqualTo(true);
@@ -58,7 +59,7 @@ public class FloatPartitionTest {
     @Test
     public void testReadEmpty() throws Exception {
         file.createNewFile();
-        assertThrows(IllegalArgumentException.class, () -> new FloatPartition(file.toPath(), START, PERIOD, INTERVAL));
+        assertThrows(IllegalArgumentException.class, () -> new Partition(file.toPath(), START, PERIOD, INTERVAL, new FloatPartition()));
     }
 
     @Test
@@ -66,7 +67,7 @@ public class FloatPartitionTest {
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
         raf.setLength(5);
         raf.close();
-        assertThrows(IllegalArgumentException.class, () -> new FloatPartition(file.toPath(), START, PERIOD, INTERVAL));
+        assertThrows(IllegalArgumentException.class, () -> new Partition(file.toPath(), START, PERIOD, INTERVAL, new FloatPartition()));
     }
 
     @Test
@@ -74,7 +75,7 @@ public class FloatPartitionTest {
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
         raf.setLength(40);
         raf.close();
-        try (FloatPartition partition = new FloatPartition(file.toPath(), START, PERIOD, INTERVAL)) {
+        try (Partition partition = new Partition(file.toPath(), START, PERIOD, INTERVAL, new FloatPartition())) {
             for (int i = 0; i < 10; i++) {
                 assertThat(partition.get(i)).isEqualTo(0.0f);
             }
@@ -84,17 +85,17 @@ public class FloatPartitionTest {
     }
 
     @Test
-    public void testGetRangeEmpty() throws Exception {
-        try (FloatPartition partition = new FloatPartition(file.toPath(), START, PERIOD, INTERVAL)) {
+    public void testGetRangeEmpty() {
+        try (Partition partition = new Partition(file.toPath(), START, PERIOD, INTERVAL, new FloatPartition())) {
             LocalDateTime testTime = START.plusHours(12);
-            List<Float> result = partition.get(Range.closedOpen(testTime, testTime));
+            List<Number> result = partition.get(Range.closedOpen(testTime, testTime));
             assertThat(result.size()).isEqualTo(0);
         }
     }
 
     @Test
-    public void testGetRangeAllExact() throws Exception {
-        try (FloatPartition partition = new FloatPartition(file.toPath(), START, PERIOD, INTERVAL)) {
+    public void testGetRangeAllExact() {
+        try (Partition partition = new Partition(file.toPath(), START, PERIOD, INTERVAL, new FloatPartition())) {
             Float[] expected = new Float[24];
             for (int i = 0; i < 24; i++) {
                 partition.set(i, (float) i);
@@ -105,20 +106,20 @@ public class FloatPartitionTest {
     }
 
     @Test
-    public void testGetRangeSingle() throws Exception {
-        try (FloatPartition partition = new FloatPartition(file.toPath(), START, PERIOD, INTERVAL)) {
+    public void testGetRangeSingle() {
+        try (Partition partition = new Partition(file.toPath(), START, PERIOD, INTERVAL, new FloatPartition())) {
             for (int i = 0; i < 24; i++) {
                 partition.set(i, (float) i);
             }
             LocalDateTime testTime = START.plusHours(12);
-            List<Float> result = partition.get(Range.closed(testTime, testTime));
+            List<Number> result = partition.get(Range.closed(testTime, testTime));
             assertThat(result).isEqualTo(List.of(12.0f));
         }
     }
 
     @Test
-    public void testGetRangeContained() throws Exception {
-        try (FloatPartition partition = new FloatPartition(file.toPath(), START, PERIOD, INTERVAL)) {
+    public void testGetRangeContained() {
+        try (Partition partition = new Partition(file.toPath(), START, PERIOD, INTERVAL, new FloatPartition())) {
             for (int i = 0; i < 24; i++) {
                 partition.set(i, (float) i);
             }
@@ -128,8 +129,8 @@ public class FloatPartitionTest {
     }
 
     @Test
-    public void testGetRangeLowerOverlap() throws Exception {
-        try (FloatPartition partition = new FloatPartition(file.toPath(), START, PERIOD, INTERVAL)) {
+    public void testGetRangeLowerOverlap() {
+        try (Partition partition = new Partition(file.toPath(), START, PERIOD, INTERVAL, new FloatPartition())) {
             for (int i = 0; i < 24; i++) {
                 partition.set(i, (float) i);
             }
@@ -139,8 +140,8 @@ public class FloatPartitionTest {
     }
 
     @Test
-    public void testGetRangeUpperOverlap() throws Exception {
-        try (FloatPartition partition = new FloatPartition(file.toPath(), START, PERIOD, INTERVAL)) {
+    public void testGetRangeUpperOverlap() {
+        try (Partition partition = new Partition(file.toPath(), START, PERIOD, INTERVAL, new FloatPartition())) {
             for (int i = 0; i < 24; i++) {
                 partition.set(i, (float) i);
             }
@@ -150,8 +151,8 @@ public class FloatPartitionTest {
     }
 
     @Test
-    public void testGetRangeCompleteOverlap() throws Exception {
-        try (FloatPartition partition = new FloatPartition(file.toPath(), START, PERIOD, INTERVAL)) {
+    public void testGetRangeCompleteOverlap() {
+        try (Partition partition = new Partition(file.toPath(), START, PERIOD, INTERVAL, new FloatPartition())) {
             Float[] expected = new Float[24];
             for (int i = 0; i < 24; i++) {
                 partition.set(i, (float) i);
@@ -162,8 +163,8 @@ public class FloatPartitionTest {
     }
 
     @Test
-    public void testSetAndGetIndex() throws Exception {
-        try (FloatPartition partition = new FloatPartition(file.toPath(), START, PERIOD, INTERVAL)) {
+    public void testSetAndGetIndex() {
+        try (Partition partition = new Partition(file.toPath(), START, PERIOD, INTERVAL, new FloatPartition())) {
 
             for (int i = 0; i < 24; i++) {
                 assertThat(partition.get(i)).isEqualTo(null);
@@ -188,8 +189,8 @@ public class FloatPartitionTest {
     }
 
     @Test
-    public void testSetAndGetDateTime() throws Exception {
-        try (FloatPartition partition = new FloatPartition(file.toPath(), START, PERIOD, INTERVAL)) {
+    public void testSetAndGetDateTime() {
+        try (Partition partition = new Partition(file.toPath(), START, PERIOD, INTERVAL, new FloatPartition())) {
 
             for (int i = 0; i < 24; i++) {
                 assertThat(partition.get(START.plusHours(i))).isEqualTo(null);
@@ -214,8 +215,8 @@ public class FloatPartitionTest {
     }
 
     @Test
-    public void testCreateOpenAndClose() throws Exception {
-        try (FloatPartition partition = new FloatPartition(file.toPath(), START, PERIOD, INTERVAL)) {
+    public void testCreateOpenAndClose() {
+        try (Partition partition = new Partition(file.toPath(), START, PERIOD, INTERVAL, new FloatPartition())) {
             assertThat(partition.isOpen()).isEqualTo(true);
 
             partition.close();
@@ -243,7 +244,7 @@ public class FloatPartitionTest {
         RandomAccessFile raf = new RandomAccessFile(file, "rw");
         raf.setLength(40);
         raf.close();
-        try (FloatPartition partition = new FloatPartition(file.toPath(), START, PERIOD, INTERVAL)) {
+        try (Partition partition = new Partition(file.toPath(), START, PERIOD, INTERVAL, new FloatPartition())) {
             assertThat(partition.isOpen()).isEqualTo(false);
 
             partition.close();

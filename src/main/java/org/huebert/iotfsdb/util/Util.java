@@ -3,15 +3,12 @@ package org.huebert.iotfsdb.util;
 import com.google.common.collect.Range;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 public class Util {
 
@@ -35,40 +32,9 @@ public class Util {
         return a.compareTo(b) >= 0 ? a : b;
     }
 
-    public static Path unzipToTempFile(Path archiveZip, String path) {
-        try (ZipFile zipFile = new ZipFile(archiveZip.toFile())) {
-            ZipEntry entry = zipFile.getEntry(path);
-            try (InputStream inputStream = zipFile.getInputStream(entry)) {
-                String series = archiveZip.getParent().getFileName().toString();
-                String prefix = String.join("-", "iotfsdb", series, path);
-                Path tempFile = Files.createTempFile(prefix, "");
-                Files.copy(inputStream, tempFile);
-                return tempFile;
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     public static Stream<Path> list(Path path) {
         try {
             return Files.list(path);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static Path createDirectories(Path path) {
-        try {
-            return Files.createDirectories(path);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static Path copy(Path from, Path to) {
-        try {
-            return Files.copy(from, to);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
