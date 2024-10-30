@@ -3,6 +3,7 @@ package org.huebert.iotfsdb.rest.schema;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.Range;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -41,6 +42,17 @@ public class ReduceRequest {
     @JsonIgnore
     public Range<ZonedDateTime> getRange() {
         return Range.closed(from, to);
+    }
+
+    @AssertTrue(message = "Values are invalid")
+    private boolean isValid() {
+        if ((from == null) || (to == null)) {
+            return false;
+        }
+        if (to.compareTo(from) <= 0) {
+            return false;
+        }
+        return true;
     }
 
 }

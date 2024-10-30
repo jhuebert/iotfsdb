@@ -15,6 +15,9 @@ import java.time.ZonedDateTime;
 @Schema(description = "Statistics for the data contained in a series")
 public class SeriesStats {
 
+    @Schema(description = "Total number of series")
+    private long numSeries;
+
     @Schema(description = "Size on disk of uncompressed partitions")
     private long regularSize;
 

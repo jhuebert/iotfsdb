@@ -1,6 +1,7 @@
 package org.huebert.iotfsdb.series;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -10,6 +11,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.EnumSet;
 
 @Data
 @Builder
@@ -37,4 +40,22 @@ public class SeriesDefinition {
     @NotNull
     private PartitionPeriod partition;
 
+    @Schema(description = "Minimum supported value when using a fixed range type. Values to be stored will be constrained to this value.")
+    private Double min;
+
+    @Schema(description = "Maximum supported value when using a fixed range type. Values to be stored will be constrained to this value.")
+    private Double max;
+
+    @AssertTrue(message = "Values are invalid")
+    private boolean isValid() {
+        if ((type != null) && EnumSet.of(NumberType.FIXED1, NumberType.FIXED2, NumberType.FIXED4).contains(type)) {
+            if ((min == null) || (max == null)) {
+                return false;
+            }
+            if (max <= min) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

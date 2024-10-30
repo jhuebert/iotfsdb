@@ -91,6 +91,7 @@ public class SeriesService {
     public SeriesStats getCombinedStats() {
         log.debug("getCombinedStats(enter)");
         SeriesStats result = seriesMap.keySet().parallelStream().map(this::getSeriesStats).reduce(SeriesStats.builder().build(), (a, b) -> SeriesStats.builder()
+            .numSeries(a.getNumSeries() + b.getNumSeries())
             .regularSize(a.getRegularSize() + b.getRegularSize())
             .regularNumPartitions(a.getRegularNumPartitions() + b.getRegularNumPartitions())
             .archiveSize(a.getArchiveSize() + b.getArchiveSize())

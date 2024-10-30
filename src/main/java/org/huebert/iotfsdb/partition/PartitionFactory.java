@@ -6,6 +6,7 @@ import com.google.common.math.Quantiles;
 import lombok.experimental.UtilityClass;
 import org.huebert.iotfsdb.partition.adapter.BytePartition;
 import org.huebert.iotfsdb.partition.adapter.DoublePartition;
+import org.huebert.iotfsdb.partition.adapter.FixedPartition;
 import org.huebert.iotfsdb.partition.adapter.FloatPartition;
 import org.huebert.iotfsdb.partition.adapter.IntegerPartition;
 import org.huebert.iotfsdb.partition.adapter.PartitionAdapter;
@@ -15,24 +16,29 @@ import org.huebert.iotfsdb.series.Reducer;
 import org.huebert.iotfsdb.series.SeriesDefinition;
 
 import java.nio.file.Path;
-import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.Period;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalDouble;
+import java.util.Set;
 import java.util.stream.DoubleStream;
 import java.util.stream.Stream;
 
 @UtilityClass
 public class PartitionFactory {
 
+    private static final Set<NumberType> FIXED = EnumSet.of(NumberType.FIXED1, NumberType.FIXED2, NumberType.FIXED4);
+
     private static final Map<NumberType, PartitionAdapter> ADAPTER_MAP = Map.of(
         NumberType.FLOAT4, new FloatPartition(),
         NumberType.FLOAT8, new DoublePartition(),
+        NumberType.FIXED1, new BytePartition(),
+        NumberType.FIXED2, new ShortPartition(),
+        NumberType.FIXED4, new IntegerPartition(),
         NumberType.INT1, new BytePartition(),
         NumberType.INT2, new ShortPartition(),
         NumberType.INT4, new IntegerPartition(),
@@ -46,15 +52,16 @@ public class PartitionFactory {
             throw new IllegalArgumentException(String.format("series type %s not supported", definition.getType()));
         }
 
-        Period period = definition.getPartition().getPeriod();
-        Duration interval = Duration.ofSeconds(definition.getInterval());
-        return new Partition(path, start, period, interval, adapter);
+        if (FIXED.contains(definition.getType())) {
+            adapter = new FixedPartition(adapter, definition.getMin(), definition.getMax());
+        }
+
+        return new Partition(path, start, definition, adapter);
     }
 
     public static Optional<? extends Number> reduce(Stream<? extends Number> stream, Reducer reducer) {
 
         Stream<? extends Number> nonNullStream = stream.filter(Objects::nonNull);
-        //TODO Have a boolean that allows the existence of any null to make the entire result null?
 
         if (reducer == Reducer.COUNT) {
             return Optional.of(nonNullStream.count());
@@ -91,8 +98,12 @@ public class PartitionFactory {
             result = OptionalDouble.of(doubleStream.map(v -> v * v).sum());
         } else if (reducer == Reducer.MEDIAN) {
             double[] array = doubleStream.toArray();
-            if (array.length < 1) {
+            if (array.length == 0) {
                 result = OptionalDouble.empty();
+            } else if (array.length == 1) {
+                result = OptionalDouble.of(array[0]);
+            } else if (array.length == 2) {
+                result = OptionalDouble.of((array[0] + array[1]) * 0.5);
             } else {
                 result = OptionalDouble.of(Quantiles.median().compute(array));
             }

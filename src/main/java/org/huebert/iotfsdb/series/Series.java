@@ -167,7 +167,7 @@ public class Series implements AutoCloseable {
         LocalDateTime now = TimeUtil.convertToUtc(ZonedDateTime.now());
         Range<LocalDateTime> local = TimeUtil.convertToUtc(range);
 
-        rangeMap.subRangeMap(local).asMapOfRanges().values().stream()
+        rangeMap.subRangeMap(local).asMapOfRanges().values().parallelStream()
             .filter(e -> !e.getRange().contains(now))
             .filter(e -> local.encloses(e.getRange()))
             .filter(e -> !e.isArchive())
@@ -187,7 +187,7 @@ public class Series implements AutoCloseable {
         RangeMap<LocalDateTime, Partition> rangeMap = getRangeMap();
         Range<LocalDateTime> local = TimeUtil.convertToUtc(range);
 
-        rangeMap.subRangeMap(local).asMapOfRanges().values().stream()
+        rangeMap.subRangeMap(local).asMapOfRanges().values().parallelStream()
             .filter(e -> local.encloses(e.getRange()))
             .filter(Partition::isArchive)
             .forEach(Partition::unarchive);
@@ -225,6 +225,7 @@ public class Series implements AutoCloseable {
         }
 
         return SeriesStats.builder()
+            .numSeries(1)
             .regularSize(regularSize)
             .archiveSize(archiveSize)
             .totalSize(regularSize + archiveSize)

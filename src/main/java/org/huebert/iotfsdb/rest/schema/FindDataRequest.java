@@ -3,6 +3,7 @@ package org.huebert.iotfsdb.rest.schema;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.common.collect.Range;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
@@ -33,6 +34,10 @@ public class FindDataRequest {
     @NotNull
     private Pattern pattern = Pattern.compile(".*");
 
+    @Schema(description = "Key and values that matching series metadata must contain")
+    @NotNull
+    private Map<String, String> metadata = new HashMap<>();
+
     @Schema(description = "Interval in seconds of the returned data for each series")
     @Positive
     private Integer interval;
@@ -51,13 +56,20 @@ public class FindDataRequest {
     @Schema(description = "Reducing function used to produce a single value for a given time period for all series. This results in a single series in the response named \"reduced\"")
     private Reducer seriesReducer;
 
-    @Schema(description = "Key and values that matching series metadata must contain")
-    @NotNull
-    private Map<String, String> metadata = new HashMap<>();
-
     @JsonIgnore
     public Range<ZonedDateTime> getRange() {
         return Range.closed(from, to);
+    }
+
+    @AssertTrue(message = "Values are invalid")
+    private boolean isValid() {
+        if ((from == null) || (to == null)) {
+            return false;
+        }
+        if (to.compareTo(from) <= 0) {
+            return false;
+        }
+        return true;
     }
 
 }
