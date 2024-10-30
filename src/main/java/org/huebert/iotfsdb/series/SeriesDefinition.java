@@ -21,6 +21,8 @@ import java.util.EnumSet;
 @Schema(description = "Immutable definition of a series")
 public class SeriesDefinition {
 
+    private static final EnumSet<NumberType> FIXED = EnumSet.of(NumberType.FIXED1, NumberType.FIXED2, NumberType.FIXED4);
+
     @Schema(description = "Series ID")
     @NotBlank
     @Pattern(regexp = "[a-z0-9][a-z0-9._-]{0,127}")
@@ -48,13 +50,15 @@ public class SeriesDefinition {
 
     @AssertTrue(message = "Values are invalid")
     private boolean isValid() {
-        if ((type != null) && EnumSet.of(NumberType.FIXED1, NumberType.FIXED2, NumberType.FIXED4).contains(type)) {
+        if ((type != null) && FIXED.contains(type)) {
             if ((min == null) || (max == null)) {
                 return false;
             }
             if (max <= min) {
                 return false;
             }
+        } else if ((min != null) || (max != null)) {
+            return false;
         }
         return true;
     }
