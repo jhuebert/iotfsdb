@@ -21,7 +21,7 @@ import java.util.EnumSet;
 @Schema(description = "Immutable definition of a series")
 public class SeriesDefinition {
 
-    private static final EnumSet<NumberType> FIXED = EnumSet.of(NumberType.FIXED1, NumberType.FIXED2, NumberType.FIXED4);
+    private static final EnumSet<NumberType> MAPPED = EnumSet.of(NumberType.MAPPED1, NumberType.MAPPED2, NumberType.MAPPED4);
 
     @Schema(description = "Series ID")
     @NotBlank
@@ -42,15 +42,15 @@ public class SeriesDefinition {
     @NotNull
     private PartitionPeriod partition;
 
-    @Schema(description = "Minimum supported value when using a fixed range type. Values to be stored will be constrained to this value.")
+    @Schema(description = "Minimum supported value when using a mapped range type. Values to be stored will be constrained to this minimum value.")
     private Double min;
 
-    @Schema(description = "Maximum supported value when using a fixed range type. Values to be stored will be constrained to this value.")
+    @Schema(description = "Maximum supported value when using a mapped range type. Values to be stored will be constrained to this maximum value.")
     private Double max;
 
     @AssertTrue(message = "Values are invalid")
     private boolean isValid() {
-        if ((type != null) && FIXED.contains(type)) {
+        if ((type != null) && MAPPED.contains(type)) {
             if ((min == null) || (max == null)) {
                 return false;
             }

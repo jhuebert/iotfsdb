@@ -6,22 +6,22 @@ import java.nio.ByteBuffer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class FixedPartitionTest {
+public class MappedPartitionTest {
 
     @Test
     public void getTypeSize() {
-        FixedPartition adapter1 = new FixedPartition(new BytePartition(), 0.0, 1.0);
+        MappedPartition adapter1 = new MappedPartition(new BytePartition(), 0.0, 1.0);
         assertThat(adapter1.getTypeSize()).isEqualTo(1);
-        FixedPartition adapter2 = new FixedPartition(new ShortPartition(), 0.0, 1.0);
+        MappedPartition adapter2 = new MappedPartition(new ShortPartition(), 0.0, 1.0);
         assertThat(adapter2.getTypeSize()).isEqualTo(2);
-        FixedPartition adapter4 = new FixedPartition(new IntegerPartition(), 0.0, 1.0);
+        MappedPartition adapter4 = new MappedPartition(new IntegerPartition(), 0.0, 1.0);
         assertThat(adapter4.getTypeSize()).isEqualTo(4);
     }
 
     @Test
     public void getAndSetByte() {
 
-        FixedPartition adapter = new FixedPartition(new BytePartition(), -25, 25);
+        MappedPartition adapter = new MappedPartition(new BytePartition(), -25, 25);
 
         ByteBuffer buffer = ByteBuffer.allocate(1);
 
@@ -59,7 +59,7 @@ public class FixedPartitionTest {
     @Test
     public void getAndSetShort() {
 
-        FixedPartition adapter = new FixedPartition(new ShortPartition(), -25, 25);
+        MappedPartition adapter = new MappedPartition(new ShortPartition(), -25, 25);
 
         ByteBuffer buffer = ByteBuffer.allocate(2);
 
@@ -97,7 +97,7 @@ public class FixedPartitionTest {
     @Test
     public void getAndSetInt() {
 
-        FixedPartition adapter = new FixedPartition(new IntegerPartition(), -25, 25);
+        MappedPartition adapter = new MappedPartition(new IntegerPartition(), -25, 25);
 
         ByteBuffer buffer = ByteBuffer.allocate(4);
 

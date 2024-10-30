@@ -6,7 +6,7 @@ import com.google.common.math.Quantiles;
 import lombok.experimental.UtilityClass;
 import org.huebert.iotfsdb.partition.adapter.BytePartition;
 import org.huebert.iotfsdb.partition.adapter.DoublePartition;
-import org.huebert.iotfsdb.partition.adapter.FixedPartition;
+import org.huebert.iotfsdb.partition.adapter.MappedPartition;
 import org.huebert.iotfsdb.partition.adapter.FloatPartition;
 import org.huebert.iotfsdb.partition.adapter.IntegerPartition;
 import org.huebert.iotfsdb.partition.adapter.PartitionAdapter;
@@ -31,14 +31,14 @@ import java.util.stream.Stream;
 @UtilityClass
 public class PartitionFactory {
 
-    private static final Set<NumberType> FIXED = EnumSet.of(NumberType.FIXED1, NumberType.FIXED2, NumberType.FIXED4);
+    private static final Set<NumberType> MAPPED = EnumSet.of(NumberType.MAPPED1, NumberType.MAPPED2, NumberType.MAPPED4);
 
     private static final Map<NumberType, PartitionAdapter> ADAPTER_MAP = Map.of(
         NumberType.FLOAT4, new FloatPartition(),
         NumberType.FLOAT8, new DoublePartition(),
-        NumberType.FIXED1, new BytePartition(),
-        NumberType.FIXED2, new ShortPartition(),
-        NumberType.FIXED4, new IntegerPartition(),
+        NumberType.MAPPED1, new BytePartition(),
+        NumberType.MAPPED2, new ShortPartition(),
+        NumberType.MAPPED4, new IntegerPartition(),
         NumberType.INT1, new BytePartition(),
         NumberType.INT2, new ShortPartition(),
         NumberType.INT4, new IntegerPartition(),
@@ -52,8 +52,8 @@ public class PartitionFactory {
             throw new IllegalArgumentException(String.format("series type %s not supported", definition.getType()));
         }
 
-        if (FIXED.contains(definition.getType())) {
-            adapter = new FixedPartition(adapter, definition.getMin(), definition.getMax());
+        if (MAPPED.contains(definition.getType())) {
+            adapter = new MappedPartition(adapter, definition.getMin(), definition.getMax());
         }
 
         return new Partition(path, start, definition, adapter);

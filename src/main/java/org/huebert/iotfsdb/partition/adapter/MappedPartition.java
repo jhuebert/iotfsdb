@@ -2,7 +2,7 @@ package org.huebert.iotfsdb.partition.adapter;
 
 import java.nio.ByteBuffer;
 
-public class FixedPartition implements PartitionAdapter {
+public class MappedPartition implements PartitionAdapter {
 
     private final PartitionAdapter inner;
 
@@ -14,7 +14,7 @@ public class FixedPartition implements PartitionAdapter {
 
     private final double minEncoded;
 
-    public FixedPartition(PartitionAdapter inner, double min, double max) {
+    public MappedPartition(PartitionAdapter inner, double min, double max) {
         this.inner = inner;
         this.min = min;
         this.range = max - min;
