@@ -237,7 +237,7 @@ public class SeriesService {
             .map(s -> FindDataResponse.builder()
                 .series(s.getSeriesFile().getDefinition().getId())
                 .metadata(s.getSeriesFile().getMetadata())
-                .data(s.get(ranges, request.isIncludeNull(), request.getTimeReducer()))
+                .data(s.get(ranges, request.isIncludeNull(), request.getTimeReducer(), request.isUseBigDecimal()))
                 .build())
             .filter(r -> r.getData().stream().map(SeriesData::getValue).anyMatch(Objects::nonNull))
             .sorted(Comparator.comparing(FindDataResponse::getSeries))
@@ -250,12 +250,12 @@ public class SeriesService {
             return result;
         }
 
-        List<FindDataResponse> seriesResult = List.of(reduce(result, request.getSeriesReducer(), request.isIncludeNull()));
+        List<FindDataResponse> seriesResult = List.of(reduce(result, request.getSeriesReducer(), request.isIncludeNull(), request.isUseBigDecimal()));
         log.debug("find(exit): seriesResult={}", seriesResult.size());
         return seriesResult;
     }
 
-    private FindDataResponse reduce(List<FindDataResponse> responses, Reducer reducer, boolean includeNull) {
+    private FindDataResponse reduce(List<FindDataResponse> responses, Reducer reducer, boolean includeNull, boolean useBigDecimal) {
         log.debug("reduce(enter): responses={}, reducer={}, includeNull={}", responses.size(), reducer, includeNull);
 
         Map<ZonedDateTime, List<SeriesData>> grouped = responses.parallelStream()
@@ -268,7 +268,7 @@ public class SeriesService {
         List<SeriesData> data = grouped.entrySet().parallelStream()
             .map(e -> {
                 Stream<? extends Number> stream = e.getValue().stream().map(SeriesData::getValue);
-                Number value = PartitionFactory.reduce(stream, reducer).orElse(null);
+                Number value = PartitionFactory.reduce(stream, reducer, useBigDecimal).orElse(null);
                 return SeriesData.builder().time(e.getKey()).value(value).build();
             })
             .filter(t -> includeNull || (t.getValue() != null))

@@ -6,8 +6,8 @@ public enum NumberType {
     MAPPED1,
     MAPPED2,
     MAPPED4,
-    INT1,
-    INT2,
-    INT4,
-    INT8
+    INTEGER1,
+    INTEGER2,
+    INTEGER4,
+    INTEGER8
 }

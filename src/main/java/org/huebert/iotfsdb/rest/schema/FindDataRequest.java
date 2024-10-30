@@ -49,6 +49,9 @@ public class FindDataRequest {
     @Schema(description = "Indicates whether to include null values in the list of values for a series", defaultValue = "false")
     private boolean includeNull = false;
 
+    @Schema(description = "Indicates whether to use BigDecimal for the mathematical operations", defaultValue = "false")
+    private boolean useBigDecimal = false;
+
     @Schema(description = "Reducing function used to produce a single value for a series for a given time period", defaultValue = "AVERAGE")
     @NotNull
     private Reducer timeReducer = Reducer.AVERAGE;

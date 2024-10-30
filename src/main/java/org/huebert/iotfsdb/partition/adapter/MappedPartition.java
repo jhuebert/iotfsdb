@@ -8,20 +8,23 @@ public class MappedPartition implements PartitionAdapter {
 
     private final double min;
 
+    private final double max;
+
     private final double range;
 
-    private final double numValues;
+    private final double mappedRange;
 
-    private final double minEncoded;
+    private final double mappedMin;
 
     public MappedPartition(PartitionAdapter inner, double min, double max) {
         this.inner = inner;
         this.min = min;
+        this.max = max;
         this.range = max - min;
 
         int bits = inner.getTypeSize() << 3;
-        this.numValues = Math.pow(2, bits) - 2;
-        this.minEncoded = -Math.pow(2, bits - 1) + 1;
+        this.mappedRange = Math.pow(2, bits) - 2;
+        this.mappedMin = -Math.pow(2, bits - 1) + 1;
     }
 
     @Override
@@ -33,8 +36,7 @@ public class MappedPartition implements PartitionAdapter {
     public Number get(ByteBuffer byteBuffer, Integer byteOffset) {
         Number result = inner.get(byteBuffer, byteOffset);
         if (result != null) {
-            double ratio = constrain((result.doubleValue() - minEncoded) / numValues);
-            result = (ratio * range) + min;
+            result = map(result.doubleValue(), mappedMin, mappedRange, min, range);
         }
         return result;
     }
@@ -43,18 +45,22 @@ public class MappedPartition implements PartitionAdapter {
     public void put(ByteBuffer byteBuffer, Integer byteOffset, Number value) {
         Double result = null;
         if (value != null) {
-            double ratio = constrain((value.doubleValue() - min) / range);
-            result = Math.rint((ratio * numValues) + minEncoded);
+            result = map(constrain(value.doubleValue()), min, range, mappedMin, mappedRange);
         }
         inner.put(byteBuffer, byteOffset, result);
     }
 
+    double map(double value, double inMin, double inRange, double outMin, double outRange) {
+        return (((value - inMin) * outRange) / inRange) + outMin;
+    }
+
     private double constrain(double value) {
-        if (value < 0.0) {
-            return 0.0;
-        } else if (value > 1.0) {
-            return 1.0;
+        if (value < min) {
+            return min;
+        } else if (value > max) {
+            return max;
         }
         return value;
     }
+
 }
