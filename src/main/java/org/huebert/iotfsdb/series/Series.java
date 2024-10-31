@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.partition.Partition;
 import org.huebert.iotfsdb.partition.PartitionFactory;
+import org.huebert.iotfsdb.rest.schema.FindDataRequest;
 import org.huebert.iotfsdb.rest.schema.SeriesData;
 import org.huebert.iotfsdb.rest.schema.SeriesStats;
 import org.huebert.iotfsdb.util.FileUtil;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -111,8 +113,8 @@ public class Series implements AutoCloseable {
         log.debug("updateMetadata(exit): root={}, metadata={}", root, metadata);
     }
 
-    public List<SeriesData> get(List<Range<ZonedDateTime>> ranges, boolean includeNull, Reducer reducer) {
-        log.debug("get(enter): root={}, ranges={}, includeNull={}, reducer={}", root, ranges.size(), includeNull, reducer);
+    public List<SeriesData> get(List<Range<ZonedDateTime>> ranges, FindDataRequest request) {
+        log.debug("get(enter): root={}, ranges={}, request={}", root, ranges.size(), request);
 
         if (ranges.isEmpty()) {
             log.debug("get(exit): root={}, result=0", root);
@@ -121,26 +123,31 @@ public class Series implements AutoCloseable {
 
         RangeMap<LocalDateTime, Partition> rangeMap = getRangeMap();
 
+        AtomicReference<Number> previous = new AtomicReference<>(null);
         List<SeriesData> result = ranges.parallelStream()
             .map(current -> {
                 Range<LocalDateTime> local = TimeUtil.convertToUtc(current);
                 Stream<? extends Number> stream = rangeMap.subRangeMap(local).asMapOfRanges().values().stream()
                     .flatMap(partition -> partition.get(local).stream());
-                return SeriesData.builder().time(current.lowerEndpoint()).value(PartitionFactory.reduce(stream, reducer).orElse(null)).build();
+                return SeriesData.builder().time(current.lowerEndpoint()).value(PartitionFactory.reduce(stream, request.getTimeReducer(), request.isUseBigDecimal(), request.getNullValue()).orElse(null)).build();
             })
-            .filter(t -> includeNull || (t.getValue() != null))
             .sorted(Comparator.comparing(SeriesData::getTime))
+            .toList().stream()
+            .peek(v -> {
+                if (request.isUsePrevious()) {
+                    if (v.getValue() != null) {
+                        previous.set(v.getValue());
+                    } else {
+                        v.setValue(previous.get());
+                    }
+                }
+            })
+            .filter(t -> request.isIncludeNull() || (t.getValue() != null))
             .toList();
 
         log.debug("get(exit): root={}, result={}", root, result.size());
 
         return result;
-    }
-
-    public void set(SeriesData data) {
-        log.debug("set(enter): root={}, data={}", root, data);
-        set(List.of(data));
-        log.debug("set(exit): root={}, data={}", root, data);
     }
 
     public void set(List<SeriesData> values) {
@@ -167,7 +174,7 @@ public class Series implements AutoCloseable {
         LocalDateTime now = TimeUtil.convertToUtc(ZonedDateTime.now());
         Range<LocalDateTime> local = TimeUtil.convertToUtc(range);
 
-        rangeMap.subRangeMap(local).asMapOfRanges().values().stream()
+        rangeMap.subRangeMap(local).asMapOfRanges().values().parallelStream()
             .filter(e -> !e.getRange().contains(now))
             .filter(e -> local.encloses(e.getRange()))
             .filter(e -> !e.isArchive())
@@ -187,7 +194,7 @@ public class Series implements AutoCloseable {
         RangeMap<LocalDateTime, Partition> rangeMap = getRangeMap();
         Range<LocalDateTime> local = TimeUtil.convertToUtc(range);
 
-        rangeMap.subRangeMap(local).asMapOfRanges().values().stream()
+        rangeMap.subRangeMap(local).asMapOfRanges().values().parallelStream()
             .filter(e -> local.encloses(e.getRange()))
             .filter(Partition::isArchive)
             .forEach(Partition::unarchive);
@@ -225,6 +232,7 @@ public class Series implements AutoCloseable {
         }
 
         return SeriesStats.builder()
+            .numSeries(1)
             .regularSize(regularSize)
             .archiveSize(archiveSize)
             .totalSize(regularSize + archiveSize)

@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.rest.schema.ArchiveRequest;
 import org.huebert.iotfsdb.rest.schema.FindSeriesRequest;
-import org.huebert.iotfsdb.rest.schema.ReduceRequest;
 import org.huebert.iotfsdb.rest.schema.SeriesData;
 import org.huebert.iotfsdb.rest.schema.SeriesStats;
 import org.huebert.iotfsdb.series.Series;
@@ -41,6 +40,17 @@ public class SeriesController {
         this.seriesService = seriesService;
     }
 
+    @Operation(tags = "Series", summary = "Finds series that match search parameters")
+    @PostMapping("find")
+    public List<SeriesFile> find(@NotNull @Valid @RequestBody FindSeriesRequest request) {
+        log.debug("find(enter): request={}", request);
+        List<SeriesFile> result = seriesService.findSeries(request.getPattern(), request.getMetadata()).stream()
+            .map(Series::getSeriesFile)
+            .toList();
+        log.debug("find(exit): result={}", result.size());
+        return result;
+    }
+
     @Operation(tags = "Series", summary = "Create new series")
     @PostMapping
     @ResponseStatus(NO_CONTENT)
@@ -68,17 +78,6 @@ public class SeriesController {
         log.debug("delete(exit)");
     }
 
-    @Operation(tags = "Series", summary = "Finds series that match search parameters")
-    @GetMapping
-    public List<SeriesFile> find(@NotNull @Valid FindSeriesRequest request) {
-        log.debug("find(enter): request={}", request);
-        List<SeriesFile> result = seriesService.findSeries(request.getPattern(), request.getMetadata()).stream()
-            .map(Series::getSeriesFile)
-            .toList();
-        log.debug("find(exit): result={}", result.size());
-        return result;
-    }
-
     @Operation(tags = "Series", summary = "Retrieves the metadata for a series")
     @GetMapping("{id}/metadata")
     public Map<String, String> getMetadata(@PathVariable("id") String id) {
@@ -98,15 +97,6 @@ public class SeriesController {
         }
         seriesService.updateMetadata(id, metadata);
         log.debug("updateMetadata(exit)");
-    }
-
-    @Operation(tags = "Series", summary = "Reduces the data interval for partitions fully contained in the input range")
-    @PostMapping("{id}/reduce")
-    @ResponseStatus(NO_CONTENT)
-    public void reduce(@PathVariable("id") String id, @NotNull @Valid @RequestBody ReduceRequest request) {
-        log.debug("reduce(enter): id={}, request={}", id, request);
-        // TODO
-        log.debug("reduce(exit)");
     }
 
     @Operation(tags = "Series", summary = "Gets statistics for a series")
@@ -142,7 +132,7 @@ public class SeriesController {
     public void insert(@PathVariable("id") String id, @NotNull @Valid @RequestBody SeriesData dataValue) {
         log.debug("insert(enter): id={}, dataValue={}", id, dataValue);
         seriesService.insert(id, dataValue);
-        log.debug("insert(exit)");
+        log.debug("insert(exit): id={}, dataValue={}", id, dataValue);
     }
 
     @Operation(tags = "Series", summary = "Bulk inserts data for a series")
@@ -151,7 +141,7 @@ public class SeriesController {
     public void insert(@PathVariable("id") String id, @NotNull @Valid @RequestBody List<SeriesData> dataValues) {
         log.debug("insert(enter): id={}, dataValues={}", id, dataValues.size());
         seriesService.insert(id, dataValues);
-        log.debug("insert(exit)");
+        log.debug("insert(exit): id={}, dataValues={}", id, dataValues.size());
     }
 
 }

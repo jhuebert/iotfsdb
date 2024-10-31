@@ -4,6 +4,7 @@ import com.google.common.collect.Range;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.partition.adapter.PartitionAdapter;
+import org.huebert.iotfsdb.series.SeriesDefinition;
 import org.huebert.iotfsdb.util.FileUtil;
 import org.huebert.iotfsdb.util.GZIPOutputStream;
 import org.huebert.iotfsdb.util.GzipUtil;
@@ -20,7 +21,6 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.Period;
 import java.util.AbstractList;
 import java.util.List;
 import java.util.Objects;
@@ -75,18 +75,17 @@ public class Partition extends AbstractList<Number> implements RandomAccess, Aut
     protected Partition(
         Path path,
         LocalDateTime start,
-        Period period,
-        Duration interval,
+        SeriesDefinition definition,
         PartitionAdapter adapter
     ) {
-        log.debug("Partition(enter): uri={}, start={}, period={}, interval={}, typeSize={}", path, start, period, interval, adapter.getTypeSize());
+        log.debug("Partition(enter): path={}, start={}, definition={}, typeSize={}", path, start, definition, adapter.getTypeSize());
 
-        this.bitShift = (int) Math.rint(Math.log(adapter.getTypeSize()) / Math.log(2));
         this.path = path;
-        this.interval = interval;
         this.adapter = adapter;
+        this.bitShift = adapter.getBitShift();
 
-        LocalDateTime end = start.plus(period);
+        Duration definitionInterval = Duration.ofMillis(definition.getInterval());
+        LocalDateTime end = start.plus(definition.getPartition().getPeriod());
         this.range = Range.closed(start, end.minusNanos(1));
 
         if (Files.exists(path)) {
@@ -94,7 +93,6 @@ public class Partition extends AbstractList<Number> implements RandomAccess, Aut
 
             try {
                 archive = GzipUtil.isGZipped(path.toFile());
-
                 if (archive) {
                     numBytes = GzipUtil.getUncompressedSize(path.toFile());
                 } else {
@@ -108,7 +106,7 @@ public class Partition extends AbstractList<Number> implements RandomAccess, Aut
                 throw new IllegalArgumentException(String.format("file (%s) is empty", path));
             }
 
-            if (numBytes % adapter.getTypeSize() != 0) {
+            if (!adapter.isMultiple(numBytes)) {
                 throw new IllegalArgumentException(String.format("file (%s) size (%d) is not a valid multiple", path, numBytes));
             }
 
@@ -118,9 +116,12 @@ public class Partition extends AbstractList<Number> implements RandomAccess, Aut
             this.size = (int) (numBytes >> bitShift);
 
             Duration fileInterval = Duration.between(start, end).dividedBy(this.size);
-            if (!Objects.equals(interval, fileInterval)) {
-                log.debug("input interval ({}) is not the same as the file's calculated interval ({})", interval, fileInterval);
+            if (!Objects.equals(definitionInterval, fileInterval)) {
+                log.debug("definition interval ({}) is not the same as the file's calculated interval ({})", definitionInterval, fileInterval);
             }
+
+            // Need to use the calculated interval from the file as it may have been reduced
+            this.interval = fileInterval;
 
         } else {
 
@@ -128,7 +129,8 @@ public class Partition extends AbstractList<Number> implements RandomAccess, Aut
             this.readOnly = false;
             this.open = true;
             this.idle = false;
-            this.size = (int) Duration.between(start, end).dividedBy(interval);
+            this.size = (int) Duration.between(start, end).dividedBy(definitionInterval);
+            this.interval = definitionInterval;
 
             try {
                 numBytes = (long) size << bitShift;
@@ -145,7 +147,7 @@ public class Partition extends AbstractList<Number> implements RandomAccess, Aut
 
         }
 
-        log.debug("Partition(exit): path={}, size={}, bitShift={}, readOnly={}, range={}, open={}", this.path, size, bitShift, readOnly, range, open);
+        log.debug("Partition(exit): path={}, size={}, interval={}, bitShift={}, readOnly={}, range={}, open={}", this.path, size, this.interval, bitShift, readOnly, range, open);
     }
 
     @Override
@@ -165,14 +167,6 @@ public class Partition extends AbstractList<Number> implements RandomAccess, Aut
         return subList(fromIndex, toIndex + 1);
     }
 
-    public Number get(LocalDateTime dateTime) {
-        log.debug("get(enter): path={}, dateTime={}", path, dateTime);
-        int index = getIndex(dateTime);
-        Number result = get(index);
-        log.debug("get(exit): path={}, index={}, result={}", path, index, result);
-        return result;
-    }
-
     @Override
     public Number get(int index) {
         open();
@@ -180,12 +174,11 @@ public class Partition extends AbstractList<Number> implements RandomAccess, Aut
         return adapter.get(mappedByteBuffer, byteOffset);
     }
 
-    public Number set(LocalDateTime dateTime, Number value) {
+    public void set(LocalDateTime dateTime, Number value) {
         log.debug("set(enter): path={}, dateTime={}, value={}", path, dateTime, value);
         int index = getIndex(dateTime);
         Number result = set(index, value);
         log.debug("set(exit): path={}, index={}, result={}", path, index, result);
-        return result;
     }
 
     @Override

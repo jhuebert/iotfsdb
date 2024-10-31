@@ -1,5 +1,6 @@
 package org.huebert.iotfsdb.rest.schema;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,8 +13,12 @@ import java.time.ZonedDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "Statistics for the data contained in a series")
 public class SeriesStats {
+
+    @Schema(description = "Total number of series")
+    private long numSeries;
 
     @Schema(description = "Size on disk of uncompressed partitions")
     private long regularSize;

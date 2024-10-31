@@ -10,7 +10,6 @@ import org.huebert.iotfsdb.rest.schema.FindDataRequest;
 import org.huebert.iotfsdb.rest.schema.FindDataResponse;
 import org.huebert.iotfsdb.rest.schema.SeriesData;
 import org.huebert.iotfsdb.rest.schema.SeriesStats;
-import org.huebert.iotfsdb.series.Reducer;
 import org.huebert.iotfsdb.series.Series;
 import org.huebert.iotfsdb.series.SeriesDefinition;
 import org.huebert.iotfsdb.util.FileUtil;
@@ -31,6 +30,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -91,6 +91,7 @@ public class SeriesService {
     public SeriesStats getCombinedStats() {
         log.debug("getCombinedStats(enter)");
         SeriesStats result = seriesMap.keySet().parallelStream().map(this::getSeriesStats).reduce(SeriesStats.builder().build(), (a, b) -> SeriesStats.builder()
+            .numSeries(a.getNumSeries() + b.getNumSeries())
             .regularSize(a.getRegularSize() + b.getRegularSize())
             .regularNumPartitions(a.getRegularNumPartitions() + b.getRegularNumPartitions())
             .archiveSize(a.getArchiveSize() + b.getArchiveSize())
@@ -236,7 +237,7 @@ public class SeriesService {
             .map(s -> FindDataResponse.builder()
                 .series(s.getSeriesFile().getDefinition().getId())
                 .metadata(s.getSeriesFile().getMetadata())
-                .data(s.get(ranges, request.isIncludeNull(), request.getTimeReducer()))
+                .data(s.get(ranges, request))
                 .build())
             .filter(r -> r.getData().stream().map(SeriesData::getValue).anyMatch(Objects::nonNull))
             .sorted(Comparator.comparing(FindDataResponse::getSeries))
@@ -249,13 +250,13 @@ public class SeriesService {
             return result;
         }
 
-        List<FindDataResponse> seriesResult = List.of(reduce(result, request.getSeriesReducer(), request.isIncludeNull()));
+        List<FindDataResponse> seriesResult = List.of(reduce(result, request));
         log.debug("find(exit): seriesResult={}", seriesResult.size());
         return seriesResult;
     }
 
-    private FindDataResponse reduce(List<FindDataResponse> responses, Reducer reducer, boolean includeNull) {
-        log.debug("reduce(enter): responses={}, reducer={}, includeNull={}", responses.size(), reducer, includeNull);
+    private FindDataResponse reduce(List<FindDataResponse> responses, FindDataRequest request) {
+        log.debug("reduce(enter): responses={}, request={}", responses.size(), request);
 
         Map<ZonedDateTime, List<SeriesData>> grouped = responses.parallelStream()
             .map(FindDataResponse::getData)
@@ -264,14 +265,25 @@ public class SeriesService {
 
         log.debug("reduce(checkpoint): grouped={}", grouped.size());
 
+        AtomicReference<Number> previous = new AtomicReference<>(null);
         List<SeriesData> data = grouped.entrySet().parallelStream()
             .map(e -> {
                 Stream<? extends Number> stream = e.getValue().stream().map(SeriesData::getValue);
-                Number value = PartitionFactory.reduce(stream, reducer).orElse(null);
+                Number value = PartitionFactory.reduce(stream, request.getSeriesReducer(), request.isUseBigDecimal(), request.getNullValue()).orElse(null);
                 return SeriesData.builder().time(e.getKey()).value(value).build();
             })
-            .filter(t -> includeNull || (t.getValue() != null))
             .sorted(Comparator.comparing(SeriesData::getTime))
+            .toList().stream()
+            .peek(v -> {
+                if (request.isUsePrevious()) {
+                    if (v.getValue() != null) {
+                        previous.set(v.getValue());
+                    } else {
+                        v.setValue(previous.get());
+                    }
+                }
+            })
+            .filter(t -> request.isIncludeNull() || (t.getValue() != null))
             .toList();
 
         Map<String, String> metadata = responses.stream()
@@ -301,7 +313,7 @@ public class SeriesService {
 
         Range<ZonedDateTime> range = request.getRange();
         if (request.getInterval() != null) {
-            Duration duration = Duration.ofSeconds(request.getInterval());
+            Duration duration = Duration.ofMillis(request.getInterval());
             int intervalCount = (int) Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(duration) + 1;
             if (intervalCount < count) {
                 count = intervalCount;
@@ -310,8 +322,8 @@ public class SeriesService {
 
         Duration duration = Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(count);
 
-        if (duration.compareTo(Duration.ofSeconds(1)) < 0) {
-            duration = Duration.ofSeconds(1);
+        if (duration.compareTo(Duration.ofMillis(1)) < 0) {
+            duration = Duration.ofMillis(1);
             count = (int) Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(duration);
         }
 

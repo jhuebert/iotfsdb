@@ -10,4 +10,12 @@ public interface PartitionAdapter {
 
     void put(ByteBuffer byteBuffer, Integer byteOffset, Number value);
 
+    default int getBitShift() {
+        return (int) Math.rint(Math.log(getTypeSize()) / Math.log(2));
+    }
+
+    default boolean isMultiple(long numBytes) {
+        return numBytes % getTypeSize() == 0;
+    }
+
 }
