@@ -11,10 +11,8 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.Period;
-import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,9 +25,7 @@ public class PartitionTest {
 
     private static final Period PERIOD = Period.ofDays(1);
 
-    private static final Duration INTERVAL = Duration.of(1, ChronoUnit.HOURS);
-
-    private static final SeriesDefinition DEFINITION = SeriesDefinition.builder().interval(3600).partition(PartitionPeriod.DAY).build();
+    private static final SeriesDefinition DEFINITION = SeriesDefinition.builder().interval(3600000).partition(PartitionPeriod.DAY).build();
 
     private File file;
 

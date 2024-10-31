@@ -48,101 +48,101 @@ public class PartitionFactoryTest {
 
     @Test
     public void testAverage() {
-        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.AVERAGE, false)).isEqualTo(Optional.empty());
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.AVERAGE, false)).isEqualTo(Optional.of(3.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.AVERAGE, false)).isEqualTo(Optional.of(2.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.AVERAGE, false)).isEqualTo(Optional.of(4.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.AVERAGE, false)).isEqualTo(Optional.of(2.25));
+        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.AVERAGE, false, null)).isEqualTo(Optional.empty());
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.AVERAGE, false, null)).isEqualTo(Optional.of(3.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.AVERAGE, false, null)).isEqualTo(Optional.of(2.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.AVERAGE, false, null)).isEqualTo(Optional.of(4.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.AVERAGE, false, null)).isEqualTo(Optional.of(2.25));
     }
 
     @Test
     public void testCount() {
-        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.COUNT, false)).isEqualTo(Optional.of((long) 0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.COUNT, false)).isEqualTo(Optional.of((long) 1));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.COUNT, false)).isEqualTo(Optional.of((long) 2));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.COUNT, false)).isEqualTo(Optional.of((long) 3));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.COUNT, false)).isEqualTo(Optional.of((long) 4));
+        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.COUNT, false, null)).isEqualTo(Optional.of((long) 0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.COUNT, false, null)).isEqualTo(Optional.of((long) 1));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.COUNT, false, null)).isEqualTo(Optional.of((long) 2));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.COUNT, false, null)).isEqualTo(Optional.of((long) 3));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.COUNT, false, null)).isEqualTo(Optional.of((long) 4));
     }
 
     @Test
     public void testCountDistinct() {
-        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.COUNT_DISTINCT, false)).isEqualTo(Optional.of((long) 0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.COUNT_DISTINCT, false)).isEqualTo(Optional.of((long) 1));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.COUNT_DISTINCT, false)).isEqualTo(Optional.of((long) 2));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.COUNT_DISTINCT, false)).isEqualTo(Optional.of((long) 3));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.COUNT_DISTINCT, false)).isEqualTo(Optional.of((long) 3));
+        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.COUNT_DISTINCT, false, null)).isEqualTo(Optional.of((long) 0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.COUNT_DISTINCT, false, null)).isEqualTo(Optional.of((long) 1));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.COUNT_DISTINCT, false, null)).isEqualTo(Optional.of((long) 2));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.COUNT_DISTINCT, false, null)).isEqualTo(Optional.of((long) 3));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.COUNT_DISTINCT, false, null)).isEqualTo(Optional.of((long) 3));
     }
 
     @Test
     public void testFirst() {
-        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.FIRST, false)).isEqualTo(Optional.empty());
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.FIRST, false)).isEqualTo(Optional.of(3));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.FIRST, false)).isEqualTo(Optional.of(3));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.FIRST, false)).isEqualTo(Optional.of(3));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.FIRST, false)).isEqualTo(Optional.of(3));
+        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.FIRST, false, null)).isEqualTo(Optional.empty());
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.FIRST, false, null)).isEqualTo(Optional.of(3));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.FIRST, false, null)).isEqualTo(Optional.of(3));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.FIRST, false, null)).isEqualTo(Optional.of(3));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.FIRST, false, null)).isEqualTo(Optional.of(3));
     }
 
     @Test
     public void testLast() {
-        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.LAST, false)).isEqualTo(Optional.empty());
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.LAST, false)).isEqualTo(Optional.of(3));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.LAST, false)).isEqualTo(Optional.of(1));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.LAST, false)).isEqualTo(Optional.of(8));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.LAST, false)).isEqualTo(Optional.of(4));
+        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.LAST, false, null)).isEqualTo(Optional.empty());
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.LAST, false, null)).isEqualTo(Optional.of(3));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.LAST, false, null)).isEqualTo(Optional.of(1));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.LAST, false, null)).isEqualTo(Optional.of(8));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.LAST, false, null)).isEqualTo(Optional.of(4));
     }
 
     @Test
     public void testMaximum() {
-        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.MAXIMUM, false)).isEqualTo(Optional.empty());
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.MAXIMUM, false)).isEqualTo(Optional.of(3.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.MAXIMUM, false)).isEqualTo(Optional.of(3.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.MAXIMUM, false)).isEqualTo(Optional.of(8.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.MAXIMUM, false)).isEqualTo(Optional.of(4.0));
+        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.MAXIMUM, false, null)).isEqualTo(Optional.empty());
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.MAXIMUM, false, null)).isEqualTo(Optional.of(3.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.MAXIMUM, false, null)).isEqualTo(Optional.of(3.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.MAXIMUM, false, null)).isEqualTo(Optional.of(8.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.MAXIMUM, false, null)).isEqualTo(Optional.of(4.0));
     }
 
     @Test
     public void testMedian() {
-        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.MEDIAN, false)).isEqualTo(Optional.empty());
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.MEDIAN, false)).isEqualTo(Optional.of(3.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.MEDIAN, false)).isEqualTo(Optional.of(2.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.MEDIAN, false)).isEqualTo(Optional.of(3.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.MEDIAN, false)).isEqualTo(Optional.of(2.0));
+        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.MEDIAN, false, null)).isEqualTo(Optional.empty());
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.MEDIAN, false, null)).isEqualTo(Optional.of(3.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.MEDIAN, false, null)).isEqualTo(Optional.of(2.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.MEDIAN, false, null)).isEqualTo(Optional.of(3.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.MEDIAN, false, null)).isEqualTo(Optional.of(2.0));
     }
 
     @Test
     public void testMinimum() {
-        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.MINIMUM, false)).isEqualTo(Optional.empty());
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.MINIMUM, false)).isEqualTo(Optional.of(3.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.MINIMUM, false)).isEqualTo(Optional.of(1.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.MINIMUM, false)).isEqualTo(Optional.of(1.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.MINIMUM, false)).isEqualTo(Optional.of(1.0));
+        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.MINIMUM, false, null)).isEqualTo(Optional.empty());
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.MINIMUM, false, null)).isEqualTo(Optional.of(3.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.MINIMUM, false, null)).isEqualTo(Optional.of(1.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.MINIMUM, false, null)).isEqualTo(Optional.of(1.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.MINIMUM, false, null)).isEqualTo(Optional.of(1.0));
     }
 
     @Test
     public void testMode() {
-        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.MODE, false)).isEqualTo(Optional.empty());
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.MODE, false)).isEqualTo(Optional.of(3));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.MODE, false)).isEqualTo(Optional.of(3));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.MODE, false)).isEqualTo(Optional.of(3));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.MODE, false)).isEqualTo(Optional.of(1));
+        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.MODE, false, null)).isEqualTo(Optional.empty());
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.MODE, false, null)).isEqualTo(Optional.of(3));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.MODE, false, null)).isEqualTo(Optional.of(3));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.MODE, false, null)).isEqualTo(Optional.of(3));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.MODE, false, null)).isEqualTo(Optional.of(1));
     }
 
     @Test
     public void testSquareSum() {
-        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.SQUARE_SUM, false)).isEqualTo(Optional.of(0.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.SQUARE_SUM, false)).isEqualTo(Optional.of(9.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.SQUARE_SUM, false)).isEqualTo(Optional.of(10.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.SQUARE_SUM, false)).isEqualTo(Optional.of(74.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.SQUARE_SUM, false)).isEqualTo(Optional.of(27.0));
+        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.SQUARE_SUM, false, null)).isEqualTo(Optional.of(0.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.SQUARE_SUM, false, null)).isEqualTo(Optional.of(9.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.SQUARE_SUM, false, null)).isEqualTo(Optional.of(10.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.SQUARE_SUM, false, null)).isEqualTo(Optional.of(74.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.SQUARE_SUM, false, null)).isEqualTo(Optional.of(27.0));
     }
 
     @Test
     public void testSum() {
-        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.SUM, false)).isEqualTo(Optional.of(0.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.SUM, false)).isEqualTo(Optional.of(3.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.SUM, false)).isEqualTo(Optional.of(4.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.SUM, false)).isEqualTo(Optional.of(12.0));
-        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.SUM, false)).isEqualTo(Optional.of(9.0));
+        assertThat(PartitionFactory.reduce(Stream.of(), Reducer.SUM, false, null)).isEqualTo(Optional.of(0.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, null), Reducer.SUM, false, null)).isEqualTo(Optional.of(3.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, null), Reducer.SUM, false, null)).isEqualTo(Optional.of(4.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 8, null), Reducer.SUM, false, null)).isEqualTo(Optional.of(12.0));
+        assertThat(PartitionFactory.reduce(Stream.of(null, 3, 1, 1, 4, null), Reducer.SUM, false, null)).isEqualTo(Optional.of(9.0));
     }
 
 }

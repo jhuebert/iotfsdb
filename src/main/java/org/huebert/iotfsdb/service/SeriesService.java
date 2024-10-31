@@ -18,6 +18,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -46,6 +47,14 @@ public class SeriesService {
     public SeriesService(IotfsdbProperties properties) {
         log.debug("SeriesService(enter): properties={}", properties);
         this.properties = properties;
+
+        if (!Files.exists(properties.getRoot())) {
+            try {
+                Files.createDirectories(properties.getRoot());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
 
         Path root = FileUtil.checkDirectory(properties.getRoot());
 

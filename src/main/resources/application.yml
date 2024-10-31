@@ -13,7 +13,7 @@ server:
     min-response-size: 2048
 
 iotfsdb:
-  root:
+  root: /tmp/iotfsdb
   read-only: true
   max-query-size: 1000
   max-idle-seconds: 60
