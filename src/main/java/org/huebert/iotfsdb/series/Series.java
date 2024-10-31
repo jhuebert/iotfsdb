@@ -111,7 +111,7 @@ public class Series implements AutoCloseable {
         log.debug("updateMetadata(exit): root={}, metadata={}", root, metadata);
     }
 
-    public List<SeriesData> get(List<Range<ZonedDateTime>> ranges, boolean includeNull, Reducer reducer, boolean useBigDecimal) {
+    public List<SeriesData> get(List<Range<ZonedDateTime>> ranges, boolean includeNull, Reducer reducer, boolean useBigDecimal, Number nullValue) {
         log.debug("get(enter): root={}, ranges={}, includeNull={}, reducer={}", root, ranges.size(), includeNull, reducer);
 
         if (ranges.isEmpty()) {
@@ -126,7 +126,7 @@ public class Series implements AutoCloseable {
                 Range<LocalDateTime> local = TimeUtil.convertToUtc(current);
                 Stream<? extends Number> stream = rangeMap.subRangeMap(local).asMapOfRanges().values().stream()
                     .flatMap(partition -> partition.get(local).stream());
-                return SeriesData.builder().time(current.lowerEndpoint()).value(PartitionFactory.reduce(stream, reducer, useBigDecimal).orElse(null)).build();
+                return SeriesData.builder().time(current.lowerEndpoint()).value(PartitionFactory.reduce(stream, reducer, useBigDecimal, nullValue).orElse(null)).build();
             })
             .filter(t -> includeNull || (t.getValue() != null))
             .sorted(Comparator.comparing(SeriesData::getTime))

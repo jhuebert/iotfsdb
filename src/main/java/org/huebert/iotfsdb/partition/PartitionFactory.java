@@ -66,9 +66,9 @@ public class PartitionFactory {
         return new Partition(path, start, definition, adapter);
     }
 
-    public static Optional<? extends Number> reduce(Stream<? extends Number> stream, Reducer reducer, boolean useBigDecimal) {
+    public static Optional<? extends Number> reduce(Stream<? extends Number> stream, Reducer reducer, boolean useBigDecimal, Number nullValue) {
 
-        Stream<? extends Number> nonNullStream = stream.filter(Objects::nonNull);
+        Stream<? extends Number> nonNullStream = stream.map(v -> v != null ? v : nullValue).filter(Objects::nonNull);
 
         if (reducer == Reducer.COUNT) {
             return Optional.of(nonNullStream.count());
