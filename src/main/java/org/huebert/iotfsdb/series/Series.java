@@ -137,12 +137,6 @@ public class Series implements AutoCloseable {
         return result;
     }
 
-    public void set(SeriesData data) {
-        log.debug("set(enter): root={}, data={}", root, data);
-        set(List.of(data));
-        log.debug("set(exit): root={}, data={}", root, data);
-    }
-
     public void set(List<SeriesData> values) {
         log.debug("set(enter): root={}, values={}", root, values.size());
         PartitionPeriod partitionPeriod = seriesFile.getDefinition().getPartition();

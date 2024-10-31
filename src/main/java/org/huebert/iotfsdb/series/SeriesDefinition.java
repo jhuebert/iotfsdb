@@ -1,5 +1,7 @@
 package org.huebert.iotfsdb.series;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
@@ -18,6 +20,8 @@ import java.util.EnumSet;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "Immutable definition of a series")
 public class SeriesDefinition {
 
@@ -48,7 +52,7 @@ public class SeriesDefinition {
     @Schema(description = "Maximum supported value when using a mapped range type. Values to be stored will be constrained to this maximum value.")
     private Double max;
 
-    @AssertTrue(message = "Values are invalid")
+    @AssertTrue
     private boolean isValid() {
         if ((type != null) && MAPPED.contains(type)) {
             if ((min == null) || (max == null)) {

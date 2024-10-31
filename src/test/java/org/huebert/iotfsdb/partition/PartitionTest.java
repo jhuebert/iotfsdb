@@ -193,32 +193,6 @@ public class PartitionTest {
     }
 
     @Test
-    public void testSetAndGetDateTime() {
-        try (Partition partition = new Partition(file.toPath(), START, DEFINITION, new FloatPartition())) {
-
-            for (int i = 0; i < 24; i++) {
-                assertThat(partition.get(START.plusHours(i))).isEqualTo(null);
-            }
-
-            for (int i = 0; i < 24; i++) {
-                partition.set(START.plusHours(i), i);
-            }
-
-            for (int i = 0; i < 24; i++) {
-                assertThat(partition.get(START.plusHours(i))).isEqualTo((float) i);
-            }
-
-            for (int i = 0; i < 24; i++) {
-                partition.set(START.plusHours(i), (Float) null);
-            }
-
-            for (int i = 0; i < 24; i++) {
-                assertThat(partition.get(START.plusHours(i))).isEqualTo(null);
-            }
-        }
-    }
-
-    @Test
     public void testCreateOpenAndClose() {
         try (Partition partition = new Partition(file.toPath(), START, DEFINITION, new FloatPartition())) {
             assertThat(partition.isOpen()).isEqualTo(true);

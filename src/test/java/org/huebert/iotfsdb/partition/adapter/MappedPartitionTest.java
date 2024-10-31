@@ -44,7 +44,7 @@ public class MappedPartitionTest {
         assertThat(adapter.get(buffer, 0)).isEqualTo(0.984251968503937);
 
         adapter.put(buffer, 0, 24.0);
-        assertThat(adapter.get(buffer, 0)).isEqualTo(23.818897637795274);
+        assertThat(adapter.get(buffer, 0)).isEqualTo(23.81889763779528);
 
         adapter.put(buffer, 0, 25.0);
         assertThat(adapter.get(buffer, 0)).isEqualTo(25.0);

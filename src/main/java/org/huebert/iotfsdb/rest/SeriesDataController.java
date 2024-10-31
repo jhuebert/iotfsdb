@@ -32,8 +32,8 @@ public class SeriesDataController {
     }
 
     @Operation(tags = "Data", summary = "Finds data matching the input request")
-    @GetMapping
-    public List<FindDataResponse> find(@NotNull @Valid FindDataRequest request) {
+    @PostMapping("find")
+    public List<FindDataResponse> find(@NotNull @Valid @RequestBody FindDataRequest request) {
         log.debug("find(enter): request={}", request);
         List<FindDataResponse> result = seriesService.find(request);
         log.debug("find(exit): size={}", result.size());
@@ -41,7 +41,7 @@ public class SeriesDataController {
     }
 
     @Operation(tags = "Data", summary = "Bulk insert of data")
-    @PostMapping
+    @PostMapping("batch")
     @ResponseStatus(NO_CONTENT)
     public void insert(@NotNull @Valid @RequestBody List<InsertRequest> request) {
         log.debug("insert(enter): request={}", request.size());

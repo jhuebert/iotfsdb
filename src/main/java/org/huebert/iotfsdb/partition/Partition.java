@@ -167,14 +167,6 @@ public class Partition extends AbstractList<Number> implements RandomAccess, Aut
         return subList(fromIndex, toIndex + 1);
     }
 
-    public Number get(LocalDateTime dateTime) {
-        log.debug("get(enter): path={}, dateTime={}", path, dateTime);
-        int index = getIndex(dateTime);
-        Number result = get(index);
-        log.debug("get(exit): path={}, index={}, result={}", path, index, result);
-        return result;
-    }
-
     @Override
     public Number get(int index) {
         open();

@@ -10,9 +10,9 @@ public class MappedPartition implements PartitionAdapter {
 
     private final double max;
 
-    private final double range;
+    private final double getRangeRatio;
 
-    private final double mappedRange;
+    private final double putRangeRatio;
 
     private final double mappedMin;
 
@@ -20,11 +20,14 @@ public class MappedPartition implements PartitionAdapter {
         this.inner = inner;
         this.min = min;
         this.max = max;
-        this.range = max - min;
 
         int bits = inner.getTypeSize() << 3;
-        this.mappedRange = Math.pow(2, bits) - 2;
         this.mappedMin = -Math.pow(2, bits - 1) + 1;
+
+        double range = max - min;
+        double mappedRange = Math.pow(2, bits) - 2;
+        this.putRangeRatio = mappedRange / range;
+        this.getRangeRatio = range / mappedRange;
     }
 
     @Override
@@ -36,7 +39,7 @@ public class MappedPartition implements PartitionAdapter {
     public Number get(ByteBuffer byteBuffer, Integer byteOffset) {
         Number result = inner.get(byteBuffer, byteOffset);
         if (result != null) {
-            result = map(result.doubleValue(), mappedMin, mappedRange, min, range);
+            result = map(result.doubleValue(), mappedMin, min, getRangeRatio);
         }
         return result;
     }
@@ -45,13 +48,13 @@ public class MappedPartition implements PartitionAdapter {
     public void put(ByteBuffer byteBuffer, Integer byteOffset, Number value) {
         Double result = null;
         if (value != null) {
-            result = map(constrain(value.doubleValue()), min, range, mappedMin, mappedRange);
+            result = map(constrain(value.doubleValue()), min, mappedMin, putRangeRatio);
         }
         inner.put(byteBuffer, byteOffset, result);
     }
 
-    double map(double value, double inMin, double inRange, double outMin, double outRange) {
-        return (((value - inMin) * outRange) / inRange) + outMin;
+    double map(double value, double inMin, double outMin, double rangeRatio) {
+        return ((value - inMin) * rangeRatio) + outMin;
     }
 
     private double constrain(double value) {
