@@ -54,6 +54,9 @@ public class FindDataRequest {
     @Schema(description = "Indicates whether to use BigDecimal for mathematical operations", defaultValue = "false")
     private boolean useBigDecimal = false;
 
+    @Schema(description = "Indicates whether to return the previous non-null value when a null value is encountered", defaultValue = "false")
+    private boolean usePrevious = false;
+
     @Schema(description = "Value to use in place of null in a series", defaultValue = "null")
     private Number nullValue = null;
 
