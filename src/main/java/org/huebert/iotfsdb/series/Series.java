@@ -132,6 +132,7 @@ public class Series implements AutoCloseable {
                 return SeriesData.builder().time(current.lowerEndpoint()).value(PartitionFactory.reduce(stream, request.getTimeReducer(), request.isUseBigDecimal(), request.getNullValue()).orElse(null)).build();
             })
             .sorted(Comparator.comparing(SeriesData::getTime))
+            .toList().stream()
             .peek(v -> {
                 if (request.isUsePrevious()) {
                     if (v.getValue() != null) {

@@ -36,10 +36,10 @@ public class SeriesDefinition {
     @NotNull
     private NumberType type;
 
-    @Schema(description = "Minimum time interval that the series will contain.")
+    @Schema(description = "Minimum time interval in milliseconds that the series will contain. The interval should exactly divide a day with no remainder.")
     @NotNull
     @Min(1)
-    @Max(86400)
+    @Max(86400000)
     private int interval;
 
     @Schema(description = "Time period of data contained in a single partition file.")

@@ -40,7 +40,7 @@ public class FindDataRequest {
     @NotNull
     private Map<String, String> metadata = new HashMap<>();
 
-    @Schema(description = "Interval in seconds of the returned data for each series")
+    @Schema(description = "Interval in milliseconds of the returned data for each series")
     @Positive
     private Integer interval;
 

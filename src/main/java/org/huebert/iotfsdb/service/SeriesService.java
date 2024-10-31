@@ -273,6 +273,7 @@ public class SeriesService {
                 return SeriesData.builder().time(e.getKey()).value(value).build();
             })
             .sorted(Comparator.comparing(SeriesData::getTime))
+            .toList().stream()
             .peek(v -> {
                 if (request.isUsePrevious()) {
                     if (v.getValue() != null) {
@@ -312,7 +313,7 @@ public class SeriesService {
 
         Range<ZonedDateTime> range = request.getRange();
         if (request.getInterval() != null) {
-            Duration duration = Duration.ofSeconds(request.getInterval());
+            Duration duration = Duration.ofMillis(request.getInterval());
             int intervalCount = (int) Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(duration) + 1;
             if (intervalCount < count) {
                 count = intervalCount;
@@ -321,8 +322,8 @@ public class SeriesService {
 
         Duration duration = Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(count);
 
-        if (duration.compareTo(Duration.ofSeconds(1)) < 0) {
-            duration = Duration.ofSeconds(1);
+        if (duration.compareTo(Duration.ofMillis(1)) < 0) {
+            duration = Duration.ofMillis(1);
             count = (int) Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(duration);
         }
 

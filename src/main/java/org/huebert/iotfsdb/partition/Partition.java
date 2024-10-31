@@ -84,7 +84,7 @@ public class Partition extends AbstractList<Number> implements RandomAccess, Aut
         this.adapter = adapter;
         this.bitShift = adapter.getBitShift();
 
-        Duration definitionInterval = Duration.ofSeconds(definition.getInterval());
+        Duration definitionInterval = Duration.ofMillis(definition.getInterval());
         LocalDateTime end = start.plus(definition.getPartition().getPeriod());
         this.range = Range.closed(start, end.minusNanos(1));
 
