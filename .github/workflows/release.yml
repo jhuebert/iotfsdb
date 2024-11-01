@@ -1,9 +1,9 @@
 name: Release
 
 on:
-#  push:
-#    tags:
-#      - "1.*.*"
+  push:
+    tags:
+      - "1.*.*"
   workflow_dispatch:
 
 jobs:
@@ -38,14 +38,14 @@ jobs:
           push: true
           tags: |
             jhuebert/iotfsdb:1
-#            jhuebert/iotfsdb:${{ needs.build.outputs.VERSION }}
+            jhuebert/iotfsdb:${{ github.ref_name }}
           pull: true
           no-cache: true
           provenance: true
           sbom: true
-          platforms: linux/amd64, linux/arm64/v8
-#      - name: Release
-#        uses: softprops/action-gh-release@v2
-#        with:
-#          files: ./build/libs/iotfsdb-*.jar
-#          fail_on_unmatched_files: true
+          platforms: linux/amd64, linux/arm64
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./build/libs/iotfsdb-*.jar
+          fail_on_unmatched_files: true
