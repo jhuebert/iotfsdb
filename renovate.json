@@ -2,15 +2,8 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "configMigration": true,
   "extends": [
-    "config:base"
+    "config:recommended"
   ],
   "addLabels": ["renovate"],
-  "commitMessagePrefix": "chore(dep): ",
-  "prConcurrentLimit": 3,
-  "prHourlyLimit": 3,
-  "rangeStrategy": "pin",
-  "schedule": ["every weekend"],
-  "separateMinorPatch": true,
-  "suppressNotifications": ["prIgnoreNotification"],
   "timezone": "America/Chicago"
 }
