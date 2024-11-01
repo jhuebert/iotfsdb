@@ -5,8 +5,6 @@ spring:
     banner-mode: off
 
 server:
-  http2:
-    enabled: true
   compression:
     enabled: true
     mime-types: application/json
