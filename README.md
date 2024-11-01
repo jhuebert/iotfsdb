@@ -91,12 +91,12 @@ This supports any value that can be represented in a double
 | Minimum Value        | `-10.0`             |
 | Maximum Value        | `10.0`              |
 
-| Property             | Value               |
-|----------------------|---------------------|
-| Input Value          | `5.3`               |
-| Input mapped to INT1 | `67.31`             |
-| INT1 value stored    | `67`                |
-| Restored Value       | `5.275590551181102` |
+| Property               | Value                |
+|------------------------|----------------------|
+| Input Value            | `-5.3`               |
+| Value mapped to `INT1` | `-67.31`             |
+| `INT1` value stored    | `-67`                |
+| Restored Value         | `-5.275590551181103` |
 
 ## Directory Layout
 
@@ -155,12 +155,12 @@ TODO Show calculations of specific location
 
 ##### Series Configuration
 
-| Property          | Value      |
-|-------------------|------------|
-| Partition Period  | `DAY`      |
-| Interval          | `60000`    |
-| Number Type       | `INT1`     |
-| Parition Filename | `20241213` |
+| Property           | Value      |
+|--------------------|------------|
+| Partition Period   | `DAY`      |
+| Interval           | `60000`    |
+| Number Type        | `INT1`     |
+| Partition Filename | `20241213` |
 
 ##### File Contents
 
@@ -178,30 +178,14 @@ TODO Show calculations of specific location
 
 Immutable
 
-    @Schema(description = "Series ID")
-    @NotBlank
-    @Pattern(regexp = "[a-z0-9][a-z0-9._-]{0,127}")
-    private String id;
-
-    @Schema(description = "Data type of the numbers stored for this series.")
-    @NotNull
-    private NumberType type;
-
-    @Schema(description = "Minimum time interval in milliseconds that the series will contain. The interval should exactly divide a day with no remainder.")
-    @NotNull
-    @Min(1)
-    @Max(86400000)
-    private int interval;
-
-    @Schema(description = "Time period of data contained in a single partition file.")
-    @NotNull
-    private PartitionPeriod partition;
-
-    @Schema(description = "Minimum supported value when using a mapped range type. Values to be stored will be constrained to this minimum value.")
-    private Double min;
-
-    @Schema(description = "Maximum supported value when using a mapped range type. Values to be stored will be constrained to this maximum value.")
-    private Double max;
+| Property  | Type            | Description                                                                                                                     | Validation                      | Required |
+|-----------|-----------------|---------------------------------------------------------------------------------------------------------------------------------|:--------------------------------|----------|
+| id        | String          | Series ID                                                                                                                       | `[a-z0-9][a-z0-9._-]{0,127}`    | Yes      |
+| type      | NumberType      | Data type of the numbers stored for this series                                                                                 |                                 | Yes      |
+| interval  | int             | Minimum time interval in milliseconds that the series will contain. The interval should exactly divide a day with no remainder. | Value in range of 1 to 86400000 | Yes      |
+| partition | PartitionPeriod | Time period of data contained in a single partition file                                                                        |                                 | Yes      |
+| min       | Double          | Minimum supported value when using a mapped range type. Values to be stored will be constrained to this minimum value.          | Must be smaller than max        | No       |
+| max       | Double          | Maximum supported value when using a mapped range type. Values to be stored will be constrained to this maximum value.          | Must be larger than min         | No       |
 
 #### Metadata
 
