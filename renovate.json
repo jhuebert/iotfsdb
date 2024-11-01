@@ -4,6 +4,7 @@
   "extends": [
     "config:recommended"
   ],
+  "mode": "full",
   "addLabels": ["renovate"],
   "timezone": "America/Chicago"
 }
