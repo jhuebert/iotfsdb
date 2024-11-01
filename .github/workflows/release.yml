@@ -3,7 +3,7 @@ name: Release
 on:
 #  push:
 #    tags:
-#      - "v*.*.*"
+#      - "1.*.*"
   workflow_dispatch:
 
 jobs:
@@ -43,8 +43,11 @@ jobs:
           no-cache: true
           provenance: true
           sbom: true
+          platforms:
+            - linux/amd64
+            - linux/arm64/v8
 #      - name: Release
 #        uses: softprops/action-gh-release@v2
 #        with:
-#          files: ./docker/iotfsdb.jar
+#          files: ./build/libs/iotfsdb-*.jar
 #          fail_on_unmatched_files: true
