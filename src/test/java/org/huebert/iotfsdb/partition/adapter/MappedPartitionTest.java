@@ -32,7 +32,7 @@ public class MappedPartitionTest {
         assertThat(adapter.get(buffer, 0)).isEqualTo(-25.0);
 
         adapter.put(buffer, 0, -24.0);
-        assertThat(adapter.get(buffer, 0)).isEqualTo(-23.818897637795274);
+        assertThat(adapter.get(buffer, 0)).isEqualTo(-24.015748031496063);
 
         adapter.put(buffer, 0, -1.0);
         assertThat(adapter.get(buffer, 0)).isEqualTo(-0.984251968503937);
@@ -44,7 +44,7 @@ public class MappedPartitionTest {
         assertThat(adapter.get(buffer, 0)).isEqualTo(0.984251968503937);
 
         adapter.put(buffer, 0, 24.0);
-        assertThat(adapter.get(buffer, 0)).isEqualTo(23.81889763779528);
+        assertThat(adapter.get(buffer, 0)).isEqualTo(24.015748031496067);
 
         adapter.put(buffer, 0, 25.0);
         assertThat(adapter.get(buffer, 0)).isEqualTo(25.0);
@@ -73,13 +73,13 @@ public class MappedPartitionTest {
         assertThat(adapter.get(buffer, 0)).isEqualTo(-23.999755851924192);
 
         adapter.put(buffer, 0, -1.0);
-        assertThat(adapter.get(buffer, 0)).isEqualTo(-0.9994811853389081);
+        assertThat(adapter.get(buffer, 0)).isEqualTo(-1.000244148075808);
 
         adapter.put(buffer, 0, 0.0);
         assertThat(adapter.get(buffer, 0)).isEqualTo(0.0);
 
         adapter.put(buffer, 0, 1.0);
-        assertThat(adapter.get(buffer, 0)).isEqualTo(0.9994811853389081);
+        assertThat(adapter.get(buffer, 0)).isEqualTo(1.000244148075808);
 
         adapter.put(buffer, 0, 24.0);
         assertThat(adapter.get(buffer, 0)).isEqualTo(23.999755851924192);
@@ -111,13 +111,13 @@ public class MappedPartitionTest {
         assertThat(adapter.get(buffer, 0)).isEqualTo(-23.999999998603016);
 
         adapter.put(buffer, 0, -1.0);
-        assertThat(adapter.get(buffer, 0)).isEqualTo(-0.9999999897554517);
+        assertThat(adapter.get(buffer, 0)).isEqualTo(-1.0000000013969839);
 
         adapter.put(buffer, 0, 0.0);
         assertThat(adapter.get(buffer, 0)).isEqualTo(0.0);
 
         adapter.put(buffer, 0, 1.0);
-        assertThat(adapter.get(buffer, 0)).isEqualTo(0.9999999897554517);
+        assertThat(adapter.get(buffer, 0)).isEqualTo(1.0000000013969839);
 
         adapter.put(buffer, 0, 24.0);
         assertThat(adapter.get(buffer, 0)).isEqualTo(23.999999998603016);

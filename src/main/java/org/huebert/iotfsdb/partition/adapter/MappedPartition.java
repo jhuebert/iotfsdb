@@ -48,7 +48,7 @@ public class MappedPartition implements PartitionAdapter {
     public void put(ByteBuffer byteBuffer, Integer byteOffset, Number value) {
         Double result = null;
         if (value != null) {
-            result = map(constrain(value.doubleValue()), min, mappedMin, putRangeRatio);
+            result = Math.rint(map(constrain(value.doubleValue()), min, mappedMin, putRangeRatio));
         }
         inner.put(byteBuffer, byteOffset, result);
     }
