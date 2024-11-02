@@ -45,45 +45,45 @@ faster processing, and quicker retrieval.
 
 The number after each type name indicates how many bytes are used to store each value.
 
-| Name    | Minimum                 | Maximum                | Null Value           | Bytes |
-|---------|-------------------------|------------------------|----------------------|-------|
-| FLOAT4  | -3.4028235E38           | 3.4028235E38           | NaN                  | 4     |
-| FLOAT8  | -1.7976931348623157E308 | 1.7976931348623157E308 | NaN                  | 8     |
-| INT1    | -127                    | 127                    | -128                 | 1     |
-| INT2    | -32767                  | 32767                  | -32768               | 2     |
-| INT4    | -2147483647             | 2147483647             | -2147483648          | 4     |
-| INT8    | -9223372036854775807    | 9223372036854775807    | -9223372036854775808 | 8     |
-| MAPPED1 | -3.4028235E38           | 3.4028235E38           | -128                 | 1     |
-| MAPPED2 | -3.4028235E38           | 3.4028235E38           | -32768               | 2     |
-| MAPPED4 | -3.4028235E38           | 3.4028235E38           | -2147483648          | 4     |
+| Name       | Minimum                 | Maximum                | Null Value           | Bytes |
+|------------|-------------------------|------------------------|----------------------|-------|
+| `FLOAT2`   | -65504                  | 65504                  | NaN                  | 2     |
+| `FLOAT4`   | -3.4028235E38           | 3.4028235E38           | NaN                  | 4     |
+| `FLOAT8`   | -1.7976931348623157E308 | 1.7976931348623157E308 | NaN                  | 8     |
+| `INTEGER1` | -127                    | 127                    | -128                 | 1     |
+| `INTEGER2` | -32767                  | 32767                  | -32768               | 2     |
+| `INTEGER4` | -2147483647             | 2147483647             | -2147483648          | 4     |
+| `INTEGER8` | -9223372036854775807    | 9223372036854775807    | -9223372036854775808 | 8     |
+| `MAPPED1`  | -3.4028235E38           | 3.4028235E38           | -128                 | 1     |
+| `MAPPED2`  | -3.4028235E38           | 3.4028235E38           | -32768               | 2     |
+| `MAPPED4`  | -3.4028235E38           | 3.4028235E38           | -2147483648          | 4     |
 
 ### Integer Types
 
-Integer types are signed.
-Null uses the minimum allowable value for a given type.
-This means that any attempt to store that specific value will result in null being returned when querying data.
+`INTEGER1`, `INTEGER2`, `INTEGER4`, `INTEGER8` store signed integer values. Null values are represented as the minimum value for the
+base type. This means that any attempt to store that specific value will result in null being
+returned when querying data.
 
 ### Float Types
 
-Floating points use IEEE format.
-Null uses NaN
-This means that any attempt to store that specific value will result in null being returned when querying data.
+`FLOAT2`, `FLOAT4`, `FLOAT8` store floating point values in IEEE-754 format. Null values are represented by `NaN`.
+This means that any attempt to store that specific value will result in null being returned when
+querying data.
 
 ### Mapped Types
 
-Backed by integer types but adds floating point mapping on top using a series defined minimum and maximum value range.
-Mapped types use an integer to store the value and the value is mapped back to the range that is set on the series definitiion.
+`MAPPED1`, `MAPPED2`, `MAPPED4` store floating point values that are backed by the corresponding sized integer
+types. This is accomplished by utilizing a minimum and maximum value range that is specified in the
+series definition. This range is used the map to and from the floating point range to the
+corresponding integer range.
 
-This results in increased floating point resolution and a reduction of space if the range of data is known.
+This results in increased floating point resolution and a reduction of space if the range of data is
+known. A downside is that reduced resolution results in the saved value not being identical to the
+value that is retrieved (see [example](#mapping-example))
 
-Mapping defines a minimum and maximum value that the integer values range is mapped into.
+#### Mapping Example
 
-Benefit being that you get a floating point value with much less storage at the expense of knowing a range of values and losing resolution.
-You don't have to mess with converting to a fixed point as this will do that for you.
-Half precision IEEE doesn't have many decimal values supported
-This supports any value that can be represented in a double
-
-#### Example
+**Series Definition**
 
 | Property             | Value               |
 |----------------------|---------------------|
@@ -91,86 +91,97 @@ This supports any value that can be represented in a double
 | Minimum Value        | `-10.0`             |
 | Maximum Value        | `10.0`              |
 
-| Property               | Value                |
-|------------------------|----------------------|
-| Input Value            | `-5.3`               |
-| Value mapped to `INT1` | `-67.31`             |
-| `INT1` value stored    | `-67`                |
-| Restored Value         | `-5.275590551181103` |
+**Value Mapping**
+
+| Property                   | Value                |
+|----------------------------|----------------------|
+| Input Value                | `-5.3`               |
+| Value mapped to `INTEGER1` | `-67.31`             |
+| `INTEGER1` value stored    | `-67`                |
+| Restored Value             | `-5.275590551181103` |
 
 ## Directory Layout
 
-All series stored as directories under root database directory.
-Each series directory has a single series.json file that hold the definition and any metadata about the series.
-Ideally it isn't edited by hand. The only mutable field in the json is the metadata. The interval could be changed as that only affects the size of new partition files.
+The database root directory contains only directories where each directory represents a single series.
+The series directory name matches the ID the series is created with.
 
-The ID must match the regex `[a-z0-9][a-z0-9._-]{0,127}`
+### Series Directory
 
-The JSON file also includes series metadata.
+The series directory name and ID must match the regular expression `[a-z0-9][a-z0-9._-]{0,127}`.
+Each series directory contains a `series.json` and period partitioned data files. The `series.json`
+file contains the series definition and metadata. The only mutable field in the json is the 
+metadata. 
 
-The series directory name is set to the ID of the series. The series directory name is not important and can be changed without any affect on the database or the results.
+The other files in the series directory are the data files. The name of the files is based on the
+partition selected for the series and represent a period of time. The data is stored in sequential
+time.
 
-The only other files in the series directory are the data files. These files store the data in sequential time.
-The name of the files is based on the partition selected for the series and represent a period of time.
+### Example Layout
 
-Each series can use a different partition scheme.
-
-- root
-  - series01
-    - series.json
-    - 2024
-  - series02
-    - series.json
-    - 20241101
+```
+root
+├── series-1
+│   ├── series.json
+│   ├── 2023
+│   └── 2024
+├── series-2
+│   ├── series.json
+│   ├── 202306
+│   ├── 202307
+│   └── 202410
+└── series-3
+    ├── series.json
+    ├── 20230611
+    ├── 20230704
+    └── 20241006
+```
 
 ## Partition
 
-The partitioning scheme allows a specific range of time to be represented in a file. The partitioning scheme in combination with the data size, we can jump to a data value for a specific time as we know exactly which file and location in a file a data value resides.
-Each partitioned file represents a calendar date range of time.
+The partitioning scheme allows a specific range of time to be represented in a file. Each
+partitioned file represents a calendar date range of time. The partitioning scheme in combination
+with the type size allows us to jump directly to a data value.
 
-| Name  | Format     | Example    |
-|-------|------------|------------|
-| DAY   | `yyyyMMdd` | `20241101` |
-| MONTH | `yyyyMM`   | `202411`   |
-| YEAR  | `yyyyMM`   | `2024`     |
+| Name    | Format     | Example    | Description                                                                                   |
+|---------|------------|------------|:----------------------------------------------------------------------------------------------|
+| `DAY`   | `yyyyMMdd` | `20241101` | Represents 00:00 through 23:59 of a single date                                               |
+| `MONTH` | `yyyyMM`   | `202411`   | Represents 00:00 of the first day of the month through 23:59 of the last day of a given month |
+| `YEAR`  | `yyyyMM`   | `2024`     | Represents 00:00 of the first day of January through 23:59 of December 31 of a given year     |
 
 ### Archival
 
-Archiving partitions results in the partition being compressed and read only
-Querying data causes the partion to be decompressed to a temporary file that is removed after the partion is closed for being idle
+Partitions can be archived which results in the file data being compressed and the data becomes
+read only. Querying data in an archived partition results in the partition being decompressed to a
+temporary file. The temporary file is removed after the partition is closed due to being idle.
 
-### Examples
+### Partition Example
 
-If we want the data value for `2024-12-13T12:34:56`, we don't know where to get it without the partition and the number type.
+#### Series Configuration
 
-For these examples, we will use the `INT4` type.
+| Property         | Value    |
+|------------------|----------|
+| Partition Period | `MONTH`  |
+| Interval (ms)    | `60000`  |
+| Number Type      | `FLOAT4` |
 
-If we use the DAY partition, the file the data value is in is `20241213`. Furthermore, the specific bytes that represent the data value can be found.
-If we use the MONTH partition, the file the data value is in is `202412`.
-If we use the YEAR partition, the file the data value is in is `2024`.
+We would like to fetch the value for `2024-12-13T12:34:56`. Because we know the partition period is
+`MONTH`, we know that the data will be located in a file named `202412`. If that file doesn't exist,
+we know the data doesn't exist and is `null`.
 
-TODO Show calculations of specific location
-
-#### Example 1
-
-##### Series Configuration
-
-| Property           | Value      |
-|--------------------|------------|
-| Partition Period   | `DAY`      |
-| Interval           | `60000`    |
-| Number Type        | `INT1`     |
-| Partition Filename | `20241213` |
+Since we know that the data interval for the file is
+`60000ms`, we can calculate which bytes the data value is located in from `12:34:56`.
+We know that the value has an index of `18034` in the array of `float` values. We multiply that by `4`
+to get the byte offset of the first byte of the value in the file - `72136`
 
 ##### File Contents
 
 | Byte Index | Stored Value | Timestamp Range Represented                  | Type Representation |
 |------------|--------------|----------------------------------------------|---------------------|
-| 0          | `Ox7F`       | `[2024-12-13T00:00:00, 2024-12-13T00:01:00)` | `null`              |
+| 0          | `0x7FC00000` | `[2024-12-01T00:00:00, 2024-12-01T00:01:00)` | `null`              |
 | ...        | ...          | ...                                          | ...                 |
-| YYYY       | `Ox07`       | `[2024-12-13T12:34:56, 2024-12-13T12:34:56)` | `7`                 |
+| 72136      | `0x3E9E0652` | `[2024-12-13T12:34:00, 2024-12-13T12:35:00)` | `1.2345679`         |
 | ...        | ...          | ...                                          | ...                 |
-| XXXX       | `Ox07`       | `[2024-12-13T23:59:00, 2024-12-14T00:00:00)` | `7`                 |
+| XXXX       | `0x7FC00000` | `[2024-12-31T23:59:00, 2025-01-01T00:00:00)` | `null`              |
 
 ## API
 
@@ -178,14 +189,14 @@ TODO Show calculations of specific location
 
 Immutable
 
-| Property  | Type            | Description                                                                                                                     | Validation                      | Required |
-|-----------|-----------------|---------------------------------------------------------------------------------------------------------------------------------|:--------------------------------|----------|
-| id        | String          | Series ID                                                                                                                       | `[a-z0-9][a-z0-9._-]{0,127}`    | Yes      |
-| type      | NumberType      | Data type of the numbers stored for this series                                                                                 |                                 | Yes      |
-| interval  | int             | Minimum time interval in milliseconds that the series will contain. The interval should exactly divide a day with no remainder. | Value in range of 1 to 86400000 | Yes      |
-| partition | PartitionPeriod | Time period of data contained in a single partition file                                                                        |                                 | Yes      |
-| min       | Double          | Minimum supported value when using a mapped range type. Values to be stored will be constrained to this minimum value.          | Must be smaller than max        | No       |
-| max       | Double          | Maximum supported value when using a mapped range type. Values to be stored will be constrained to this maximum value.          | Must be larger than min         | No       |
+| Property    | Type              | Description                                                                                                                     | Validation                      | Required |
+|-------------|-------------------|---------------------------------------------------------------------------------------------------------------------------------|:--------------------------------|----------|
+| `id`        | `String`          | Series ID                                                                                                                       | `[a-z0-9][a-z0-9._-]{0,127}`    | Yes      |
+| `type`      | `NumberType`      | Data type of the numbers stored for this series                                                                                 |                                 | Yes      |
+| `interval`  | `int`             | Minimum time interval in milliseconds that the series will contain. The interval should exactly divide a day with no remainder. | Value in range of 1 to 86400000 | Yes      |
+| `partition` | `PartitionPeriod` | Time period of data contained in a single partition file                                                                        |                                 | Yes      |
+| `min`       | `Double`          | Minimum supported value when using a mapped range type. Values to be stored will be constrained to this minimum value.          | Must be smaller than max        | No       |
+| `max`       | `Double`          | Maximum supported value when using a mapped range type. Values to be stored will be constrained to this maximum value.          | Must be larger than min         | No       |
 
 #### Metadata
 
@@ -293,10 +304,10 @@ java -jar iotfsdb.jar
 
 ### Docker
 
-[Image](https://hub.docker.com/repository/docker/jhuebert/iotfsdb/general)
+[Image on Docker Hub](https://hub.docker.com/repository/docker/jhuebert/iotfsdb/general)
 
 ```bash
-docker run -it -p 8080:8080 -v iotfsdb-data:/data --name iotfsdb jhuebert/iotfsdb:1
+docker run -it -p 8080:8080 -v iotfsdb-data:/data jhuebert/iotfsdb:1
 ```
 
 #### Docker Compose
@@ -305,12 +316,10 @@ docker run -it -p 8080:8080 -v iotfsdb-data:/data --name iotfsdb jhuebert/iotfsd
 services:
   iotfsdb:
     image: jhuebert/iotfsdb:1
-    container_name: iotfsdb
     volumes:
     - ./data:/data
     ports:
     - 8080:8080
-    restart: always
 ```
 
 ### Properties
