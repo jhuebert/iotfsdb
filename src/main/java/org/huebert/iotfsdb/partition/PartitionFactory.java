@@ -7,6 +7,7 @@ import lombok.experimental.UtilityClass;
 import org.huebert.iotfsdb.partition.adapter.BytePartition;
 import org.huebert.iotfsdb.partition.adapter.DoublePartition;
 import org.huebert.iotfsdb.partition.adapter.FloatPartition;
+import org.huebert.iotfsdb.partition.adapter.HalfFloatPartition;
 import org.huebert.iotfsdb.partition.adapter.IntegerPartition;
 import org.huebert.iotfsdb.partition.adapter.MappedPartition;
 import org.huebert.iotfsdb.partition.adapter.PartitionAdapter;
@@ -41,15 +42,16 @@ public class PartitionFactory {
     private static final Set<NumberType> MAPPED = EnumSet.of(NumberType.MAPPED1, NumberType.MAPPED2, NumberType.MAPPED4);
 
     private static final Map<NumberType, PartitionAdapter> ADAPTER_MAP = Map.of(
+        NumberType.FLOAT2, new HalfFloatPartition(),
         NumberType.FLOAT4, new FloatPartition(),
         NumberType.FLOAT8, new DoublePartition(),
-        NumberType.MAPPED1, new BytePartition(),
-        NumberType.MAPPED2, new ShortPartition(),
-        NumberType.MAPPED4, new IntegerPartition(),
         NumberType.INTEGER1, new BytePartition(),
         NumberType.INTEGER2, new ShortPartition(),
         NumberType.INTEGER4, new IntegerPartition(),
-        NumberType.INTEGER8, new DoublePartition()
+        NumberType.INTEGER8, new DoublePartition(),
+        NumberType.MAPPED1, new BytePartition(),
+        NumberType.MAPPED2, new ShortPartition(),
+        NumberType.MAPPED4, new IntegerPartition()
     );
 
     public static Partition create(SeriesDefinition definition, Path path, LocalDateTime start) {
