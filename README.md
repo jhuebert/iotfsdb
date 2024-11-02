@@ -166,127 +166,30 @@ temporary file. The temporary file is removed after the partition is closed due 
 
 We would like to fetch the value for `2024-12-13T12:34:56`. Because we know the partition period is
 `MONTH`, we know that the data will be located in a file named `202412`. If that file doesn't exist,
-we know the data doesn't exist and is `null`.
+we know the data doesn't exist and the result is `null`.
 
-Since we know that the data interval for the file is
-`60000ms`, we can calculate which bytes the data value is located in from `12:34:56`.
-We know that the value has an index of `18034` in the array of `float` values. We multiply that by `4`
-to get the byte offset of the first byte of the value in the file - `72136`
+Since we know that the data interval for the file is `60000ms`, we can calculate which bytes the
+data value is located in. The data has an index of `18034` in the array of `float` values. We multiply that by `4`
+to get the byte offset of the data in the file (`72136`).
 
-##### File Contents
+#### File Contents
 
 | Byte Index | Stored Value | Timestamp Range Represented                  | Type Representation |
 |------------|--------------|----------------------------------------------|---------------------|
-| 0          | `0x7FC00000` | `[2024-12-01T00:00:00, 2024-12-01T00:01:00)` | `null`              |
+| `0`        | `0x7FC00000` | `[2024-12-01T00:00:00, 2024-12-01T00:01:00)` | `null`              |
 | ...        | ...          | ...                                          | ...                 |
-| 72136      | `0x3E9E0652` | `[2024-12-13T12:34:00, 2024-12-13T12:35:00)` | `1.2345679`         |
+| `72136`    | `0x3E9E0652` | `[2024-12-13T12:34:00, 2024-12-13T12:35:00)` | `1.2345679`         |
 | ...        | ...          | ...                                          | ...                 |
-| XXXX       | `0x7FC00000` | `[2024-12-31T23:59:00, 2025-01-01T00:00:00)` | `null`              |
+| `178556`   | `0x7FC00000` | `[2024-12-31T23:59:00, 2025-01-01T00:00:00)` | `null`              |
 
 ## API
 
-### Creating Series
-
-Immutable
-
-| Property    | Type              | Description                                                                                                                     | Validation                      | Required |
-|-------------|-------------------|---------------------------------------------------------------------------------------------------------------------------------|:--------------------------------|----------|
-| `id`        | `String`          | Series ID                                                                                                                       | `[a-z0-9][a-z0-9._-]{0,127}`    | Yes      |
-| `type`      | `NumberType`      | Data type of the numbers stored for this series                                                                                 |                                 | Yes      |
-| `interval`  | `int`             | Minimum time interval in milliseconds that the series will contain. The interval should exactly divide a day with no remainder. | Value in range of 1 to 86400000 | Yes      |
-| `partition` | `PartitionPeriod` | Time period of data contained in a single partition file                                                                        |                                 | Yes      |
-| `min`       | `Double`          | Minimum supported value when using a mapped range type. Values to be stored will be constrained to this minimum value.          | Must be smaller than max        | No       |
-| `max`       | `Double`          | Maximum supported value when using a mapped range type. Values to be stored will be constrained to this maximum value.          | Must be larger than min         | No       |
-
-#### Metadata
-
-Map<String, String>
-
-### Querying Series
-
-    @Schema(description = "Regular expression that is used to match series IDs", defaultValue = ".*")
-    @NotNull
-    private Pattern pattern = Pattern.compile(".*");
-
-    @Schema(description = "Key and values that matching series metadata must contain")
-    @NotNull
-    private Map<String, String> metadata = new HashMap<>();
-
-### Inserting Data
-
-Either specific to a series or not
-batch
-
-### Querying Data
-
-    @Schema(description = "Earliest date and time that values should be have")
-    @NotNull
-    private ZonedDateTime from;
-
-    @Schema(description = "Latest date and time that values should be have", defaultValue = "Current date and time")
-    @NotNull
-    private ZonedDateTime to = ZonedDateTime.now();
-
-    @Schema(description = "Regular expression that is used to match series IDs", defaultValue = ".*")
-    @NotNull
-    private Pattern pattern = Pattern.compile(".*");
-
-    @Schema(description = "Key and values that series metadata must contain")
-    @NotNull
-    private Map<String, String> metadata = new HashMap<>();
-
-    @Schema(description = "Interval in milliseconds of the returned data for each series")
-    @Positive
-    private Integer interval;
-
-    @Schema(description = "Maximum number of points to return for each series")
-    @Positive
-    private Integer size;
-
-    @Schema(description = "Indicates whether to include null values in the list of values for a series", defaultValue = "false")
-    private boolean includeNull = false;
-
-    @Schema(description = "Indicates whether to use BigDecimal for mathematical operations", defaultValue = "false")
-    private boolean useBigDecimal = false;
-
-    @Schema(description = "Indicates whether to return the previous non-null value when a null value is encountered", defaultValue = "false")
-    private boolean usePrevious = false;
-
-    @Schema(description = "Value to use in place of null in a series", defaultValue = "null")
-    private Number nullValue = null;
-
-    @Schema(description = "Reducing function used to produce a single value from a series for a given time period", defaultValue = "AVERAGE")
-    @NotNull
-    private Reducer timeReducer = Reducer.AVERAGE;
-
-    @Schema(description = "Reducing function used to produce a single value for a given time period for all series. This results in a single series in the response named \"reduced\"")
-    private Reducer seriesReducer;
-
-#### Reducer
-
-`AVERAGE` is the default
-
-| Name             | Description                              | Floating Point | Empty Values |
-|------------------|------------------------------------------|----------------|--------------|
-| `AVERAGE`        | Average of values                        | `true`         | `null`       |
-| `COUNT`          | Count of non-null values                 | `false`        | `0`          |
-| `COUNT_DISTINCT` | Count of unique non-null values          | `false`        | `0`          |
-| `FIRST`          | First non-null value                     | `false`        | `null`       |
-| `LAST`           | Last non-null value                      | `false`        | `null`       |
-| `MAXIMUM`        | Maximum value                            | `true`         | `null`       |
-| `MEDIAN`         | Median value                             | `true`         | `null`       |
-| `MINIMUM`        | Minimum value                            | `true`         | `null`       |
-| `MODE`           | Most frequently occurring non-null value | `false`        | `null`       |
-| `SQUARE_SUM`     | Sum of squares                           | `true`         | `null`       |
-| `SUM`            | Sum of values                            | `true`         | `null`       |
-
-List which ones get converted to floating point
-
-BigDecimal vs double math
+The OpenAPI specification can be viewed at http://localhost:8080/swagger-ui/index.html.
+You can download the OpenAPI specification from http://localhost:8080/v3/api-docs.yaml.
 
 ## Authentication
 
-Out of scope
+Since the database exposes a REST API, authentication can be handled by a proxy. 
 
 ## Building
 
