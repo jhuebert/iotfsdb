@@ -38,7 +38,7 @@ public class FindDataRequest {
 
     @Schema(description = "Key and values that series metadata must contain")
     @NotNull
-    private Map<String, String> metadata = new HashMap<>();
+    private Map<String, Pattern> metadata = new HashMap<>();
 
     @Schema(description = "Interval in milliseconds of the returned data for each series")
     @Positive
