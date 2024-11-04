@@ -1,4 +1,4 @@
-FROM amazoncorretto:21-alpine-jdk
+FROM amazoncorretto:23-alpine-jdk
 EXPOSE 8080
 VOLUME /data
 ENV IOTFSDB_ROOT=/data
