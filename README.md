@@ -47,6 +47,9 @@ The number after each type name indicates how many bytes are used to store each 
 
 | Name       | Minimum                 | Maximum                | Null Value           | Bytes |
 |------------|-------------------------|------------------------|----------------------|-------|
+| `CURVED1`  | -1.7976931348623157E308 | 1.7976931348623157E308 | -128                 | 1     |
+| `CURVED2`  | -1.7976931348623157E308 | 1.7976931348623157E308 | -32768               | 2     |
+| `CURVED4`  | -1.7976931348623157E308 | 1.7976931348623157E308 | -2147483648          | 4     |
 | `FLOAT2`   | -65504                  | 65504                  | NaN                  | 2     |
 | `FLOAT4`   | -3.4028235E38           | 3.4028235E38           | NaN                  | 4     |
 | `FLOAT8`   | -1.7976931348623157E308 | 1.7976931348623157E308 | NaN                  | 8     |
@@ -99,6 +102,14 @@ value that is retrieved (see [example](#mapping-example))
 | Value mapped to `INTEGER1` | `-67.31`             |
 | `INTEGER1` value stored    | `-67`                |
 | Restored Value             | `-5.275590551181103` |
+
+### Curved Types
+
+`CURVED1`, `CURVED2`, `CURVED4` are identical to the `MAPPED` types except that a curve is used to
+map it to the underlying integer type. This means that instead of a hard limit at the minimum and
+maximum value the value can still be stored but at reduced resolution based on an exponential curve.
+The main reason to use this one over a `MAPPED` type is that it better handles situations where the
+range is not fully known.
 
 ## Directory Layout
 

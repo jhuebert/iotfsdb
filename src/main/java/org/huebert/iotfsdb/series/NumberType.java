@@ -1,6 +1,9 @@
 package org.huebert.iotfsdb.series;
 
 public enum NumberType {
+    CURVED1,
+    CURVED2,
+    CURVED4,
     FLOAT2,
     FLOAT4,
     FLOAT8,
