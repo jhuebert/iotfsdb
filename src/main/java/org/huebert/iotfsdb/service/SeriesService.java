@@ -166,7 +166,7 @@ public class SeriesService {
         log.debug("unarchiveSeries(exit): seriesId={}", seriesId);
     }
 
-    public List<Series> findSeries(Pattern pattern, Map<String, String> metadata) {
+    public List<Series> findSeries(Pattern pattern, Map<String, Pattern> metadata) {
         log.debug("findSeries(enter): pattern={}, metadata={}", pattern, metadata);
         List<Series> result = seriesMap.values().parallelStream()
             .filter(s -> matchesMetadata(s, metadata))
@@ -177,7 +177,7 @@ public class SeriesService {
         return result;
     }
 
-    private boolean matchesMetadata(Series series, Map<String, String> metadata) {
+    private boolean matchesMetadata(Series series, Map<String, Pattern> metadata) {
         Map<String, String> seriesMetadata = series.getSeriesFile().getMetadata();
 
         if ((metadata == null) || metadata.isEmpty()) {
@@ -186,8 +186,9 @@ public class SeriesService {
             return false;
         }
 
-        for (Map.Entry<String, String> entry : metadata.entrySet()) {
-            if (!Objects.equals(seriesMetadata.get(entry.getKey()), entry.getValue())) {
+        for (Map.Entry<String, Pattern> entry : metadata.entrySet()) {
+            String seriesValue = seriesMetadata.get(entry.getKey());
+            if (!entry.getValue().matcher(seriesValue).matches()) {
                 return false;
             }
         }
@@ -212,7 +213,7 @@ public class SeriesService {
     }
 
     public void insert(String seriesId, List<SeriesData> values) {
-
+        log.debug("insert(enter): seriesId={}, values={}", seriesId, values.size());
         if (properties.isReadOnly()) {
             throw new IllegalStateException("database is read only");
         }
@@ -321,19 +322,20 @@ public class SeriesService {
         }
 
         Range<ZonedDateTime> range = request.getRange();
+        Duration rangeDuration = Duration.between(range.lowerEndpoint(), range.upperEndpoint());
         if (request.getInterval() != null) {
             Duration duration = Duration.ofMillis(request.getInterval());
-            int intervalCount = (int) Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(duration) + 1;
+            int intervalCount = (int) rangeDuration.dividedBy(duration) + 1;
             if (intervalCount < count) {
                 count = intervalCount;
             }
         }
 
-        Duration duration = Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(count);
+        Duration duration = rangeDuration.dividedBy(count);
 
         if (duration.compareTo(Duration.ofMillis(1)) < 0) {
             duration = Duration.ofMillis(1);
-            count = (int) Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(duration);
+            count = (int) rangeDuration.dividedBy(duration);
         }
 
         log.debug("getRanges(checkpoint): count={}, duration={}", count, duration);
