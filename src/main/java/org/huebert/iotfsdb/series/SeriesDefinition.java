@@ -25,7 +25,7 @@ import java.util.EnumSet;
 @Schema(description = "Immutable definition of a series")
 public class SeriesDefinition {
 
-    private static final EnumSet<NumberType> MAPPED = EnumSet.of(NumberType.MAPPED1, NumberType.MAPPED2, NumberType.MAPPED4);
+    private static final EnumSet<NumberType> TYPES_WITH_RANGE = EnumSet.of(NumberType.CURVED1, NumberType.CURVED2, NumberType.CURVED4, NumberType.MAPPED1, NumberType.MAPPED2, NumberType.MAPPED4);
 
     @Schema(description = "Series ID")
     @NotBlank
@@ -54,7 +54,7 @@ public class SeriesDefinition {
 
     @AssertTrue
     private boolean isValid() {
-        if ((type != null) && MAPPED.contains(type)) {
+        if ((type != null) && TYPES_WITH_RANGE.contains(type)) {
             if ((min == null) || (max == null)) {
                 return false;
             }

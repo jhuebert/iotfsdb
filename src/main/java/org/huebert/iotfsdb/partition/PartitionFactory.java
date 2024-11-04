@@ -12,6 +12,7 @@ import org.huebert.iotfsdb.partition.adapter.IntegerPartition;
 import org.huebert.iotfsdb.partition.adapter.MappedPartition;
 import org.huebert.iotfsdb.partition.adapter.PartitionAdapter;
 import org.huebert.iotfsdb.partition.adapter.ShortPartition;
+import org.huebert.iotfsdb.partition.adapter.CurvedMappedPartition;
 import org.huebert.iotfsdb.series.NumberType;
 import org.huebert.iotfsdb.series.Reducer;
 import org.huebert.iotfsdb.series.SeriesDefinition;
@@ -23,6 +24,7 @@ import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -39,20 +41,28 @@ public class PartitionFactory {
 
     private static final BigDecimal TWO = new BigDecimal("2");
 
+    private static final Set<NumberType> CURVED = EnumSet.of(NumberType.CURVED1, NumberType.CURVED2, NumberType.CURVED4);
+
     private static final Set<NumberType> MAPPED = EnumSet.of(NumberType.MAPPED1, NumberType.MAPPED2, NumberType.MAPPED4);
 
-    private static final Map<NumberType, PartitionAdapter> ADAPTER_MAP = Map.of(
-        NumberType.FLOAT2, new HalfFloatPartition(),
-        NumberType.FLOAT4, new FloatPartition(),
-        NumberType.FLOAT8, new DoublePartition(),
-        NumberType.INTEGER1, new BytePartition(),
-        NumberType.INTEGER2, new ShortPartition(),
-        NumberType.INTEGER4, new IntegerPartition(),
-        NumberType.INTEGER8, new DoublePartition(),
-        NumberType.MAPPED1, new BytePartition(),
-        NumberType.MAPPED2, new ShortPartition(),
-        NumberType.MAPPED4, new IntegerPartition()
-    );
+    private static final Map<NumberType, PartitionAdapter> ADAPTER_MAP;
+
+    static {
+        ADAPTER_MAP = new HashMap<>();
+        ADAPTER_MAP.put(NumberType.CURVED1, new BytePartition());
+        ADAPTER_MAP.put(NumberType.CURVED2, new ShortPartition());
+        ADAPTER_MAP.put(NumberType.CURVED4, new IntegerPartition());
+        ADAPTER_MAP.put(NumberType.FLOAT2, new HalfFloatPartition());
+        ADAPTER_MAP.put(NumberType.FLOAT4, new FloatPartition());
+        ADAPTER_MAP.put(NumberType.FLOAT8, new DoublePartition());
+        ADAPTER_MAP.put(NumberType.INTEGER1, new BytePartition());
+        ADAPTER_MAP.put(NumberType.INTEGER2, new ShortPartition());
+        ADAPTER_MAP.put(NumberType.INTEGER4, new IntegerPartition());
+        ADAPTER_MAP.put(NumberType.INTEGER8, new DoublePartition());
+        ADAPTER_MAP.put(NumberType.MAPPED1, new BytePartition());
+        ADAPTER_MAP.put(NumberType.MAPPED2, new ShortPartition());
+        ADAPTER_MAP.put(NumberType.MAPPED4, new IntegerPartition());
+    }
 
     public static Partition create(SeriesDefinition definition, Path path, LocalDateTime start) {
 
@@ -63,6 +73,8 @@ public class PartitionFactory {
 
         if (MAPPED.contains(definition.getType())) {
             adapter = new MappedPartition(adapter, definition.getMin(), definition.getMax());
+        } else if (CURVED.contains(definition.getType())) {
+            adapter = new CurvedMappedPartition(adapter, definition.getMin(), definition.getMax());
         }
 
         return new Partition(path, start, definition, adapter);
