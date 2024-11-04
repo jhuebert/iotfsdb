@@ -4,4 +4,4 @@ VOLUME /data
 ENV IOTFSDB_ROOT=/data
 ENV IOTFSDB_READ_ONLY=false
 COPY iotfsdb.jar /
-ENTRYPOINT java -jar /iotfsdb.jar
+ENTRYPOINT ["java", "-jar", "/iotfsdb.jar"]
