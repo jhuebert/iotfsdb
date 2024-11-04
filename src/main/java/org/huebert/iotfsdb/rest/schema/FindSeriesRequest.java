@@ -24,6 +24,6 @@ public class FindSeriesRequest {
 
     @Schema(description = "Key and values that matching series metadata must contain")
     @NotNull
-    private Map<String, String> metadata = new HashMap<>();
+    private Map<String, Pattern> metadata = new HashMap<>();
 
 }
