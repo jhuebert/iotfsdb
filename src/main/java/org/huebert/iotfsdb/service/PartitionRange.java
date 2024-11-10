@@ -1,0 +1,27 @@
+package org.huebert.iotfsdb.service;
+
+
+import com.google.common.collect.Range;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import org.huebert.iotfsdb.partition.PartitionAdapter;
+
+import java.time.Duration;
+import java.time.LocalDateTime;
+
+public record PartitionRange(
+    @Valid @NotNull PartitionKey key,
+    @NotNull Range<LocalDateTime> range,
+    @NotNull Duration interval,
+    @NotNull PartitionAdapter adapter
+) {
+
+    public int getIndex(LocalDateTime dateTime) {
+        return (int) Duration.between(range.lowerEndpoint(), dateTime).dividedBy(interval);
+    }
+
+    public long getSize() {
+        return Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(interval) + 1;
+    }
+
+}

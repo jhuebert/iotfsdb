@@ -11,12 +11,12 @@ import java.nio.file.Path;
 @ConfigurationProperties("iotfsdb")
 public class IotfsdbProperties {
 
-    private Path root;
+    private Path root = Path.of("memory");
 
-    private boolean readOnly = true;
+    private boolean readOnly = false;
 
     private int maxQuerySize = 1000;
 
-    private long maxIdleSeconds = 60;
+    private String partitionCache = "expireAfterAccess=1m,maximumSize=10000,softValues";
 
 }

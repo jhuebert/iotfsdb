@@ -1,62 +1,69 @@
 package org.huebert.iotfsdb.rest;
 
+import com.google.common.net.HttpHeaders;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
-import org.huebert.iotfsdb.rest.schema.FindDataRequest;
-import org.huebert.iotfsdb.rest.schema.FindDataResponse;
-import org.huebert.iotfsdb.rest.schema.InsertRequest;
-import org.huebert.iotfsdb.rest.schema.SeriesStats;
+import org.huebert.iotfsdb.schema.FindDataRequest;
+import org.huebert.iotfsdb.schema.FindDataResponse;
+import org.huebert.iotfsdb.schema.FindSeriesRequest;
+import org.huebert.iotfsdb.schema.SeriesFile;
+import org.huebert.iotfsdb.service.ExportService;
+import org.huebert.iotfsdb.service.QueryService;
 import org.huebert.iotfsdb.service.SeriesService;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.huebert.iotfsdb.service.TimeConverter;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-
+@Validated
 @Slf4j
 @RestController
-@RequestMapping("/v1/data")
+@RequestMapping("/v2/data")
 public class SeriesDataController {
+
+    private final ExportService exportService;
 
     private final SeriesService seriesService;
 
-    public SeriesDataController(SeriesService seriesService) {
+    private final QueryService queryService;
+
+    public SeriesDataController(@NotNull ExportService exportService, @NotNull SeriesService seriesService, @NotNull QueryService queryService) {
+        this.exportService = exportService;
         this.seriesService = seriesService;
+        this.queryService = queryService;
     }
 
     @Operation(tags = "Data", summary = "Finds data matching the input request")
     @PostMapping("find")
     public List<FindDataResponse> find(@NotNull @Valid @RequestBody FindDataRequest request) {
-        log.debug("find(enter): request={}", request);
-        List<FindDataResponse> result = seriesService.find(request);
-        log.debug("find(exit): size={}", result.size());
-        return result;
+        List<SeriesFile> series = seriesService.findSeries(request.getPattern(), request.getMetadata());
+        return queryService.findData(request, series);
     }
 
-    @Operation(tags = "Data", summary = "Bulk insert of data")
-    @PostMapping("batch")
-    @ResponseStatus(NO_CONTENT)
-    public void insert(@NotNull @Valid @RequestBody List<InsertRequest> request) {
-        log.debug("insert(enter): request={}", request.size());
-        request.parallelStream()
-            .forEach(e -> seriesService.insert(e.getSeries(), e.getValues()));
-        log.debug("insert(exit)");
-    }
-
-    @Operation(tags = "Data", summary = "Retrieves series statistics for the entire database")
-    @GetMapping("stats")
-    public SeriesStats stats() {
-        log.debug("stats(enter)");
-        SeriesStats result = seriesService.getCombinedStats();
-        log.debug("stats(exit): result={}", result);
-        return result;
+    @Operation(tags = "Data", summary = "Exports a database archive of matching series")
+    @PostMapping(value = "export", produces = "application/zip")
+    public ResponseEntity<StreamingResponseBody> export(@NotNull @Valid @RequestBody FindSeriesRequest request) {
+        String formattedTime = TimeConverter.toUtc(ZonedDateTime.now()).format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
+        return ResponseEntity.ok()
+            .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=iotfsdb-" + formattedTime + ".zip")
+            .contentType(MediaType.parseMediaType("application/zip"))
+            .body(out -> {
+                try (out) {
+                    exportService.export(request, out);
+                }
+            });
     }
 
 }

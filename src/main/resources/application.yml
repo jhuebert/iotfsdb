@@ -11,7 +11,7 @@ server:
     min-response-size: 2048
 
 iotfsdb:
-  root: /tmp/iotfsdb
-  read-only: true
+  root: "memory"
+  read-only: false
   max-query-size: 1000
-  max-idle-seconds: 60
+  partition-cache: "expireAfterAccess=1m,maximumSize=10000,softValues"
