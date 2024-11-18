@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -18,7 +19,7 @@ public class PartitionRangeTest {
         LocalDateTime to = from.plusDays(1).minusNanos(1);
         Duration interval = Duration.ofHours(1);
         PartitionAdapter adapter = mock(PartitionAdapter.class);
-        PartitionRange partitionRange = new PartitionRange(null, Range.closed(from, to), interval, adapter);
+        PartitionRange partitionRange = new PartitionRange(null, Range.closed(from, to), interval, adapter, new ReentrantReadWriteLock());
         for (int i = 0; i < 24; i++) {
             assertThat(partitionRange.getIndex(from.plusHours(i))).isEqualTo(i);
         }
@@ -30,7 +31,7 @@ public class PartitionRangeTest {
         LocalDateTime to = from.plusDays(1).minusNanos(1);
         Duration interval = Duration.ofHours(1);
         PartitionAdapter adapter = mock(PartitionAdapter.class);
-        PartitionRange partitionRange = new PartitionRange(null, Range.closed(from, to), interval, adapter);
+        PartitionRange partitionRange = new PartitionRange(null, Range.closed(from, to), interval, adapter, new ReentrantReadWriteLock());
         assertThat(partitionRange.getSize()).isEqualTo(24);
     }
 

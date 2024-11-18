@@ -10,8 +10,6 @@ import java.util.function.Supplier;
 
 public class CountingDistinctCollector implements NumberCollector<Number, Set<Number>> {
 
-    // TODO Could optionally use a bloom filter
-
     @Override
     public Supplier<Set<Number>> supplier() {
         return HashSet::new;

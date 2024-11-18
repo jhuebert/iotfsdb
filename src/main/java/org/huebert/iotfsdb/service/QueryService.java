@@ -13,6 +13,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -41,7 +42,7 @@ public class QueryService {
 
         List<Range<ZonedDateTime>> ranges = intervalService.getIntervalRanges(request);
 
-        List<FindDataResponse> result = series.parallelStream() // TODO Test the impact of parallel
+        List<FindDataResponse> result = series.parallelStream()
             .map(s -> findDataForSeries(request, ranges, s))
             .filter(r -> r.getData().stream().map(SeriesData::getValue).anyMatch(Objects::nonNull))
             .sorted(Comparator.comparing(r -> r.getSeries().getId()))
@@ -68,10 +69,16 @@ public class QueryService {
 
     private SeriesData findDataOverPartitions(FindDataRequest request, RangeMap<LocalDateTime, PartitionRange> rangeMap, Range<ZonedDateTime> current) {
         Range<LocalDateTime> local = TimeConverter.toUtc(current);
-        Number value = rangeMap.subRangeMap(local).asMapOfRanges().values().stream()
-            .flatMap(pr -> findDataFromPartition(pr, local))
-            .collect(reducerService.getCollector(request, request.getTimeReducer()));
-        return new SeriesData(current.lowerEndpoint(), value); // TODO Midpoint?
+        Collection<PartitionRange> covered = rangeMap.subRangeMap(local).asMapOfRanges().values();
+        covered.forEach(c -> c.rwLock().readLock().lock());
+        try {
+            Number value = covered.stream()
+                .flatMap(pr -> findDataFromPartition(pr, local))
+                .collect(reducerService.getCollector(request, request.getTimeReducer()));
+            return new SeriesData(current.lowerEndpoint(), value); // TODO Midpoint?
+        } finally {
+            covered.forEach(c -> c.rwLock().readLock().unlock());
+        }
     }
 
     private Stream<Number> findDataFromPartition(PartitionRange partitionRange, Range<LocalDateTime> current) {

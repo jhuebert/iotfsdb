@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -51,7 +52,7 @@ public class PartitionServiceTest {
             .build()));
 
         LocalDateTime local = LocalDateTime.parse("2024-11-11T00:00:00");
-        PartitionRange expected = new PartitionRange(key, Range.closed(local, local.plusDays(1).minusNanos(1)), Duration.ofHours(1), new BytePartition());
+        PartitionRange expected = new PartitionRange(key, Range.closed(local, local.plusDays(1).minusNanos(1)), Duration.ofHours(1), new BytePartition(), new ReentrantReadWriteLock());
         PartitionRange range = partitionService.getRange(key);
         assertThat(range.key()).isEqualTo(expected.key());
         assertThat(range.range()).isEqualTo(expected.range());

@@ -32,6 +32,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Validated
 @Slf4j
@@ -88,8 +89,7 @@ public class PartitionService {
         SeriesDefinition definition = series.getDefinition();
         Range<LocalDateTime> range = getRange(definition, key.partitionId());
         PartitionAdapter adapter = getAdapter(definition);
-        //TODO Get interval from actual partition file?
-        return new PartitionRange(key, range, definition.getIntervalDuration(), adapter);
+        return new PartitionRange(key, range, definition.getIntervalDuration(), adapter, new ReentrantReadWriteLock());
     }
 
     private static Range<LocalDateTime> getRange(SeriesDefinition definition, String partitionId) {

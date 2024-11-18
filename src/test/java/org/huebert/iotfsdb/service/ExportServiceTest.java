@@ -1,6 +1,8 @@
 package org.huebert.iotfsdb.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Range;
+import org.huebert.iotfsdb.partition.PartitionAdapter;
 import org.huebert.iotfsdb.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.schema.SeriesDefinition;
 import org.huebert.iotfsdb.schema.SeriesFile;
@@ -12,10 +14,12 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 import java.util.zip.ZipInputStream;
 
@@ -31,8 +35,9 @@ public class ExportServiceTest {
 
         DataService dataService = mock(DataService.class);
         SeriesService seriesService = mock(SeriesService.class);
+        PartitionService partitionService = mock(PartitionService.class);
         ObjectMapper objectMapper = new ObjectMapper();
-        ExportService exportService1 = new ExportService(dataService, seriesService, objectMapper);
+        ExportService exportService = new ExportService(dataService, seriesService, partitionService, objectMapper);
 
         FindSeriesRequest request = new FindSeriesRequest();
         request.setPattern(Pattern.compile("abc"));
@@ -46,6 +51,8 @@ public class ExportServiceTest {
         when(seriesService.findSeries(request.getPattern(), request.getMetadata())).thenReturn(List.of(seriesFile));
 
         PartitionKey key = new PartitionKey("abc", "123");
+        PartitionAdapter adapter = mock(PartitionAdapter.class);
+        when(partitionService.getRange(key)).thenReturn(new PartitionRange(key, Range.all(), Duration.ZERO, adapter, new ReentrantReadWriteLock()));
 
         when(dataService.getPartitions(seriesFile.getId())).thenReturn(Set.of(key));
 
@@ -58,7 +65,7 @@ public class ExportServiceTest {
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
-        exportService1.export(request, outputStream);
+        exportService.export(request, outputStream);
 
         assertThat(outputStream.size()).isEqualTo(782);
 

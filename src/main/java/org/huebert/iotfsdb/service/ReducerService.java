@@ -121,7 +121,7 @@ public class ReducerService {
 
     public FindDataResponse reduce(@NotNull List<FindDataResponse> responses, @Valid @NotNull FindDataRequest request) {
 
-        Map<ZonedDateTime, List<SeriesData>> grouped = responses.parallelStream() // TODO Test the impact of parallel
+        Map<ZonedDateTime, List<SeriesData>> grouped = responses.parallelStream()
             .map(FindDataResponse::getData)
             .flatMap(Collection::stream)
             .collect(Collectors.groupingByConcurrent(SeriesData::getTime));

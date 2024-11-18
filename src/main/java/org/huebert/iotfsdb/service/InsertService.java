@@ -9,8 +9,12 @@ import org.huebert.iotfsdb.schema.SeriesFile;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import java.nio.ByteBuffer;
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Validated
 @Service
@@ -30,13 +34,22 @@ public class InsertService {
             .map(SeriesFile::getDefinition)
             .map(SeriesDefinition::getPartition)
             .orElseThrow();
-        for (SeriesData value : values) {
+        Map<PartitionKey, List<SeriesData>> partitionGroups = values.stream().collect(Collectors.groupingBy(value -> {
             LocalDateTime local = TimeConverter.toUtc(value.getTime());
-            PartitionKey key = PartitionKey.getKey(seriesId, partitionPeriod, local);
-            PartitionRange details = partitionService.getRange(key);
-            int index = details.getIndex(local);
-            dataService.getBuffer(key, details.getSize(), details.adapter())
-                .ifPresent(b -> details.adapter().put(b, index, value.getValue()));
-        }
+            return PartitionKey.getKey(seriesId, partitionPeriod, local);
+        }));
+        partitionGroups.entrySet().parallelStream()
+            .forEach(entry -> {
+                PartitionKey key = entry.getKey();
+                PartitionRange details = partitionService.getRange(key);
+                details.withWrite(() -> {
+                    ByteBuffer buffer = dataService.getBuffer(key, details.getSize(), details.adapter()).orElseThrow();
+                    for (SeriesData value : entry.getValue()) {
+                        LocalDateTime local = TimeConverter.toUtc(value.getTime());
+                        int index = details.getIndex(local);
+                        details.adapter().put(buffer, index, value.getValue());
+                    }
+                });
+            });
     }
 }

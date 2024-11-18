@@ -101,7 +101,7 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
     @Override
     public List<SeriesFile> getSeries() {
         try (Stream<Path> stream = Files.list(rootPath)) {
-            return stream.parallel() // TODO Test the impact of parallel
+            return stream.parallel()
                 .filter(Files::isDirectory)
                 .filter(Files::isReadable)
                 .map(s -> s.resolve(SERIES_JSON))
@@ -145,7 +145,7 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
         PartitionPeriod partitionPeriod = seriesFile.getDefinition().getPartition();
         String seriesId = seriesFile.getId();
         try (Stream<Path> stream = Files.list(getSeriesRoot(seriesId))) {
-            return stream.parallel() // TODO Test the impact of parallel
+            return stream.parallel()
                 .filter(Files::exists)
                 .filter(Files::isRegularFile)
                 .filter(Files::isReadable)
@@ -164,7 +164,7 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
         Preconditions.checkArgument(!zip);
         Path path = getPartitionPath(key);
         if (Files.exists(path)) {
-            log.debug(""); //TODO
+            log.debug("Partition {} already exists", path);
             return;
         }
         try (RandomAccessFile raf = new RandomAccessFile(path.toFile(), "rw")) {

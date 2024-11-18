@@ -23,6 +23,7 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -69,7 +70,7 @@ public class QueryServiceTest {
         Range<LocalDateTime> range = Range.closed(partitionStart, partitionStart.plusDays(1).minusNanos(1));
 
         RangeMap<LocalDateTime, PartitionRange> rangeMap = TreeRangeMap.create();
-        rangeMap.put(range, new PartitionRange(key, range, Duration.ofHours(1), partitionAdapter));
+        rangeMap.put(range, new PartitionRange(key, range, Duration.ofHours(1), partitionAdapter, new ReentrantReadWriteLock()));
         when(partitionService.getRangeMap("abc")).thenReturn(rangeMap);
 
         ByteBuffer byteBuffer = ByteBuffer.allocate(8);
@@ -110,7 +111,7 @@ public class QueryServiceTest {
         Range<LocalDateTime> range = Range.closed(partitionStart, partitionStart.plusDays(1).minusNanos(1));
 
         RangeMap<LocalDateTime, PartitionRange> rangeMap = TreeRangeMap.create();
-        rangeMap.put(range, new PartitionRange(key, range, Duration.ofHours(1), partitionAdapter));
+        rangeMap.put(range, new PartitionRange(key, range, Duration.ofHours(1), partitionAdapter, new ReentrantReadWriteLock()));
         when(partitionService.getRangeMap("abc")).thenReturn(rangeMap);
 
         ByteBuffer byteBuffer = ByteBuffer.allocate(8);

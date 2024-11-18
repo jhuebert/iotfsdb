@@ -20,7 +20,7 @@ public interface PartitionAdapter {
     default Stream<Number> getStream(ByteBuffer buffer, int index, int length) {
         Iterator<Number> iterator = getIterator(buffer, index, length);
         Spliterator<Number> spliterator = Spliterators.spliterator(iterator, length, CHARACTERISTICS);
-        return StreamSupport.stream(spliterator, false); // TODO Test the impact of parallel
+        return StreamSupport.stream(spliterator, false);
     }
 
 }

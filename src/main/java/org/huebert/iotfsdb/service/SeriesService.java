@@ -37,10 +37,10 @@ public class SeriesService {
     }
 
     public List<SeriesFile> findSeries(@NotNull Pattern pattern, @NotNull Map<String, Pattern> metadata) {
-        return dataService.getSeries().parallelStream() // TODO Test the impact of parallel
+        return dataService.getSeries().parallelStream()
             .filter(s -> pattern.matcher(s.getId()).matches())
             .filter(s -> matchesMetadata(s, metadata))
-            .sorted(Comparator.comparing(SeriesFile::getId)) //TODO Might not need this due to object mapper configuration
+            .sorted(Comparator.comparing(SeriesFile::getId))
             .toList();
     }
 

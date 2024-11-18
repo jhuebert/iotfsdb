@@ -35,7 +35,7 @@ public class MutatingSeriesDataController {
     @PostMapping("batch")
     @ResponseStatus(NO_CONTENT)
     public void insert(@NotNull @Valid @RequestBody List<InsertRequest> request) {
-        request.parallelStream() // TODO Test the impact of parallel
+        request.parallelStream()
             .forEach(e -> insertService.insert(e.getSeries(), e.getValues()));
     }
 

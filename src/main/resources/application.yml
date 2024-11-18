@@ -14,4 +14,4 @@ iotfsdb:
   root: "memory"
   read-only: false
   max-query-size: 1000
-  partition-cache: "expireAfterAccess=1m,maximumSize=10000,softValues"
+  partition-cache: "expireAfterAccess=5m,maximumSize=10000,softValues"

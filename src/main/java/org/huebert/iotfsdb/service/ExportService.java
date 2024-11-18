@@ -25,11 +25,14 @@ public class ExportService {
 
     private final SeriesService seriesService;
 
+    private final PartitionService partitionService;
+
     private final ObjectMapper objectMapper;
 
-    public ExportService(@NotNull DataService dataService, @NotNull SeriesService seriesService, @NotNull ObjectMapper objectMapper) {
+    public ExportService(@NotNull DataService dataService, @NotNull SeriesService seriesService, @NotNull PartitionService partitionService, @NotNull ObjectMapper objectMapper) {
         this.dataService = dataService;
         this.seriesService = seriesService;
+        this.partitionService = partitionService;
         this.objectMapper = objectMapper;
     }
 
@@ -42,9 +45,11 @@ public class ExportService {
                 zos.write(objectMapper.writeValueAsString(seriesFile).getBytes(StandardCharsets.UTF_8));
                 zos.closeEntry();
                 for (PartitionKey key : dataService.getPartitions(seriesFile.getId())) {
-                    zos.putNextEntry(new ZipEntry(key.seriesId() + "/" + key.partitionId()));
-                    channel.write(dataService.getBuffer(key).orElseThrow());
-                    zos.closeEntry();
+                    partitionService.getRange(key).withRead(() -> {
+                        zos.putNextEntry(new ZipEntry(key.seriesId() + "/" + key.partitionId()));
+                        channel.write(dataService.getBuffer(key).orElseThrow());
+                        zos.closeEntry();
+                    });
                 }
             }
         } catch (IOException e) {

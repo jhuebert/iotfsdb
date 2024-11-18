@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -57,10 +58,10 @@ public class InsertServiceTest {
         PartitionKey key3 = new PartitionKey("123", "20241011");
         PartitionKey key4 = new PartitionKey("123", "20241111");
 
-        when(partitionService.getRange(key1)).thenReturn(new PartitionRange(key1, Range.closed(LocalDateTime.parse("2024-08-11T00:00:00"), LocalDateTime.parse("2024-08-12T00:00:00").minusNanos(1)), Duration.ofHours(1), partitionAdapter));
-        when(partitionService.getRange(key2)).thenReturn(new PartitionRange(key2, Range.closed(LocalDateTime.parse("2024-09-11T00:00:00"), LocalDateTime.parse("2024-09-12T00:00:00").minusNanos(1)), Duration.ofHours(1), partitionAdapter));
-        when(partitionService.getRange(key3)).thenReturn(new PartitionRange(key3, Range.closed(LocalDateTime.parse("2024-10-11T00:00:00"), LocalDateTime.parse("2024-10-12T00:00:00").minusNanos(1)), Duration.ofHours(1), partitionAdapter));
-        when(partitionService.getRange(key4)).thenReturn(new PartitionRange(key4, Range.closed(LocalDateTime.parse("2024-11-11T00:00:00"), LocalDateTime.parse("2024-11-12T00:00:00").minusNanos(1)), Duration.ofHours(1), partitionAdapter));
+        when(partitionService.getRange(key1)).thenReturn(new PartitionRange(key1, Range.closed(LocalDateTime.parse("2024-08-11T00:00:00"), LocalDateTime.parse("2024-08-12T00:00:00").minusNanos(1)), Duration.ofHours(1), partitionAdapter, new ReentrantReadWriteLock()));
+        when(partitionService.getRange(key2)).thenReturn(new PartitionRange(key2, Range.closed(LocalDateTime.parse("2024-09-11T00:00:00"), LocalDateTime.parse("2024-09-12T00:00:00").minusNanos(1)), Duration.ofHours(1), partitionAdapter, new ReentrantReadWriteLock()));
+        when(partitionService.getRange(key3)).thenReturn(new PartitionRange(key3, Range.closed(LocalDateTime.parse("2024-10-11T00:00:00"), LocalDateTime.parse("2024-10-12T00:00:00").minusNanos(1)), Duration.ofHours(1), partitionAdapter, new ReentrantReadWriteLock()));
+        when(partitionService.getRange(key4)).thenReturn(new PartitionRange(key4, Range.closed(LocalDateTime.parse("2024-11-11T00:00:00"), LocalDateTime.parse("2024-11-12T00:00:00").minusNanos(1)), Duration.ofHours(1), partitionAdapter, new ReentrantReadWriteLock()));
 
         ByteBuffer byteBuffer1 = ByteBuffer.allocate(24);
         ByteBuffer byteBuffer2 = ByteBuffer.allocate(24);
