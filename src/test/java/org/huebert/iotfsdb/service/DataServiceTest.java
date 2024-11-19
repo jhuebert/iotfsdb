@@ -130,20 +130,6 @@ public class DataServiceTest {
     }
 
     @Test
-    public void testDeleteSeries_NotExists() {
-        PersistenceAdapter persistenceAdapter = mock(PersistenceAdapter.class);
-        when(persistenceAdapter.getSeries()).thenReturn(List.of());
-
-        DataService dataService = new DataService(new IotfsdbProperties(), persistenceAdapter);
-        verify(persistenceAdapter).getSeries();
-
-        List<SeriesFile> series = dataService.getSeries();
-        assertThat(series).isEmpty();
-
-        assertThrows(IllegalArgumentException.class, () -> dataService.deleteSeries("abc"));
-    }
-
-    @Test
     public void testGetBuffer_NotExists() {
         PersistenceAdapter persistenceAdapter = mock(PersistenceAdapter.class);
         when(persistenceAdapter.getSeries()).thenReturn(List.of());

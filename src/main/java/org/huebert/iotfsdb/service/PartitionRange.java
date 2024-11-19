@@ -24,7 +24,7 @@ public record PartitionRange(
     }
 
     public long getSize() {
-        return Duration.between(range.lowerEndpoint(), range.upperEndpoint()).dividedBy(interval) + 1;
+        return getIndex(range.upperEndpoint()) + 1;
     }
 
     public void withRead(RunnableWithException runnable) {

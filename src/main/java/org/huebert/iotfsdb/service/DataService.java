@@ -22,7 +22,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.locks.ReentrantLock;
 
 @Validated
 @Slf4j
@@ -30,8 +29,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DataService {
 
     private final PersistenceAdapter persistenceAdapter;
-
-    private final ReentrantLock persistenceLock = new ReentrantLock();
 
     private final Map<String, SeriesFile> seriesMap = new ConcurrentHashMap<>();
 
@@ -65,28 +62,15 @@ public class DataService {
         return Optional.ofNullable(seriesMap.get(seriesId));
     }
 
-    public void saveSeries(@Valid @NotNull SeriesFile seriesFile) {
-        persistenceLock.lock();
-        try {
-            persistenceAdapter.saveSeries(seriesFile);
-            seriesMap.put(seriesFile.getId(), seriesFile);
-        } finally {
-            persistenceLock.unlock();
-        }
+    public synchronized void saveSeries(@Valid @NotNull SeriesFile seriesFile) {
+        persistenceAdapter.saveSeries(seriesFile);
+        seriesMap.put(seriesFile.getId(), seriesFile);
     }
 
-    public void deleteSeries(@NotBlank String seriesId) {
-        persistenceLock.lock();
-        try {
-            SeriesFile series = seriesMap.remove(seriesId);
-            if (series == null) {
-                throw new IllegalArgumentException(String.format("series (%s) does not exist", seriesId));
-            }
-            partitionCache.invalidateAll(seriesPartitions.remove(seriesId));
-            persistenceAdapter.deleteSeries(seriesId);
-        } finally {
-            persistenceLock.unlock();
-        }
+    public synchronized void deleteSeries(@NotBlank String seriesId) {
+        seriesMap.remove(seriesId);
+        partitionCache.invalidateAll(seriesPartitions.remove(seriesId));
+        persistenceAdapter.deleteSeries(seriesId);
     }
 
     public Set<PartitionKey> getPartitions(@NotBlank String seriesId) {
@@ -98,16 +82,14 @@ public class DataService {
     }
 
     public Optional<ByteBuffer> getBuffer(@Valid @NotNull PartitionKey key, Long size, PartitionAdapter adapter) {
-        if (!seriesPartitions.containsKey(key.seriesId())) {
+        if (!getPartitions(key.seriesId()).contains(key)) {
 
             if (adapter == null) {
                 return Optional.empty();
             }
 
-            persistenceLock.lock();
-            try {
-
-                if (!seriesPartitions.containsKey(key.seriesId())) {
+            synchronized (this) {
+                if (!getPartitions(key.seriesId()).contains(key)) {
 
                     persistenceAdapter.createPartition(key, adapter.getTypeSize() * size);
 
@@ -120,9 +102,6 @@ public class DataService {
 
                     seriesPartitions.computeIfAbsent(key.seriesId(), k -> ConcurrentHashMap.newKeySet()).add(key);
                 }
-
-            } finally {
-                persistenceLock.unlock();
             }
         }
 
