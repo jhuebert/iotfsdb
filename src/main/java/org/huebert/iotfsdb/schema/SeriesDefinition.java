@@ -43,7 +43,7 @@ public class SeriesDefinition {
     @Schema(description = "Minimum time interval in milliseconds that the series will contain. The interval should exactly divide a day with no remainder.")
     @NotNull
     @Positive
-    private long interval;
+    private Long interval;
 
     @Schema(description = "Time period of data contained in a single partition file.")
     @NotNull

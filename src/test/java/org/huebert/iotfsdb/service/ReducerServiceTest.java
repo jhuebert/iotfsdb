@@ -2,8 +2,6 @@ package org.huebert.iotfsdb.service;
 
 import org.huebert.iotfsdb.schema.FindDataRequest;
 import org.huebert.iotfsdb.schema.FindDataResponse;
-import org.huebert.iotfsdb.schema.NumberType;
-import org.huebert.iotfsdb.schema.PartitionPeriod;
 import org.huebert.iotfsdb.schema.Reducer;
 import org.huebert.iotfsdb.schema.SeriesData;
 import org.huebert.iotfsdb.schema.SeriesFile;
@@ -56,9 +54,6 @@ public class ReducerServiceTest {
 
         FindDataResponse result = reducerService.reduce(responses, request);
         assertThat(result.getSeries().getId()).isEqualTo("reduced");
-        assertThat(result.getSeries().getDefinition().getInterval()).isEqualTo(3600000L);
-        assertThat(result.getSeries().getDefinition().getPartition()).isEqualTo(PartitionPeriod.DAY);
-        assertThat(result.getSeries().getDefinition().getType()).isEqualTo(NumberType.FLOAT8);
         assertThat(result.getSeries().getMetadata()).isEqualTo(Map.of("a", "1"));
         assertThat(result.getData().size()).isEqualTo(3);
         assertThat(result.getData().get(0)).isEqualTo(new SeriesData(time1, 6.0));

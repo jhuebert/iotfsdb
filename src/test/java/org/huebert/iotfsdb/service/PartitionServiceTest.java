@@ -46,7 +46,7 @@ public class PartitionServiceTest {
         when(dataService.getSeries("123")).thenReturn(Optional.of(SeriesFile.builder()
             .definition(SeriesDefinition.builder()
                 .partition(PartitionPeriod.DAY)
-                .interval(3600000)
+                .interval(3600000L)
                 .type(NumberType.INTEGER1)
                 .build())
             .build()));
@@ -72,7 +72,7 @@ public class PartitionServiceTest {
 
         SeriesDefinition definition = SeriesDefinition.builder()
             .partition(PartitionPeriod.DAY)
-            .interval(3600000)
+            .interval(3600000L)
             .build();
         when(dataService.getSeries("abc")).thenReturn(Optional.of(SeriesFile.builder()
             .definition(definition)

@@ -21,8 +21,6 @@ import org.huebert.iotfsdb.collectors.ModeCollector;
 import org.huebert.iotfsdb.collectors.SummingCollector;
 import org.huebert.iotfsdb.schema.FindDataRequest;
 import org.huebert.iotfsdb.schema.FindDataResponse;
-import org.huebert.iotfsdb.schema.NumberType;
-import org.huebert.iotfsdb.schema.PartitionPeriod;
 import org.huebert.iotfsdb.schema.Reducer;
 import org.huebert.iotfsdb.schema.SeriesData;
 import org.huebert.iotfsdb.schema.SeriesDefinition;
@@ -148,9 +146,6 @@ public class ReducerService {
             .series(SeriesFile.builder()
                 .definition(SeriesDefinition.builder()
                     .id("reduced")
-                    .interval(request.getInterval())
-                    .type(NumberType.FLOAT8)
-                    .partition(PartitionPeriod.DAY)
                     .build())
                 .metadata(metadata)
                 .build())

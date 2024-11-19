@@ -47,6 +47,8 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
 
     private static final OpenOption[] OPEN_OPTIONS_READ = new OpenOption[]{StandardOpenOption.READ};
 
+    private static final OpenOption[] OPEN_OPTIONS_TEMP = new OpenOption[]{StandardOpenOption.READ, StandardOpenOption.DELETE_ON_CLOSE};
+
     private static final OpenOption[] OPEN_OPTIONS_READ_WRITE = new OpenOption[]{StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.DSYNC};
 
     private static final String SERIES_JSON = "series.json";
@@ -179,16 +181,17 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
         Path path = getPartitionPath(key);
         boolean readOnly = zip || !Files.isWritable(path);
         try {
-            Path tempPath = null;
-            Path toOpen = path;
+            OpenOption[] openOptions = readOnly ? OPEN_OPTIONS_READ : OPEN_OPTIONS_READ_WRITE;
             if (zip) {
                 String prefix = String.format("iotfsdb-%s-%s-", key.seriesId(), key.partitionId());
-                tempPath = Files.copy(path, Files.createTempFile(properties.getRoot().getParent(), prefix, ".tmp"), StandardCopyOption.REPLACE_EXISTING);
-                toOpen = tempPath;
+                path = Files.copy(path, Files.createTempFile(properties.getRoot().getParent(), prefix, ".tmp"), StandardCopyOption.REPLACE_EXISTING);
+                openOptions = OPEN_OPTIONS_TEMP;
             }
-            FileChannel fileChannel = FileChannel.open(toOpen, readOnly ? OPEN_OPTIONS_READ : OPEN_OPTIONS_READ_WRITE);
-            MappedByteBuffer byteBuffer = fileChannel.map(readOnly ? READ_ONLY : READ_WRITE, 0, Files.size(toOpen));
-            return new FileByteBuffer(fileChannel, byteBuffer, tempPath);
+            // File size must be retrieved before open if it is a temp file that deletes on close
+            long fileSize = Files.size(path);
+            FileChannel fileChannel = FileChannel.open(path, openOptions);
+            MappedByteBuffer byteBuffer = fileChannel.map(readOnly ? READ_ONLY : READ_WRITE, 0, fileSize);
+            return new FileByteBuffer(fileChannel, byteBuffer);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -213,8 +216,6 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
 
         private final MappedByteBuffer byteBuffer;
 
-        private final Path tempPath;
-
         @Override
         public ByteBuffer getByteBuffer() {
             return byteBuffer.slice(0, byteBuffer.capacity());
@@ -224,9 +225,6 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
         public void close() {
             try {
                 fileChannel.close();
-                if ((tempPath != null) && !Files.deleteIfExists(tempPath)) {
-                    log.warn("temporary file {} could not be deleted", tempPath);
-                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

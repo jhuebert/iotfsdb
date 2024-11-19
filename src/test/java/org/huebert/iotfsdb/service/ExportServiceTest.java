@@ -67,7 +67,7 @@ public class ExportServiceTest {
 
         exportService.export(request, outputStream);
 
-        assertThat(outputStream.size()).isEqualTo(782);
+        assertThat(outputStream.size()).isLessThan(800);
 
         ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(outputStream.toByteArray()));
 

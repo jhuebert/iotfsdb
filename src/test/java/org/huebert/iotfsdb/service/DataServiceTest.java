@@ -194,4 +194,12 @@ public class DataServiceTest {
         verify(partitionByteBuffer).close();
     }
 
+    @Test
+    public void testCleanUp() {
+        PersistenceAdapter persistenceAdapter = mock(PersistenceAdapter.class);
+        when(persistenceAdapter.getSeries()).thenReturn(List.of());
+        DataService dataService = new DataService(new IotfsdbProperties(), persistenceAdapter);
+        dataService.cleanUp();
+    }
+
 }

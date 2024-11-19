@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentMap;
 @Slf4j
 @Validated
 @Service
-@ConditionalOnProperty(prefix = "iotfsdb", value = "path", havingValue = "memory", matchIfMissing = true)
+@ConditionalOnProperty(prefix = "iotfsdb", value = "root", havingValue = "memory", matchIfMissing = true)
 public class MemoryPersistenceAdapter implements PersistenceAdapter {
 
     private final ConcurrentMap<String, SeriesFile> seriesMap = new ConcurrentHashMap<>();

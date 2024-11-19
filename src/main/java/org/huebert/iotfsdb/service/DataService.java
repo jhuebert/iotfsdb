@@ -12,6 +12,7 @@ import org.huebert.iotfsdb.partition.PartitionAdapter;
 import org.huebert.iotfsdb.persistence.PartitionByteBuffer;
 import org.huebert.iotfsdb.persistence.PersistenceAdapter;
 import org.huebert.iotfsdb.schema.SeriesFile;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -22,6 +23,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeUnit;
 
 @Validated
 @Slf4j
@@ -107,6 +109,12 @@ public class DataService {
 
         return Optional.of(partitionCache.getUnchecked(key))
             .map(PartitionByteBuffer::getByteBuffer);
+    }
+
+    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
+    public void cleanUp() {
+        // Ensure that the cache is cleaned up periodically if there is no other activity
+        partitionCache.cleanUp();
     }
 
 }
