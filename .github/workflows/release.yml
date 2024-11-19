@@ -6,7 +6,7 @@ permissions:
 on:
   push:
     tags:
-      - "1.*.*"
+      - "2.*.*"
 
 jobs:
   build:
@@ -39,7 +39,7 @@ jobs:
           context: ./docker
           push: true
           tags: |
-            jhuebert/iotfsdb:1
+            jhuebert/iotfsdb:2
             jhuebert/iotfsdb:${{ github.ref_name }}
           pull: true
           no-cache: true
