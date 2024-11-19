@@ -22,6 +22,23 @@ public class SeriesDefinitionTest {
     }
 
     @Test
+    public void testIsIntervalValid() {
+
+        assertThat(SeriesDefinition.builder().interval(1).partition(PartitionPeriod.DAY).build().isIntervalValid()).isTrue();
+        assertThat(SeriesDefinition.builder().interval(Duration.ofDays(1).toMillis()).partition(PartitionPeriod.DAY).build().isIntervalValid()).isTrue();
+        assertThat(SeriesDefinition.builder().interval(Duration.ofDays(1).plusMillis(1).toMillis()).partition(PartitionPeriod.DAY).build().isIntervalValid()).isFalse();
+
+        assertThat(SeriesDefinition.builder().interval(1).partition(PartitionPeriod.MONTH).build().isIntervalValid()).isTrue();
+        assertThat(SeriesDefinition.builder().interval(Duration.ofDays(28).toMillis()).partition(PartitionPeriod.MONTH).build().isIntervalValid()).isTrue();
+        assertThat(SeriesDefinition.builder().interval(Duration.ofDays(28).plusMillis(1).toMillis()).partition(PartitionPeriod.MONTH).build().isIntervalValid()).isFalse();
+
+        assertThat(SeriesDefinition.builder().interval(1).partition(PartitionPeriod.YEAR).build().isIntervalValid()).isTrue();
+        assertThat(SeriesDefinition.builder().interval(Duration.ofDays(365).toMillis()).partition(PartitionPeriod.YEAR).build().isIntervalValid()).isTrue();
+        assertThat(SeriesDefinition.builder().interval(Duration.ofDays(365).plusMillis(1).toMillis()).partition(PartitionPeriod.YEAR).build().isIntervalValid()).isFalse();
+
+    }
+
+    @Test
     public void testGetIntervalDuration() {
         SeriesDefinition definition = SeriesDefinition.builder().interval(1000).build();
         assertThat(definition.getIntervalDuration()).isEqualTo(Duration.ofMillis(1000));

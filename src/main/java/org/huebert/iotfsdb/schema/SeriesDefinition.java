@@ -5,11 +5,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -43,9 +42,7 @@ public class SeriesDefinition {
 
     @Schema(description = "Minimum time interval in milliseconds that the series will contain. The interval should exactly divide a day with no remainder.")
     @NotNull
-    @Min(1)
-    @Max(86400000)
-    //TODO Could have a larger max value IF the partition period is longer - validation?
+    @Positive
     private long interval;
 
     @Schema(description = "Time period of data contained in a single partition file.")
@@ -70,6 +67,19 @@ public class SeriesDefinition {
             return min < max;
         }
         return min == null;
+    }
+
+    @JsonIgnore
+    @AssertTrue
+    public boolean isIntervalValid() {
+        if (PartitionPeriod.DAY == partition) {
+            return interval <= Duration.ofDays(1).toMillis();
+        } else if (PartitionPeriod.MONTH == partition) {
+            return interval <= Duration.ofDays(28).toMillis();
+        } else if (PartitionPeriod.YEAR == partition) {
+            return interval <= Duration.ofDays(365).toMillis();
+        }
+        return false;
     }
 
     @JsonIgnore

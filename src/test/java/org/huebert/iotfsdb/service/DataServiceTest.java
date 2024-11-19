@@ -14,7 +14,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -146,13 +145,14 @@ public class DataServiceTest {
     @Test
     public void testGetBuffer_NotExistsWithCreate() {
         PersistenceAdapter persistenceAdapter = mock(PersistenceAdapter.class);
-        when(persistenceAdapter.getSeries()).thenReturn(List.of());
+        SeriesFile seriesFile = SeriesFile.builder().definition(SeriesDefinition.builder().id("abc").build()).build();
+        when(persistenceAdapter.getSeries()).thenReturn(List.of(seriesFile));
 
         DataService dataService = new DataService(new IotfsdbProperties(), persistenceAdapter);
         verify(persistenceAdapter).getSeries();
 
         List<SeriesFile> series = dataService.getSeries();
-        assertThat(series).isEmpty();
+        assertThat(series).isEqualTo(List.of(seriesFile));
 
         PartitionKey key = new PartitionKey("abc", "123");
 
