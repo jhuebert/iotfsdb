@@ -6,24 +6,22 @@ data.
 **Getting Started**
 
 - [Running](#running)
-- [Querying Data](#querying-data)
 
 ## Goals
 
 * Simple data storage and directory structure
-  * Human navigable and updatable
-  * Easy backup
-  * Easy data pruning
-  * Memory mapped files
+    * Human navigable and updatable
+    * Easy backup
+    * Easy data pruning
+    * Memory mapped files
 * Efficient storage of data
-  * No timestamp storage
-  * Null value support
-  * Fast query performance
-  * Data compression
+    * No timestamp storage
+    * Null value support
+    * Fast query performance
 * Easy to use
-  * REST API
-  * Spring Boot
-  * Docker Image
+    * REST API
+    * Spring Boot
+    * Docker Image
 
 ### Leveraged IOT Properties
 
@@ -88,11 +86,11 @@ value that is retrieved (see [example](#mapping-example))
 
 **Series Definition**
 
-| Property             | Value               |
-|----------------------|---------------------|
-| Number Type          | `MAPPED1`           |
-| Minimum Value        | `-10.0`             |
-| Maximum Value        | `10.0`              |
+| Property      | Value     |
+|---------------|-----------|
+| Number Type   | `MAPPED1` |
+| Minimum Value | `-10.0`   |
+| Maximum Value | `10.0`    |
 
 **Value Mapping**
 
@@ -120,8 +118,8 @@ The series directory name matches the ID the series is created with.
 
 The series directory name and ID must match the regular expression `[a-z0-9][a-z0-9._-]{0,127}`.
 Each series directory contains a `series.json` and period partitioned data files. The `series.json`
-file contains the series definition and metadata. The only mutable field in the json is the 
-metadata. 
+file contains the series definition and metadata. The only mutable field in the json is the
+metadata.
 
 The other files in the series directory are the data files. The name of the files is based on the
 partition selected for the series and represent a period of time. The data is stored in sequential
@@ -159,12 +157,6 @@ with the type size allows us to jump directly to a data value.
 | `MONTH` | `yyyyMM`   | `202411`   | Represents 00:00 of the first day of the month through 23:59 of the last day of a given month |
 | `YEAR`  | `yyyyMM`   | `2024`     | Represents 00:00 of the first day of January through 23:59 of December 31 of a given year     |
 
-### Archival
-
-Partitions can be archived which results in the file data being compressed and the data becomes
-read only. Querying data in an archived partition results in the partition being decompressed to a
-temporary file. The temporary file is removed after the partition is closed due to being idle.
-
 ### Partition Example
 
 #### Series Configuration
@@ -200,7 +192,7 @@ You can download the OpenAPI specification from http://localhost:8080/v3/api-doc
 
 ## Authentication
 
-Since the database exposes a REST API, authentication can be handled by a proxy. 
+Since the database exposes a REST API, authentication can be handled by a proxy.
 
 ## Building
 
@@ -221,7 +213,7 @@ java -jar iotfsdb.jar
 [Image on Docker Hub](https://hub.docker.com/repository/docker/jhuebert/iotfsdb/general)
 
 ```bash
-docker run -it -p 8080:8080 -v iotfsdb-data:/data jhuebert/iotfsdb:1
+docker run -it -p 8080:8080 -v iotfsdb-data:/data jhuebert/iotfsdb:2
 ```
 
 #### Docker Compose
@@ -229,18 +221,18 @@ docker run -it -p 8080:8080 -v iotfsdb-data:/data jhuebert/iotfsdb:1
 ```yaml
 services:
   iotfsdb:
-    image: jhuebert/iotfsdb:1
+    image: jhuebert/iotfsdb:2
     volumes:
-    - ./data:/data
+      - ./data:/data
     ports:
-    - 8080:8080
+      - 8080:8080
 ```
 
 ### Properties
 
-| Java Property              | Environment Variable       | Description                                                              | Default Value  | Docker Default Value |
-|----------------------------|----------------------------|--------------------------------------------------------------------------|----------------|----------------------|
-| `iotfsdb.root`             | `IOTFSDB_ROOT`             | Root data directory for the database                                     | `/tmp/iotfsdb` | `/data`              |
-| `iotfsdb.read-only`        | `IOTFSDB_READ_ONLY`        | Indicates whether any changes to the database are allowed                | `true`         | `false`              |
-| `iotfsdb.max-query-size`   | `IOTFSDB_MAX_QUERY_SIZE`   | Maximum number of values returned for any series query                   | `1000`         | `1000`               |
-| `iotfsdb.max-idle-seconds` | `IOTFSDB_MAX_IDLE_SECONDS` | Maximum amount of time to keep a series partition file open after access | `60`           | `60`                 |
+| Java Property             | Environment Variable      | Description                                                              | Default Value                                       | Docker Default Value                                |
+|---------------------------|---------------------------|--------------------------------------------------------------------------|-----------------------------------------------------|-----------------------------------------------------|
+| `iotfsdb.root`            | `IOTFSDB_ROOT`            | Root data directory for the database                                     | `memory`                                            | `/data`                                             |
+| `iotfsdb.read-only`       | `IOTFSDB_READ_ONLY`       | Indicates whether any changes to the database are allowed                | `false`                                             | `false`                                             |
+| `iotfsdb.max-query-size`  | `IOTFSDB_MAX_QUERY_SIZE`  | Maximum number of values returned for any series query                   | `1000`                                              | `1000`                                              |
+| `iotfsdb.partition-cache` | `IOTFSDB_PARTITION_CACHE` | Maximum amount of time to keep a series partition file open after access | `expireAfterAccess=5m,maximumSize=10000,softValues` | `expireAfterAccess=5m,maximumSize=10000,softValues` |
