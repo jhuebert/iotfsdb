@@ -10,10 +10,6 @@ public class CurvedMappedPartition implements PartitionAdapter {
 
     private static final double NOMINAL_MIN_RATIO = -1.0;
 
-    private static final double MIN_RATIO = -3.0;
-
-    private static final double MAX_RATIO = 3.0;
-
     @Getter
     private final PartitionAdapter innerAdapter;
 
@@ -76,9 +72,8 @@ public class CurvedMappedPartition implements PartitionAdapter {
     }
 
     private double curve(double value) {
-        double a = Math.min(Math.max(value, MIN_RATIO), MAX_RATIO);
-        double b = Math.exp(-2.0 * a);
-        return (2.0 / (1.0 + b)) - 1.0;
+        double e = Math.exp(-2.0 * value);
+        return (2.0 / (1.0 + e)) - 1.0;
     }
 
     private double decurve(double value) {

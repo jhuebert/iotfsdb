@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class FilePersistenceAdapterTest {
 
     @Test
-    void testNullRoot() throws Exception {
+    void testNullRoot() {
         IotfsdbProperties properties = new IotfsdbProperties();
         properties.setRoot(null);
         assertThrows(IllegalArgumentException.class, () -> new FilePersistenceAdapter(properties, new ObjectMapper()));

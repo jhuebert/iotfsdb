@@ -50,7 +50,7 @@ public class IntervalServiceTest {
 
         List<Range<ZonedDateTime>> ranges = intervalService.getIntervalRanges(request);
         assertThat(ranges.size()).isEqualTo(1);
-        assertThat(ranges.get(0)).isEqualTo(Range.closed(ZonedDateTime.parse("2024-11-11T00:00:00-06:00"), ZonedDateTime.parse("2024-11-11T04:00:00-06:00").minusNanos(1)));
+        assertThat(ranges.getFirst()).isEqualTo(Range.closed(ZonedDateTime.parse("2024-11-11T00:00:00-06:00"), ZonedDateTime.parse("2024-11-11T04:00:00-06:00").minusNanos(1)));
     }
 
     @Test
@@ -79,7 +79,7 @@ public class IntervalServiceTest {
 
         List<Range<ZonedDateTime>> ranges = intervalService.getIntervalRanges(request);
         assertThat(ranges.size()).isEqualTo(1);
-        assertThat(ranges.get(0)).isEqualTo(Range.closed(ZonedDateTime.parse("2024-11-11T00:00:00-06:00"), ZonedDateTime.parse("2024-11-11T04:00:00-06:00").minusNanos(1)));
+        assertThat(ranges.getFirst()).isEqualTo(Range.closed(ZonedDateTime.parse("2024-11-11T00:00:00-06:00"), ZonedDateTime.parse("2024-11-11T04:00:00-06:00").minusNanos(1)));
     }
 
     @Test
