@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import org.huebert.iotfsdb.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.schema.SeriesFile;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -36,10 +37,10 @@ public class SeriesService {
         return dataService.getSeries(seriesId);
     }
 
-    public List<SeriesFile> findSeries(@NotNull Pattern pattern, @NotNull Map<String, Pattern> metadata) {
+    public List<SeriesFile> findSeries(@Valid @NotNull FindSeriesRequest request) {
         return dataService.getSeries().parallelStream()
-            .filter(s -> pattern.matcher(s.getId()).matches())
-            .filter(s -> matchesMetadata(s, metadata))
+            .filter(s -> request.getPattern().matcher(s.getId()).matches())
+            .filter(s -> matchesMetadata(s, request.getMetadata()))
             .sorted(Comparator.comparing(SeriesFile::getId))
             .toList();
     }

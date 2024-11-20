@@ -2,6 +2,7 @@ package org.huebert.iotfsdb.service;
 
 import com.google.common.collect.Range;
 import org.huebert.iotfsdb.partition.PartitionAdapter;
+import org.huebert.iotfsdb.schema.InsertRequest;
 import org.huebert.iotfsdb.schema.PartitionPeriod;
 import org.huebert.iotfsdb.schema.SeriesData;
 import org.huebert.iotfsdb.schema.SeriesDefinition;
@@ -68,17 +69,17 @@ public class InsertServiceTest {
         ByteBuffer byteBuffer3 = ByteBuffer.allocate(24);
         ByteBuffer byteBuffer4 = ByteBuffer.allocate(24);
 
-        when(dataService.getBuffer(key1, 24L, partitionAdapter)).thenReturn(Optional.of(byteBuffer1));
-        when(dataService.getBuffer(key2, 24L, partitionAdapter)).thenReturn(Optional.of(byteBuffer2));
-        when(dataService.getBuffer(key3, 24L, partitionAdapter)).thenReturn(Optional.of(byteBuffer3));
-        when(dataService.getBuffer(key4, 24L, partitionAdapter)).thenReturn(Optional.of(byteBuffer4));
+        when(dataService.getBuffer(key1, 24L, partitionAdapter)).thenReturn(byteBuffer1);
+        when(dataService.getBuffer(key2, 24L, partitionAdapter)).thenReturn(byteBuffer2);
+        when(dataService.getBuffer(key3, 24L, partitionAdapter)).thenReturn(byteBuffer3);
+        when(dataService.getBuffer(key4, 24L, partitionAdapter)).thenReturn(byteBuffer4);
 
-        insertService.insert("123", List.of(
+        insertService.insert(new InsertRequest("123", List.of(
             new SeriesData(time1, 1),
             new SeriesData(time2, null),
             new SeriesData(time3, 2),
             new SeriesData(time4, 3)
-        ));
+        )));
 
         verify(partitionAdapter).put(byteBuffer1, 6, 1);
         verify(partitionAdapter).put(byteBuffer2, 7, null);

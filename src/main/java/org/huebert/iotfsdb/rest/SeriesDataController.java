@@ -8,10 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.schema.FindDataRequest;
 import org.huebert.iotfsdb.schema.FindDataResponse;
 import org.huebert.iotfsdb.schema.FindSeriesRequest;
-import org.huebert.iotfsdb.schema.SeriesFile;
 import org.huebert.iotfsdb.service.ExportService;
 import org.huebert.iotfsdb.service.QueryService;
-import org.huebert.iotfsdb.service.SeriesService;
 import org.huebert.iotfsdb.service.TimeConverter;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -34,21 +32,17 @@ public class SeriesDataController {
 
     private final ExportService exportService;
 
-    private final SeriesService seriesService;
-
     private final QueryService queryService;
 
-    public SeriesDataController(@NotNull ExportService exportService, @NotNull SeriesService seriesService, @NotNull QueryService queryService) {
+    public SeriesDataController(@NotNull ExportService exportService, @NotNull QueryService queryService) {
         this.exportService = exportService;
-        this.seriesService = seriesService;
         this.queryService = queryService;
     }
 
     @Operation(tags = "Data", summary = "Finds data matching the input request")
     @PostMapping("find")
     public List<FindDataResponse> find(@NotNull @Valid @RequestBody FindDataRequest request) {
-        List<SeriesFile> series = seriesService.findSeries(request.getPattern(), request.getMetadata());
-        return queryService.findData(request, series);
+        return queryService.findData(request);
     }
 
     @Operation(tags = "Data", summary = "Exports a database archive of matching series")

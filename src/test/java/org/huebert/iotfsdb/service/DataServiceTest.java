@@ -165,7 +165,7 @@ public class DataServiceTest {
 
         when(persistenceAdapter.openPartition(key)).thenReturn(partitionByteBuffer);
 
-        assertThat(dataService.getBuffer(key, 2L, adapter)).isEqualTo(Optional.of(byteBuffer));
+        assertThat(dataService.getBuffer(key, 2L, adapter)).isEqualTo(byteBuffer);
 
         verify(persistenceAdapter).createPartition(key, 8L);
     }

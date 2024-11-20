@@ -1,5 +1,6 @@
 package org.huebert.iotfsdb.service;
 
+import org.huebert.iotfsdb.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.schema.SeriesDefinition;
 import org.huebert.iotfsdb.schema.SeriesFile;
 import org.junit.jupiter.api.Test;
@@ -98,7 +99,8 @@ public class SeriesServiceTest {
         );
         when(dataService.getSeries()).thenReturn(all);
 
-        List<SeriesFile> series = seriesService.findSeries(Pattern.compile("^.*123$"), Map.of("a", Pattern.compile("1")));
+        FindSeriesRequest request = new FindSeriesRequest(Pattern.compile("^.*123$"), Map.of("a", Pattern.compile("1")));
+        List<SeriesFile> series = seriesService.findSeries(request);
 
         verify(dataService).getSeries();
         assertThat(series).hasSize(1);
@@ -127,7 +129,8 @@ public class SeriesServiceTest {
         );
         when(dataService.getSeries()).thenReturn(all);
 
-        List<SeriesFile> series = seriesService.findSeries(Pattern.compile("^.*123$"), Map.of());
+        FindSeriesRequest request = new FindSeriesRequest(Pattern.compile("^.*123$"), Map.of());
+        List<SeriesFile> series = seriesService.findSeries(request);
 
         verify(dataService).getSeries();
         assertThat(series).hasSize(3);

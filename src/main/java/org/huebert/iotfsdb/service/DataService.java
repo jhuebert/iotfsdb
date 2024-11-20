@@ -6,6 +6,7 @@ import com.google.common.cache.RemovalListener;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.IotfsdbProperties;
 import org.huebert.iotfsdb.partition.PartitionAdapter;
@@ -80,18 +81,16 @@ public class DataService {
     }
 
     public Optional<ByteBuffer> getBuffer(@Valid @NotNull PartitionKey key) {
-        return getBuffer(key, null, null);
+        if (partitionNotExists(key)) {
+            return Optional.empty();
+        }
+        return Optional.of(partitionCache.getUnchecked(key).getByteBuffer());
     }
 
-    public Optional<ByteBuffer> getBuffer(@Valid @NotNull PartitionKey key, Long size, PartitionAdapter adapter) {
-        if (!getPartitions(key.seriesId()).contains(key)) {
-
-            if (adapter == null) {
-                return Optional.empty();
-            }
-
+    public ByteBuffer getBuffer(@Valid @NotNull PartitionKey key, @NotNull @Positive Long size, @NotNull PartitionAdapter adapter) {
+        if (partitionNotExists(key)) {
             synchronized (this) {
-                if (!getPartitions(key.seriesId()).contains(key)) {
+                if (partitionNotExists(key)) {
 
                     persistenceAdapter.createPartition(key, adapter.getTypeSize() * size);
 
@@ -106,9 +105,11 @@ public class DataService {
                 }
             }
         }
+        return partitionCache.getUnchecked(key).getByteBuffer();
+    }
 
-        return Optional.of(partitionCache.getUnchecked(key))
-            .map(PartitionByteBuffer::getByteBuffer);
+    private boolean partitionNotExists(PartitionKey key) {
+        return !getPartitions(key.seriesId()).contains(key);
     }
 
     @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)

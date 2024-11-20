@@ -3,6 +3,7 @@ package org.huebert.iotfsdb.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.huebert.iotfsdb.persistence.FilePersistenceAdapter;
 import org.huebert.iotfsdb.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.schema.SeriesFile;
 import org.springframework.stereotype.Service;
@@ -13,6 +14,7 @@ import java.io.OutputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -40,13 +42,13 @@ public class ExportService {
         try (ZipOutputStream zos = new ZipOutputStream(outputStream)) {
             zos.setLevel(Deflater.BEST_COMPRESSION);
             WritableByteChannel channel = Channels.newChannel(zos);
-            for (SeriesFile seriesFile : seriesService.findSeries(request.getPattern(), request.getMetadata())) {
-                zos.putNextEntry(new ZipEntry(seriesFile.getId() + "/series.json"));
+            for (SeriesFile seriesFile : seriesService.findSeries(request)) {
+                zos.putNextEntry(createEntry(seriesFile.getId(), FilePersistenceAdapter.SERIES_JSON));
                 zos.write(objectMapper.writeValueAsString(seriesFile).getBytes(StandardCharsets.UTF_8));
                 zos.closeEntry();
                 for (PartitionKey key : dataService.getPartitions(seriesFile.getId())) {
                     partitionService.getRange(key).withRead(() -> {
-                        zos.putNextEntry(new ZipEntry(key.seriesId() + "/" + key.partitionId()));
+                        zos.putNextEntry(createEntry(key.seriesId(), key.partitionId()));
                         channel.write(dataService.getBuffer(key).orElseThrow());
                         zos.closeEntry();
                     });
@@ -55,6 +57,11 @@ public class ExportService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static ZipEntry createEntry(String seriesId, String filename) {
+        Path path = Path.of(seriesId, filename);
+        return new ZipEntry(path.toString());
     }
 
 }

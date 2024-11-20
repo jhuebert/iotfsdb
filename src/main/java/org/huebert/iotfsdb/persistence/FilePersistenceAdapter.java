@@ -51,7 +51,7 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
 
     private static final OpenOption[] OPEN_OPTIONS_READ_WRITE = new OpenOption[]{StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.DSYNC};
 
-    private static final String SERIES_JSON = "series.json";
+    public static final String SERIES_JSON = "series.json";
 
     private final IotfsdbProperties properties;
 

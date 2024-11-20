@@ -1,7 +1,8 @@
 package org.huebert.iotfsdb.service;
 
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.huebert.iotfsdb.schema.InsertRequest;
 import org.huebert.iotfsdb.schema.PartitionPeriod;
 import org.huebert.iotfsdb.schema.SeriesData;
 import org.huebert.iotfsdb.schema.SeriesDefinition;
@@ -11,7 +12,6 @@ import org.springframework.validation.annotation.Validated;
 
 import java.nio.ByteBuffer;
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -29,12 +29,13 @@ public class InsertService {
         this.partitionService = partitionService;
     }
 
-    public void insert(@NotBlank String seriesId, @NotNull Collection<SeriesData> values) {
+    public void insert(@Valid @NotNull InsertRequest request) {
+        String seriesId = request.getSeries();
         PartitionPeriod partitionPeriod = dataService.getSeries(seriesId)
             .map(SeriesFile::getDefinition)
             .map(SeriesDefinition::getPartition)
             .orElseThrow();
-        Map<PartitionKey, List<SeriesData>> partitionGroups = values.stream().collect(Collectors.groupingBy(value -> {
+        Map<PartitionKey, List<SeriesData>> partitionGroups = request.getValues().stream().collect(Collectors.groupingBy(value -> {
             LocalDateTime local = TimeConverter.toUtc(value.getTime());
             return PartitionKey.getKey(seriesId, partitionPeriod, local);
         }));
@@ -43,7 +44,7 @@ public class InsertService {
                 PartitionKey key = entry.getKey();
                 PartitionRange details = partitionService.getRange(key);
                 details.withWrite(() -> {
-                    ByteBuffer buffer = dataService.getBuffer(key, details.getSize(), details.adapter()).orElseThrow();
+                    ByteBuffer buffer = dataService.getBuffer(key, details.getSize(), details.adapter());
                     for (SeriesData value : entry.getValue()) {
                         LocalDateTime local = TimeConverter.toUtc(value.getTime());
                         int index = details.getIndex(local);

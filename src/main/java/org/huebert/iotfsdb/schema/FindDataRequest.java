@@ -12,12 +12,9 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.ZonedDateTime;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.regex.Pattern;
 
 @Data
 @NoArgsConstructor
@@ -35,13 +32,9 @@ public class FindDataRequest {
     @NotNull
     private ZonedDateTime to = ZonedDateTime.now();
 
-    @Schema(description = "Regular expression that is used to match series IDs", defaultValue = ".*")
+    @Schema(description = "Properties used to match series", defaultValue = ".*")
     @NotNull
-    private Pattern pattern = Pattern.compile(".*");
-
-    @Schema(description = "Key and values that series metadata must contain")
-    @NotNull
-    private Map<String, Pattern> metadata = new HashMap<>();
+    private FindSeriesRequest series = new FindSeriesRequest();
 
     @Schema(description = "Interval in milliseconds of the returned data for each series")
     @Positive

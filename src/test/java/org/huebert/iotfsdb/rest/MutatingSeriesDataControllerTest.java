@@ -17,7 +17,6 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,18 +35,18 @@ public class MutatingSeriesDataControllerTest {
         .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 
     @Test
-    void testBatch() throws Exception {
+    void testInsert() throws Exception {
 
         InsertRequest request = new InsertRequest();
         request.setSeries("123");
         request.setValues(List.of(new SeriesData(ZonedDateTime.parse("2024-08-11T00:00:00-06:00"), 1.23)));
 
-        mockMvc.perform(post("/v2/data/batch")
+        mockMvc.perform(post("/v2/data")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(List.of(request))))
             .andExpect(status().isNoContent());
 
-        verify(insertService).insert(eq("123"), any());
+        verify(insertService).insert(any());
     }
 
 }

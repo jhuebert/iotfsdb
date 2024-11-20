@@ -33,7 +33,7 @@ public class SeriesController {
     @Operation(tags = "Series", summary = "Finds series that match search parameters")
     @PostMapping("find")
     public List<SeriesFile> find(@NotNull @Valid @RequestBody FindSeriesRequest request) {
-        return seriesService.findSeries(request.getPattern(), request.getMetadata());
+        return seriesService.findSeries(request);
     }
 
     @Operation(tags = "Series", summary = "Get series details")

@@ -7,6 +7,7 @@ import org.huebert.iotfsdb.collectors.CountingCollector;
 import org.huebert.iotfsdb.partition.PartitionAdapter;
 import org.huebert.iotfsdb.schema.FindDataRequest;
 import org.huebert.iotfsdb.schema.FindDataResponse;
+import org.huebert.iotfsdb.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.schema.Reducer;
 import org.huebert.iotfsdb.schema.SeriesData;
 import org.huebert.iotfsdb.schema.SeriesDefinition;
@@ -49,6 +50,9 @@ public class QueryServiceTest {
     @Mock
     private PartitionService partitionService;
 
+    @Mock
+    private SeriesService seriesService;
+
     @InjectMocks
     private QueryService queryService;
 
@@ -82,8 +86,9 @@ public class QueryServiceTest {
         when(reducerService.getCollector(eq(request), eq(Reducer.AVERAGE))).then(invocation -> new CountingCollector());
 
         SeriesFile seriesFile = SeriesFile.builder().definition(SeriesDefinition.builder().id("abc").build()).build();
+        when(seriesService.findSeries(any(FindSeriesRequest.class))).thenReturn(List.of(seriesFile));
 
-        List<FindDataResponse> response = queryService.findData(request, List.of(seriesFile));
+        List<FindDataResponse> response = queryService.findData(request);
         assertThat(response.size()).isEqualTo(1);
         assertThat(response.getFirst().getSeries()).isEqualTo(seriesFile);
         assertThat(response.getFirst().getData().size()).isEqualTo(2);
@@ -123,6 +128,7 @@ public class QueryServiceTest {
         when(reducerService.getCollector(eq(request), eq(Reducer.AVERAGE))).then(invocation -> new CountingCollector());
 
         SeriesFile seriesFile = SeriesFile.builder().definition(SeriesDefinition.builder().id("abc").build()).build();
+        when(seriesService.findSeries(any(FindSeriesRequest.class))).thenReturn(List.of(seriesFile));
 
         SeriesFile reduced = SeriesFile.builder().definition(SeriesDefinition.builder().id("reduced").build()).build();
         when(reducerService.reduce(any(), eq(request))).thenReturn(FindDataResponse.builder()
@@ -133,7 +139,7 @@ public class QueryServiceTest {
             ))
             .build());
 
-        List<FindDataResponse> response = queryService.findData(request, List.of(seriesFile));
+        List<FindDataResponse> response = queryService.findData(request);
         assertThat(response.size()).isEqualTo(1);
         assertThat(response.getFirst().getSeries()).isEqualTo(reduced);
         assertThat(response.getFirst().getData().size()).isEqualTo(2);

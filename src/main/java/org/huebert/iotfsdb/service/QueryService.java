@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 @Validated
@@ -31,14 +32,19 @@ public class QueryService {
 
     private final PartitionService partitionService;
 
-    public QueryService(@NotNull DataService dataService, @NotNull ReducerService reducerService, @NotNull IntervalService intervalService, @NotNull PartitionService partitionService) {
+    private final SeriesService seriesService;
+
+    public QueryService(@NotNull DataService dataService, @NotNull ReducerService reducerService, @NotNull IntervalService intervalService, @NotNull PartitionService partitionService, @NotNull SeriesService seriesService) {
         this.dataService = dataService;
         this.reducerService = reducerService;
         this.intervalService = intervalService;
         this.partitionService = partitionService;
+        this.seriesService = seriesService;
     }
 
-    public List<FindDataResponse> findData(@Valid @NotNull FindDataRequest request, @NotNull List<SeriesFile> series) {
+    public List<FindDataResponse> findData(@Valid @NotNull FindDataRequest request) {
+
+        List<SeriesFile> series = seriesService.findSeries(request.getSeries());
 
         List<Range<ZonedDateTime>> ranges = intervalService.getIntervalRanges(request);
 
@@ -48,11 +54,11 @@ public class QueryService {
             .sorted(Comparator.comparing(r -> r.getSeries().getId()))
             .toList();
 
-        if (result.isEmpty() || (request.getSeriesReducer() == null)) {
-            return result;
+        if (request.getSeriesReducer() != null) {
+            return List.of(reducerService.reduce(result, request));
         }
 
-        return List.of(reducerService.reduce(result, request));
+        return result;
     }
 
     private FindDataResponse findDataForSeries(@Valid @NotNull FindDataRequest request, @NotNull List<Range<ZonedDateTime>> ranges, SeriesFile series) {
@@ -69,12 +75,13 @@ public class QueryService {
 
     private SeriesData findDataOverPartitions(FindDataRequest request, RangeMap<LocalDateTime, PartitionRange> rangeMap, Range<ZonedDateTime> current) {
         Range<LocalDateTime> local = TimeConverter.toUtc(current);
+        Collector<Number, ?, Number> collector = reducerService.getCollector(request, request.getTimeReducer());
         Collection<PartitionRange> covered = rangeMap.subRangeMap(local).asMapOfRanges().values();
         covered.forEach(c -> c.rwLock().readLock().lock());
         try {
             Number value = covered.stream()
                 .flatMap(pr -> findDataFromPartition(pr, local))
-                .collect(reducerService.getCollector(request, request.getTimeReducer()));
+                .collect(collector);
             return new SeriesData(current.lowerEndpoint(), value); // TODO Midpoint?
         } finally {
             covered.forEach(c -> c.rwLock().readLock().unlock());

@@ -48,7 +48,7 @@ public class ExportServiceTest {
             .metadata(Map.of("a", "1"))
             .build();
 
-        when(seriesService.findSeries(request.getPattern(), request.getMetadata())).thenReturn(List.of(seriesFile));
+        when(seriesService.findSeries(request)).thenReturn(List.of(seriesFile));
 
         PartitionKey key = new PartitionKey("abc", "123");
         PartitionAdapter adapter = mock(PartitionAdapter.class);

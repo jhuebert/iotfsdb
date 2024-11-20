@@ -22,7 +22,7 @@ public class FindSeriesRequest {
     @NotNull
     private Pattern pattern = Pattern.compile(".*");
 
-    @Schema(description = "Key and values that matching series metadata must contain")
+    @Schema(description = "Key and value regular expressions that matching series metadata must contain")
     @NotNull
     private Map<String, Pattern> metadata = new HashMap<>();
 

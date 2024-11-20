@@ -13,7 +13,6 @@ import org.huebert.iotfsdb.schema.SeriesDefinition;
 import org.huebert.iotfsdb.schema.SeriesFile;
 import org.huebert.iotfsdb.service.ExportService;
 import org.huebert.iotfsdb.service.QueryService;
-import org.huebert.iotfsdb.service.SeriesService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -27,7 +26,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -45,9 +43,6 @@ public class SeriesDataControllerTest {
     private ExportService exportService;
 
     @MockBean
-    private SeriesService seriesService;
-
-    @MockBean
     private QueryService queryService;
 
     private final ObjectMapper mapper = new ObjectMapper()
@@ -58,7 +53,7 @@ public class SeriesDataControllerTest {
     void testFind() throws Exception {
 
         FindDataRequest request = new FindDataRequest();
-        request.setPattern(Pattern.compile("123"));
+        request.setSeries(new FindSeriesRequest(Pattern.compile("123"), Map.of()));
         request.setFrom(ZonedDateTime.parse("2024-08-11T00:00:00-06:00"));
         request.setTo(ZonedDateTime.parse("2024-09-11T00:00:00-06:00"));
 
@@ -69,14 +64,12 @@ public class SeriesDataControllerTest {
             .metadata(Map.of())
             .build();
 
-        when(seriesService.findSeries(any(), eq(Map.of()))).thenReturn(List.of(seriesFile));
-
         FindDataResponse response = FindDataResponse.builder()
             .series(seriesFile)
             .data(List.of(new SeriesData(request.getFrom(), 1.23)))
             .build();
 
-        when(queryService.findData(any(), eq(List.of(seriesFile)))).thenReturn(List.of(response));
+        when(queryService.findData(any())).thenReturn(List.of(response));
 
         mockMvc.perform(post("/v2/data/find")
                 .contentType(MediaType.APPLICATION_JSON)

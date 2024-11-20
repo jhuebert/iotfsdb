@@ -35,7 +35,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
@@ -107,14 +106,11 @@ public class ReducerService {
         } else {
             throw new IllegalArgumentException(String.format("reducer %s not supported", reducer));
         }
+        return Collectors.mapping(ReducerService::toBigDecimal, collector);
+    }
 
-        Function<Number, BigDecimal> toBigDecimal = n -> {
-            if (n instanceof BigDecimal bd) {
-                return bd;
-            }
-            return new BigDecimal(n.toString());
-        };
-        return Collectors.mapping(toBigDecimal, collector);
+    private static BigDecimal toBigDecimal(Number n) {
+        return (n instanceof BigDecimal bd) ? bd : new BigDecimal(n.toString());
     }
 
     public FindDataResponse reduce(@NotNull List<FindDataResponse> responses, @Valid @NotNull FindDataRequest request) {
@@ -124,12 +120,14 @@ public class ReducerService {
             .flatMap(Collection::stream)
             .collect(Collectors.groupingByConcurrent(SeriesData::getTime));
 
+        Collector<Number, ?, Number> collector = getCollector(request, request.getSeriesReducer());
+
         List<SeriesData> data = grouped.entrySet().stream()
             .map(e -> new SeriesData(
                 e.getKey(),
                 e.getValue().stream()
                     .map(SeriesData::getValue)
-                    .collect(getCollector(request, request.getSeriesReducer()))
+                    .collect(collector)
             ))
             .sorted(Comparator.comparing(SeriesData::getTime))
             .peek(request.getPreviousConsumer())

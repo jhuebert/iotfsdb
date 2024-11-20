@@ -32,11 +32,10 @@ public class MutatingSeriesDataController {
     }
 
     @Operation(tags = "Data", summary = "Bulk insert of data")
-    @PostMapping("batch")
+    @PostMapping
     @ResponseStatus(NO_CONTENT)
     public void insert(@NotNull @Valid @RequestBody List<InsertRequest> request) {
-        request.parallelStream()
-            .forEach(e -> insertService.insert(e.getSeries(), e.getValues()));
+        request.parallelStream().forEach(insertService::insert);
     }
 
 }

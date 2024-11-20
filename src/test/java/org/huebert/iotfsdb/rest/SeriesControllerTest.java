@@ -20,7 +20,6 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -53,7 +52,7 @@ public class SeriesControllerTest {
             .metadata(Map.of())
             .build();
 
-        when(seriesService.findSeries(any(), eq(Map.of()))).thenReturn(List.of(seriesFile));
+        when(seriesService.findSeries(any(FindSeriesRequest.class))).thenReturn(List.of(seriesFile));
 
         mockMvc.perform(post("/v2/series/find")
                 .contentType(MediaType.APPLICATION_JSON)
