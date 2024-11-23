@@ -33,8 +33,6 @@ data.
 
 - Exact moment of a value is lost as it is placed in a bucket for the interval it belongs to
 
-## Core Concepts
-
 ## Number Type
 
 Each series value has a data type that defines how it is stored in a file. The data type defines the range
