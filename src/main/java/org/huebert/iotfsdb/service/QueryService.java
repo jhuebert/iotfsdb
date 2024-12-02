@@ -63,26 +63,26 @@ public class QueryService {
 
     private FindDataResponse findDataForSeries(@Valid @NotNull FindDataRequest request, @NotNull List<Range<ZonedDateTime>> ranges, SeriesFile series) {
         RangeMap<LocalDateTime, PartitionRange> rangeMap = partitionService.getRangeMap(series.getId());
+        Collector<Number, ?, Number> collector = reducerService.getCollector(request, request.getTimeReducer());
         return new FindDataResponse(
             series,
             ranges.stream()
-                .map(current -> findDataOverPartitions(request, rangeMap, current))
+                .map(current -> findDataOverPartitions(collector, rangeMap, current))
                 .peek(request.getPreviousConsumer())
                 .filter(request.getNullPredicate())
                 .toList()
         );
     }
 
-    private SeriesData findDataOverPartitions(FindDataRequest request, RangeMap<LocalDateTime, PartitionRange> rangeMap, Range<ZonedDateTime> current) {
+    private SeriesData findDataOverPartitions(Collector<Number, ?, Number> collector, RangeMap<LocalDateTime, PartitionRange> rangeMap, Range<ZonedDateTime> current) {
         Range<LocalDateTime> local = TimeConverter.toUtc(current);
-        Collector<Number, ?, Number> collector = reducerService.getCollector(request, request.getTimeReducer());
         Collection<PartitionRange> covered = rangeMap.subRangeMap(local).asMapOfRanges().values();
         covered.forEach(c -> c.rwLock().readLock().lock());
         try {
             Number value = covered.stream()
                 .flatMap(pr -> findDataFromPartition(pr, local))
                 .collect(collector);
-            return new SeriesData(current.lowerEndpoint(), value); // TODO Midpoint?
+            return new SeriesData(current.lowerEndpoint(), value);
         } finally {
             covered.forEach(c -> c.rwLock().readLock().unlock());
         }
