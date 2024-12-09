@@ -1,7 +1,5 @@
 package org.huebert.iotfsdb.persistence;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.SetMultimap;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -16,10 +14,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 @Slf4j
 @Validated
@@ -27,11 +26,11 @@ import java.util.concurrent.ConcurrentMap;
 @ConditionalOnProperty(prefix = "iotfsdb", value = "root", havingValue = "memory", matchIfMissing = true)
 public class MemoryPersistenceAdapter implements PersistenceAdapter {
 
-    private final ConcurrentMap<String, SeriesFile> seriesMap = new ConcurrentHashMap<>();
+    private final Map<String, SeriesFile> seriesMap = new HashMap<>();
 
-    private final SetMultimap<String, PartitionKey> partitionMap = HashMultimap.create();
+    private final Map<String, Set<PartitionKey>> partitionMap = new HashMap<>();
 
-    private final ConcurrentMap<PartitionKey, MemoryPartitionByteBuffer> byteBufferMap = new ConcurrentHashMap<>();
+    private final Map<PartitionKey, MemoryPartitionByteBuffer> byteBufferMap = new HashMap<>();
 
     @PostConstruct
     public void postConstruct() {
@@ -62,6 +61,7 @@ public class MemoryPersistenceAdapter implements PersistenceAdapter {
     public void createPartition(@NotNull @Valid PartitionKey key, @Positive long size) {
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect((int) size);
         byteBufferMap.put(key, new MemoryPartitionByteBuffer(byteBuffer));
+        partitionMap.computeIfAbsent(key.seriesId(), k -> new HashSet<>()).add(key);
     }
 
     @Override

@@ -1,41 +1,47 @@
 package org.huebert.iotfsdb.collectors;
 
-
-import com.google.common.collect.LinkedHashMultiset;
-import com.google.common.collect.Multiset;
-
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-public class ModeCollector implements NumberCollector<Number, Multiset<Number>> {
+public class ModeCollector implements NumberCollector<Number, Map<Number, AtomicInteger>> {
 
     @Override
-    public Supplier<Multiset<Number>> supplier() {
-        return LinkedHashMultiset::create;
+    public Supplier<Map<Number, AtomicInteger>> supplier() {
+        return HashMap::new;
     }
 
     @Override
-    public BiConsumer<Multiset<Number>, Number> accumulator() {
-        return Multiset::add;
+    public BiConsumer<Map<Number, AtomicInteger>, Number> accumulator() {
+        return (m, n) -> m.computeIfAbsent(n, k -> new AtomicInteger(1)).incrementAndGet();
     }
 
     @Override
-    public BinaryOperator<Multiset<Number>> combiner() {
+    public BinaryOperator<Map<Number, AtomicInteger>> combiner() {
         return (a, b) -> {
-            a.addAll(b);
+            for (Map.Entry<Number, AtomicInteger> entry : b.entrySet()) {
+                AtomicInteger count = a.get(entry.getKey());
+                if (count != null) {
+                    count.addAndGet(entry.getValue().get());
+                } else {
+                    a.put(entry.getKey(), entry.getValue());
+                }
+            }
             return a;
         };
     }
 
     @Override
-    public Function<Multiset<Number>, Number> finisher() {
+    public Function<Map<Number, AtomicInteger>, Number> finisher() {
         return a -> a.entrySet().stream()
-            .max(Comparator.comparing(Multiset.Entry::getCount))
-            .map(Multiset.Entry::getElement)
+            .max(Comparator.comparing(e -> e.getValue().get()))
+            .map(Map.Entry::getKey)
             .orElse(null);
     }
 

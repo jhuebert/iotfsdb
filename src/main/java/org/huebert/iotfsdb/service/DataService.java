@@ -1,7 +1,6 @@
 package org.huebert.iotfsdb.service;
 
 import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -37,7 +36,8 @@ public class DataService {
 
     private final ConcurrentMap<String, Set<PartitionKey>> seriesPartitions = new ConcurrentHashMap<>();
 
-    private final LoadingCache<PartitionKey, PartitionByteBuffer> partitionCache;
+    //    private final ConcurrentMap<PartitionKey, PartitionByteBuffer> partitionCache;
+    private final ConcurrentMap<PartitionKey, PartitionByteBuffer> partitionMap;
 
     public DataService(@NotNull IotfsdbProperties properties, @NotNull PersistenceAdapter persistenceAdapter) {
         this.persistenceAdapter = persistenceAdapter;
@@ -72,6 +72,8 @@ public class DataService {
 
     public synchronized void deleteSeries(@NotBlank String seriesId) {
         seriesMap.remove(seriesId);
+
+        Set<PartitionKey> pks = partitionCache.entrySet().stream().filter();
         partitionCache.invalidateAll(seriesPartitions.remove(seriesId));
         persistenceAdapter.deleteSeries(seriesId);
     }
@@ -84,28 +86,38 @@ public class DataService {
         if (partitionNotExists(key)) {
             return Optional.empty();
         }
-        return Optional.of(partitionCache.getUnchecked(key).getByteBuffer());
+        return Optional.ofNullable(partitionMap.get(key))
+            .or(() -> cacheValue(key))
+            .map(PartitionByteBuffer::getByteBuffer);
     }
 
     public ByteBuffer getBuffer(@Valid @NotNull PartitionKey key, @NotNull @Positive Long size, @NotNull PartitionAdapter adapter) {
         if (partitionNotExists(key)) {
-            synchronized (this) {
-                if (partitionNotExists(key)) {
-
-                    persistenceAdapter.createPartition(key, adapter.getTypeSize() * size);
-
-                    PartitionByteBuffer partitionByteBuffer = persistenceAdapter.openPartition(key);
-                    ByteBuffer byteBuffer = partitionByteBuffer.getByteBuffer();
-                    for (int i = 0; i < size; i++) {
-                        adapter.put(byteBuffer, i, null);
-                    }
-                    partitionByteBuffer.close();
-
-                    seriesPartitions.computeIfAbsent(key.seriesId(), k -> ConcurrentHashMap.newKeySet()).add(key);
-                }
-            }
+            createPartition(key, size, adapter);
         }
         return partitionCache.getUnchecked(key).getByteBuffer();
+    }
+
+    private synchronized void createPartition(PartitionKey key, Long size, PartitionAdapter adapter) {
+
+        if (!partitionNotExists(key)) {
+            return;
+        }
+
+        persistenceAdapter.createPartition(key, adapter.getTypeSize() * size);
+
+        PartitionByteBuffer partitionByteBuffer = persistenceAdapter.openPartition(key);
+        ByteBuffer byteBuffer = partitionByteBuffer.getByteBuffer();
+        for (int i = 0; i < size; i++) {
+            adapter.put(byteBuffer, i, null);
+        }
+        partitionByteBuffer.close();
+
+        seriesPartitions.computeIfAbsent(key.seriesId(), k -> ConcurrentHashMap.newKeySet()).add(key);
+    }
+
+    private synchronized PartitionByteBuffer cacheValue(PartitionKey key) {
+        return partitionMap.computeIfAbsent(key, k -> persistenceAdapter.openPartition(key));
     }
 
     private boolean partitionNotExists(PartitionKey key) {

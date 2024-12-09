@@ -1,7 +1,6 @@
 package org.huebert.iotfsdb.persistence;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -125,7 +124,9 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
 
     @Override
     public void saveSeries(@NotNull @Valid SeriesFile seriesFile) {
-        Preconditions.checkArgument(!zip);
+        if (zip) {
+            throw new IllegalArgumentException("cannot modify zip");
+        }
         try {
             Files.createDirectories(getSeriesRoot(seriesFile.getId()));
             objectMapper.writeValue(getSeriesFilePath(seriesFile.getId()).toFile(), seriesFile);
@@ -136,7 +137,9 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
 
     @Override
     public void deleteSeries(@NotBlank String seriesId) {
-        Preconditions.checkArgument(!zip);
+        if (zip) {
+            throw new IllegalArgumentException("cannot modify zip");
+        }
         if (!FileSystemUtils.deleteRecursively(getSeriesRoot(seriesId).toFile())) {
             throw new RuntimeException(String.format("unable to delete series (%s)", seriesId));
         }
@@ -163,7 +166,9 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
 
     @Override
     public void createPartition(@NotNull @Valid PartitionKey key, @Positive long size) {
-        Preconditions.checkArgument(!zip);
+        if (zip) {
+            throw new IllegalArgumentException("cannot modify zip");
+        }
         Path path = getPartitionPath(key);
         if (Files.exists(path)) {
             log.debug("Partition {} already exists", path);
