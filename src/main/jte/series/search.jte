@@ -9,9 +9,7 @@ content = @`
     <table class=".striped">
         <thead>
         <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Interval</th>
-            <th scope="col">Type</th>
+            <th scope="col">Series</th>
             <th scope="col">Actions</th>
         </tr>
         </thead>
