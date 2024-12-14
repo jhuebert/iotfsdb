@@ -1,8 +1,6 @@
 package org.huebert.iotfsdb.ui;
 
 import org.huebert.iotfsdb.schema.FindSeriesRequest;
-import org.huebert.iotfsdb.schema.SeriesDefinition;
-import org.huebert.iotfsdb.schema.SeriesFile;
 import org.huebert.iotfsdb.service.SeriesService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,7 +9,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import java.util.List;
 import java.util.regex.Pattern;
 
 @Controller
@@ -33,8 +30,7 @@ public class SeriesUiController {
     public String search(Model model, @RequestParam("search") String pattern) {
         FindSeriesRequest findSeriesRequest = new FindSeriesRequest();
         findSeriesRequest.setPattern(Pattern.compile(pattern));
-        List<SeriesDefinition> results = seriesService.findSeries(findSeriesRequest).stream().map(SeriesFile::getDefinition).toList();
-        model.addAttribute("series", results);
+        model.addAttribute("series", seriesService.findSeries(findSeriesRequest));
         return "series/results";
     }
 

@@ -1,16 +1,22 @@
 @import java.util.List
-@import org.huebert.iotfsdb.schema.SeriesDefinition
+@import org.huebert.iotfsdb.schema.SeriesFile
+@import org.apache.commons.lang3.StringUtils
 
-@param List<SeriesDefinition> series
+@param List<SeriesFile> series
 
-@for(SeriesDefinition definition : series)
+@for(SeriesFile file : series)
     <tr>
-        <th scope="row">${definition.getId()}</th>
-        <td>${definition.getInterval()}</td>
-        <td>${definition.getType()}</td>
+        <td>${file.getDefinition().getId()}</td>
+        <td>${file.getDefinition().getInterval()}</td>
+        <td>${file.getDefinition().getType()}</td>
+        <td>
+            <button class="secondary"><img src="/icons/pencil.svg"/></button>
+            <button class="secondary"><img src="/icons/download.svg"/></button>
+            <button class="secondary"><img src="/icons/trash.svg"/></button>
+        </td>
     </tr>
 @else
     <tr>
-        <th colspan="3" scope="row" style="text-align:center;"><h4>No results</h4></th>
+    <tr colspan="4" style="text-align:center;"><h4>No results</h4></tr>
     </tr>
 @endfor
