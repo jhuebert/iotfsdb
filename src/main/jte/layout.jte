@@ -1,0 +1,49 @@
+@import gg.jte.Content
+
+@param String title
+@param Content content
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>iotfsdb - ${title}</title>
+    <%--    <link rel="icon" href="./favicon.ico" type="image/x-icon"> -->--%>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <script src="https://unpkg.com/htmx.org@2.0.3" integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq" crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+<header class="container">
+    <nav>
+        <ul>
+            <li>
+                <h1>iotfsdb</h1>
+            </li>
+        </ul>
+        <ul>
+            <li><a href="#">Series</a></li>
+            <li><a href="#">Data</a></li>
+            <li>
+                <button href="#">Export Database</button>
+            </li>
+            <li>
+                <button href="#">Import Database</button>
+            </li>
+            <li>
+                <button href="#">Create Series</button>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main class="container">
+    ${content}
+</main>
+
+</body>
+</html>
