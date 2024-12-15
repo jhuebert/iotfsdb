@@ -10,7 +10,6 @@ content = @`
         <thead>
         <tr>
             <th scope="col">Series</th>
-            <th scope="col">Details</th>
             <th scope="col">Actions</th>
         </tr>
         </thead>
