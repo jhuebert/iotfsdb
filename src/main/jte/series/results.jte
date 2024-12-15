@@ -7,9 +7,8 @@
 
 @for(SeriesFile file : series)
     <tr>
+        <td>${file.getDefinition().getId()}</td>
         <td>
-            ${file.getDefinition().getId()}
-            <p></p>
             <details>
                 <summary>Details</summary>
                 <ul>
@@ -32,8 +31,9 @@
             @endif
         </td>
         <td>
-            <button class="secondary" title="Edit Metadata"><img src="/icons/pencil.svg"/></button>
+            <button class="secondary" title="Chart Series"><img src="/icons/graph-up.svg"/></button>
             <button class="secondary" title="Download Series"><img src="/icons/download.svg"/></button>
+            <button class="secondary" title="Edit Metadata"><img src="/icons/pencil.svg"/></button>
             <button class="secondary" title="Delete Series"><img src="/icons/trash.svg"/></button>
         </td>
     </tr>
