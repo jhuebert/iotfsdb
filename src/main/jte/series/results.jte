@@ -9,16 +9,58 @@
         <td>
             <details>
                 <summary>${file.getDefinition().getId()}</summary>
-                <ul>
-                    <li>Type: ${file.getDefinition().getType()}</li>
-                    <li>Partition: ${file.getDefinition().getPartition()}</li>
-                    <li>Interval: ${file.getDefinition().getInterval()}</li>
-                    <li>Min: ${file.getDefinition().getMin()}</li>
-                    <li>Max: ${file.getDefinition().getMax()}</li>
+                <h5>Details</h5>
+                <table>
+                    <thead>
+                    <tr>
+                        <th scope="col">Property</th>
+                        <th scope="col">Value</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td>Type</td>
+                        <td><kbd>${file.getDefinition().getType()}</kbd></td>
+                    </tr>
+                    <tr>
+                        <td>Partition</td>
+                        <td><kbd>${file.getDefinition().getPartition()}</kbd></td>
+                    </tr>
+                    <tr>
+                        <td>Interval (ms)</td>
+                        <td>${file.getDefinition().getInterval()}</td>
+                    </tr>
+                    @if(file.getDefinition().getMin() != null)
+                        <tr>
+                            <td>Min</td>
+                            <td>${file.getDefinition().getMin()}</td>
+                        </tr>
+                    @endif
+                    @if(file.getDefinition().getMax() != null)
+                        <tr>
+                            <td>Min</td>
+                            <td>${file.getDefinition().getMax()}</td>
+                        </tr>
+                    @endif
+                    </tbody>
+                </table>
+                <h5>Metadata</h5>
+                <table>
+                    <thead>
+                    <tr>
+                        <th scope="col">Key</th>
+                        <th scope="col">Value</th>
+                    </tr>
+                    </thead>
+                    <tbody>
                     @for(Entry<String, String> entry : file.getMetadata().entrySet())
-                        <li>${entry.getKey()}: ${entry.getValue()}</li>
+                        <tr>
+                            <td>${entry.getKey()}</td>
+                            <td>${entry.getValue()}</td>
+                        </tr>
                     @endfor
-                </ul>
+                    </tbody>
+                </table>
             </details>
         </td>
         <td>

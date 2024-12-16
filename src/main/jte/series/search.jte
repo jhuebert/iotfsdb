@@ -5,12 +5,11 @@ content = @`
         <input name="search" type="search" placeholder="Search"/>
         <button hx-post="/ui" hx-target="#results" hx-swap="innerHTML">Search</button>
     </form>
-
-    <table class=".striped">
+    <table class="striped">
         <thead>
         <tr>
-            <th scope="col">Series</th>
-            <th scope="col">Actions</th>
+            <th scope="col"><h2>Series</h2></th>
+            <th scope="col"><h2>Actions</h2></th>
         </tr>
         </thead>
         <tbody id="results">
