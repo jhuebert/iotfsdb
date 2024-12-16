@@ -9,7 +9,7 @@ content = @`
         <thead>
         <tr>
             <th scope="col"><h2>Series</h2></th>
-            <th scope="col"><h2>Actions</h2></th>
+            <th scope="col" style="width:16rem;text-align:end"><h2>Actions</h2></th>
         </tr>
         </thead>
         <tbody id="results">

@@ -63,7 +63,7 @@
                 </table>
             </details>
         </td>
-        <td>
+        <td style="text-align:end;vertical-align:top;">
             <button class="secondary" title="Chart Series"><img src="/icons/graph-up.svg"/></button>
             <button class="secondary" title="Download Series"><img src="/icons/download.svg"/></button>
             <button class="secondary" title="Edit Metadata"><img src="/icons/pencil.svg"/></button>
