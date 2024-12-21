@@ -2,6 +2,7 @@ package org.huebert.iotfsdb.ui;
 
 import org.apache.logging.log4j.util.Strings;
 import org.huebert.iotfsdb.schema.FindSeriesRequest;
+import org.huebert.iotfsdb.schema.SeriesFile;
 import org.huebert.iotfsdb.service.SeriesService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -38,12 +39,26 @@ public class SeriesUiController {
             findSeriesRequest.setPattern(Pattern.compile(".*" + pattern + ".*"));
         }
         model.addAttribute("series", seriesService.findSeries(findSeriesRequest));
-        return "series/results";
+        return "series/fragments/results";
     }
 
     @DeleteMapping("{id}")
     @ResponseStatus(HttpStatus.OK)
     public void delete(@PathVariable("id") String id) {
+    }
+
+    @DeleteMapping("{id}/metadata/{key}")
+    @ResponseStatus(HttpStatus.OK)
+    public void delete(@PathVariable("id") String id, @PathVariable("key") String key) {
+    }
+
+    @PostMapping("{id}/metadata/{key}")
+    public String save(Model model, @PathVariable("id") String id, @PathVariable("key") String key, @RequestParam("value") String value) {
+        SeriesFile seriesFile = seriesService.findSeries(id).orElse(null);
+        model.addAttribute("file", seriesFile);
+        model.addAttribute("key", key);
+        model.addAttribute("value", value);
+        return "series/fragments/metadata-row";
     }
 
 }

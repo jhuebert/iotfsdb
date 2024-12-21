@@ -5,8 +5,8 @@
 @param List<SeriesFile> series
 
 @for(SeriesFile file : series)
-    <tr>
-        <td>
+    <div class="grid series-row" style="grid-template-columns: 4fr 1fr">
+        <div>
             <details>
                 <summary><h4>${file.getId()}</h4></summary>
                 <h5>Details</h5>
@@ -39,37 +39,11 @@
                 <br>
                 <h5>Metadata</h5>
                 @for(Entry<String, String> entry : file.getMetadata().entrySet())
-                    <form class="grid" style="grid-template-columns: 3fr 1fr">
-                        <label>
-                            ${entry.getKey()}
-                            <input
-                                    name="value"
-                                    placeholder="Value"
-                                    autocomplete="metadata-value"
-                                    value="${entry.getValue()}"
-                            />
-                        </label>
-                        <div class="group">
-                            <button
-                                    hx-post="/ui/series"
-                                    hx-target="#results"
-                                    hx-swap="innerHTML">
-                                <img src="/icons/floppy.svg"/>
-                            </button>
-                            <button
-                                    class="secondary"
-                                    hx-post="/ui/series"
-                                    hx-target="#results"
-                                    hx-confirm="Are you sure you want to delete ${entry.getKey()}?"
-                                    hx-swap="innerHTML">
-                                <img src="/icons/trash.svg"/>
-                            </button>
-                        </div>
-                    </form>
+                    @template.series.fragments.metadata-row(file = file, key = entry.getKey(), value = entry.getValue())
                 @endfor
             </details>
-        </td>
-        <td style="text-align:end;vertical-align:top;">
+        </div>
+        <div>
             <button title="Chart Series"><img src="/icons/graph-up.svg"/></button>
             <button
                     class="secondary"
@@ -83,14 +57,14 @@
                     title="Delete Series"
                     hx-delete="/ui/series/${file.getId()}"
                     hx-confirm="Are you sure you want to delete ${file.getId()}?"
-                    hx-target="closest tr"
+                    hx-target="closest .series-row"
             >
                 <img src="/icons/trash.svg"/>
             </button>
-        </td>
-    </tr>
+        </div>
+    </div>
 @else
-    <tr>
-        <td colspan="2" style="text-align:center;"><h4>No results</h4></td>
-    </tr>
+    <div style="text-align: center">
+        <h4>No results</h4>
+    </div>
 @endfor
