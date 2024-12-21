@@ -5,7 +5,7 @@
 @param List<SeriesFile> series
 
 @for(SeriesFile file : series)
-    <tr id="row-${file.getId()}">
+    <tr>
         <td>
             <details>
                 <summary><h4>${file.getId()}</h4></summary>
@@ -38,26 +38,39 @@
                 </div>
                 <br>
                 <h5>Metadata</h5>
-                <table>
-                    <thead>
-                    <tr>
-                        <th scope="col">Key</th>
-                        <th scope="col">Value</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @for(Entry<String, String> entry : file.getMetadata().entrySet())
-                        <tr>
-                            <td>${entry.getKey()}</td>
-                            <td>${entry.getValue()}</td>
-                        </tr>
-                    @endfor
-                    </tbody>
-                </table>
+                @for(Entry<String, String> entry : file.getMetadata().entrySet())
+                    <form class="grid" style="grid-template-columns: 3fr 1fr">
+                        <label>
+                            ${entry.getKey()}
+                            <input
+                                    name="value"
+                                    placeholder="Value"
+                                    autocomplete="metadata-value"
+                                    value="${entry.getValue()}"
+                            />
+                        </label>
+                        <div class="group">
+                            <button
+                                    hx-post="/ui/series"
+                                    hx-target="#results"
+                                    hx-swap="innerHTML">
+                                <img src="/icons/floppy.svg"/>
+                            </button>
+                            <button
+                                    class="secondary"
+                                    hx-post="/ui/series"
+                                    hx-target="#results"
+                                    hx-confirm="Are you sure you want to delete ${entry.getKey()}?"
+                                    hx-swap="innerHTML">
+                                <img src="/icons/trash.svg"/>
+                            </button>
+                        </div>
+                    </form>
+                @endfor
             </details>
         </td>
         <td style="text-align:end;vertical-align:top;">
-            <button class="secondary" title="Chart Series"><img src="/icons/graph-up.svg"/></button>
+            <button title="Chart Series"><img src="/icons/graph-up.svg"/></button>
             <button
                     class="secondary"
                     title="Download Series"
@@ -65,14 +78,12 @@
             >
                 <img src="/icons/download.svg"/>
             </button>
-            <%--            <button class="secondary" title="Edit Metadata"><img src="/icons/pencil.svg"/></button>--%>
             <button
                     class="secondary"
                     title="Delete Series"
                     hx-delete="/ui/series/${file.getId()}"
                     hx-confirm="Are you sure you want to delete ${file.getId()}?"
-                    hx-swap="delete"
-                    hx-target="#row-${file.getId()}"
+                    hx-target="closest tr"
             >
                 <img src="/icons/trash.svg"/>
             </button>

@@ -42,7 +42,7 @@ public class SeriesUiController {
     }
 
     @DeleteMapping("{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.OK)
     public void delete(@PathVariable("id") String id) {
     }
 
