@@ -41,6 +41,28 @@
                 @for(Entry<String, String> entry : file.getMetadata().entrySet())
                     @template.series.fragments.metadata-row(file = file, key = entry.getKey(), value = entry.getValue())
                 @endfor
+                <form class="grid metadata-new" style="grid-template-columns: 3fr 1fr" hx-on::after-request=" if(event.detail.successful) this.reset()">
+                    <div role="group">
+                        <input
+                                name="key"
+                                placeholder="Key"
+                                autocomplete="metadata-key"
+                        />
+                        <input
+                                name="value"
+                                placeholder="Value"
+                                autocomplete="metadata-value"
+                        />
+                    </div>
+                    <div>
+                        <button
+                                hx-post="/ui/series/${file.getId()}/metadata"
+                                hx-target="closest .metadata-new"
+                                hx-swap="beforebegin">
+                            <img src="/icons/floppy.svg"/>
+                        </button>
+                    </div>
+                </form>
             </details>
         </div>
         <div>

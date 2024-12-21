@@ -4,7 +4,7 @@
 @param String key
 @param String value
 
-<form class="grid metadata-row" style="grid-template-columns: 3fr 1fr">
+<form class="grid metadata-row" style="grid-template-columns: 4fr 1fr">
     <label>
         ${key}
         <input
