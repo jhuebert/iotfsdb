@@ -31,9 +31,9 @@
             <li>
                 <button href="#">Export Database</button>
             </li>
-            <li>
-                <button href="#">Import Database</button>
-            </li>
+<%--            <li>--%>
+<%--                <button href="#">Import Database</button>--%>
+<%--            </li>--%>
             <li>
                 <button href="#">Create Series</button>
             </li>

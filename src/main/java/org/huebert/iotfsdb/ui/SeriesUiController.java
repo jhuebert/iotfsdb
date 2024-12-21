@@ -3,17 +3,21 @@ package org.huebert.iotfsdb.ui;
 import org.apache.logging.log4j.util.Strings;
 import org.huebert.iotfsdb.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.service.SeriesService;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.regex.Pattern;
 
 @Controller
-@RequestMapping("/ui")
+@RequestMapping("/ui/series")
 public class SeriesUiController {
 
     private final SeriesService seriesService;
@@ -23,7 +27,7 @@ public class SeriesUiController {
     }
 
     @GetMapping
-    public String getIndex(Model model) {
+    public String getIndex() {
         return "series/search";
     }
 
@@ -35,6 +39,11 @@ public class SeriesUiController {
         }
         model.addAttribute("series", seriesService.findSeries(findSeriesRequest));
         return "series/results";
+    }
+
+    @DeleteMapping("{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable("id") String id) {
     }
 
 }

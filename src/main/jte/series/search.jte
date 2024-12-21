@@ -3,7 +3,7 @@ title = "Series Search",
 content = @`
     <form role="search">
         <input name="search" type="search" placeholder="Search"/>
-        <button hx-post="/ui" hx-target="#results" hx-swap="innerHTML">Search</button>
+        <button hx-post="/ui/series" hx-target="#results" hx-swap="innerHTML">Search</button>
     </form>
     <table class="striped">
         <thead>

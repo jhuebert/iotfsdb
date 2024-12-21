@@ -5,45 +5,38 @@
 @param List<SeriesFile> series
 
 @for(SeriesFile file : series)
-    <tr>
+    <tr id="row-${file.getId()}">
         <td>
             <details>
-                <summary>${file.getDefinition().getId()}</summary>
+                <summary><h4>${file.getId()}</h4></summary>
                 <h5>Details</h5>
-                <table>
-                    <thead>
-                    <tr>
-                        <th scope="col">Property</th>
-                        <th scope="col">Value</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr>
-                        <td>Type</td>
-                        <td><kbd>${file.getDefinition().getType()}</kbd></td>
-                    </tr>
-                    <tr>
-                        <td>Partition</td>
-                        <td><kbd>${file.getDefinition().getPartition()}</kbd></td>
-                    </tr>
-                    <tr>
-                        <td>Interval (ms)</td>
-                        <td>${file.getDefinition().getInterval()}</td>
-                    </tr>
+                <div class="grid">
+                    <div>
+                        <div><h6>Type</h6></div>
+                        <div><kbd>${file.getDefinition().getType()}</kbd></div>
+                    </div>
+                    <div>
+                        <div><h6>Partition</h6></div>
+                        <div><kbd>${file.getDefinition().getPartition()}</kbd></div>
+                    </div>
+                    <div>
+                        <div><h6>Interval (ms)</h6></div>
+                        <div>${file.getDefinition().getInterval()}</div>
+                    </div>
                     @if(file.getDefinition().getMin() != null)
-                        <tr>
-                            <td>Min</td>
-                            <td>${file.getDefinition().getMin()}</td>
-                        </tr>
+                        <div>
+                            <div><h6>Minimum</h6></div>
+                            <div>${file.getDefinition().getMin()}</div>
+                        </div>
                     @endif
                     @if(file.getDefinition().getMax() != null)
-                        <tr>
-                            <td>Min</td>
-                            <td>${file.getDefinition().getMax()}</td>
-                        </tr>
+                        <div>
+                            <div><h6>Maximum</h6></div>
+                            <div>${file.getDefinition().getMax()}</div>
+                        </div>
                     @endif
-                    </tbody>
-                </table>
+                </div>
+                <br>
                 <h5>Metadata</h5>
                 <table>
                     <thead>
@@ -65,9 +58,24 @@
         </td>
         <td style="text-align:end;vertical-align:top;">
             <button class="secondary" title="Chart Series"><img src="/icons/graph-up.svg"/></button>
-            <button class="secondary" title="Download Series"><img src="/icons/download.svg"/></button>
-            <button class="secondary" title="Edit Metadata"><img src="/icons/pencil.svg"/></button>
-            <button class="secondary" title="Delete Series"><img src="/icons/trash.svg"/></button>
+            <button
+                    class="secondary"
+                    title="Download Series"
+                    hx-post="/v2/data/export/series/${file.getId()}"
+            >
+                <img src="/icons/download.svg"/>
+            </button>
+            <%--            <button class="secondary" title="Edit Metadata"><img src="/icons/pencil.svg"/></button>--%>
+            <button
+                    class="secondary"
+                    title="Delete Series"
+                    hx-delete="/ui/series/${file.getId()}"
+                    hx-confirm="Are you sure you want to delete ${file.getId()}?"
+                    hx-swap="delete"
+                    hx-target="#row-${file.getId()}"
+            >
+                <img src="/icons/trash.svg"/>
+            </button>
         </td>
     </tr>
 @else
