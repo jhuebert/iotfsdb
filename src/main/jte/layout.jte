@@ -29,13 +29,21 @@
             <li><a href="#">Series</a></li>
             <li><a href="#">Data</a></li>
             <li>
-                <button href="#">Export Database</button>
+                <button
+                        title="Export Series"
+                        onclick="location.href='/ui/export'"
+                >
+                    <img src="/icons/download.svg"/> Export
+                </button>
             </li>
-<%--            <li>--%>
-<%--                <button href="#">Import Database</button>--%>
-<%--            </li>--%>
+            <%--            TODO Import Database --%>
             <li>
-                <button href="#">Create Series</button>
+                <button
+                        title="Create Series"
+                        <%--                        onclick="location.href='/ui/export'"--%>
+                >
+                    <img src="/icons/plus.svg"/> Series
+                </button>
             </li>
         </ul>
     </nav>

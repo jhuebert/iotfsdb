@@ -48,8 +48,8 @@
             <button title="Chart Series"><img src="/icons/graph-up.svg"/></button>
             <button
                     class="secondary"
-                    title="Download Series"
-                    hx-post="/v2/data/export/series/${file.getId()}"
+                    title="Export Series"
+                    onclick="location.href='/ui/series/${file.getId()}/export'"
             >
                 <img src="/icons/download.svg"/>
             </button>

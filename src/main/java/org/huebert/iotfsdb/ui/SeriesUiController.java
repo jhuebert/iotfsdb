@@ -1,10 +1,15 @@
 package org.huebert.iotfsdb.ui;
 
+import com.google.common.net.HttpHeaders;
 import org.apache.logging.log4j.util.Strings;
 import org.huebert.iotfsdb.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.schema.SeriesFile;
+import org.huebert.iotfsdb.service.ExportService;
 import org.huebert.iotfsdb.service.SeriesService;
+import org.huebert.iotfsdb.service.TimeConverter;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,7 +19,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.regex.Pattern;
 
 @Controller
@@ -23,8 +31,11 @@ public class SeriesUiController {
 
     private final SeriesService seriesService;
 
-    public SeriesUiController(SeriesService seriesService) {
+    private final ExportService exportService;
+
+    public SeriesUiController(SeriesService seriesService, ExportService exportService) {
         this.seriesService = seriesService;
+        this.exportService = exportService;
     }
 
     @GetMapping
@@ -68,6 +79,22 @@ public class SeriesUiController {
         model.addAttribute("key", key);
         model.addAttribute("value", value);
         return "series/fragments/metadata-row";
+    }
+
+    @GetMapping(value = "{id}/export", produces = "application/zip")
+    public ResponseEntity<StreamingResponseBody> export(@PathVariable("id") String id) {
+        String formattedTime = TimeConverter.toUtc(ZonedDateTime.now()).format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
+        FindSeriesRequest request = new FindSeriesRequest();
+        request.setPattern(Pattern.compile(id));
+        return ResponseEntity.ok()
+            .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=iotfsdb-" + id + "-" + formattedTime + ".zip")
+            .contentType(MediaType.parseMediaType("application/zip"))
+            .body(out -> {
+                try (out) {
+                    exportService.export(request, out);
+                }
+            });
     }
 
 }
