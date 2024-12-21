@@ -97,4 +97,9 @@ public class SeriesUiController {
             });
     }
 
+    @GetMapping("create")
+    public String createSeries(Model model) {
+        return "series/create";
+    }
+
 }

@@ -40,7 +40,9 @@
             <li>
                 <button
                         title="Create Series"
-                        <%--                        onclick="location.href='/ui/export'"--%>
+                        hx-get="/ui/series/create"
+                        hx-target="#main-body"
+                        hx-swap="innerHTML"
                 >
                     <img src="/icons/plus.svg"/> Series
                 </button>
@@ -49,7 +51,7 @@
     </nav>
 </header>
 
-<main class="container">
+<main id="main-body" class="container">
     ${content}
 </main>
 
