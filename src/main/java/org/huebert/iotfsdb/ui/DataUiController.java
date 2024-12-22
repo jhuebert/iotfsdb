@@ -58,8 +58,8 @@ public class DataUiController {
             series.setPattern(Pattern.compile(".*" + pattern + ".*"));
         }
         request.setSeries(series);
-        request.setFrom(ZonedDateTime.now().minusWeeks(11));
-        request.setTo(ZonedDateTime.now().minusWeeks(10));
+        request.setFrom(ZonedDateTime.now().minusDays(11*7));
+        request.setTo(ZonedDateTime.now().minusDays(11*7-1));
         List<FindDataResponse> data = queryService.findData(request);
         PlotData plotData = PlotData.builder()
             .labels(getLabels(data))

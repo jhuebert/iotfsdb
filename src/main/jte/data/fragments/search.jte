@@ -8,17 +8,26 @@
 </form>
 <div>
     <hr/>
-    <div id="results">
-        <canvas id="plot"></canvas>
-    </div>
+    <canvas id="plot"></canvas>
     <script>
         const plotCanvas = document.getElementById('plot');
         const chart = new Chart(plotCanvas, {
           type: 'line',
           data: {
             labels: [],
-            datasets: []
-          }
+            datasets: [],
+          },
+          options: {
+          cubicInterpolationMode: 'monotone',
+            elements: {
+              line: {
+                spanGaps: true
+              },
+              point: {
+                pointStyle: 'circle'
+              }
+            }
+  }
         });
     </script>
     <div id="drawer">
