@@ -4,7 +4,7 @@
 @param List<SeriesFile> series
 
 @template.layout(
-title = "Series Search",
+title = "Series",
 content = @`
     @template.series.fragments.search(series = series)
 `
