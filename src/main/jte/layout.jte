@@ -22,12 +22,12 @@
     <nav>
         <ul>
             <li>
-                <h1>iotfsdb</h1>
+                <h1 onclick="location.href='/ui'">iotfsdb</h1>
             </li>
         </ul>
         <ul>
-            <li><a href="#">Series</a></li>
-            <li><a href="#">Data</a></li>
+            <li><a href="/ui/series">Series</a></li>
+            <li><a href="/ui/data">Data</a></li>
             <li>
                 <button
                         title="Export Series"
