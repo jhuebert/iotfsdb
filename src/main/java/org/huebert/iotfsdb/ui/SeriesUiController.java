@@ -47,6 +47,7 @@ public class SeriesUiController {
     public String search(Model model, @RequestParam("search") String pattern) {
         FindSeriesRequest findSeriesRequest = new FindSeriesRequest();
         if (!Strings.isBlank(pattern)) {
+            //TODO Handle metadata
             findSeriesRequest.setPattern(Pattern.compile(".*" + pattern + ".*"));
         }
         model.addAttribute("series", seriesService.findSeries(findSeriesRequest));

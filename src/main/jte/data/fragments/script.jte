@@ -1,7 +1,7 @@
-@import org.apache.logging.log4j.util.Strings
 @import org.huebert.iotfsdb.ui.PlotData
 @import java.time.ZonedDateTime
 @import java.time.format.DateTimeFormatter
+@import java.util.stream.Collectors
 
 @param PlotData plotData
 
@@ -12,7 +12,7 @@
     chart.config.data.datasets = [@for(PlotData.PlotSeries series : plotData.getData())
         {
             label:'${series.getId()}',
-            data:[${Strings.join(series.getValues(), ',')}]
+            data:[${series.getValues().stream().map(a -> a == null ? "null" : String.valueOf(a)).collect(Collectors.joining(","))}]
         },
     @endfor];
     chart.update();

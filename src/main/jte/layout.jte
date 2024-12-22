@@ -5,7 +5,6 @@
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -14,11 +13,11 @@
     <%--    <link rel="icon" href="./favicon.ico" type="image/x-icon"> -->--%>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
     <script src="https://unpkg.com/htmx.org@2.0.3" integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@^4"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@^2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@^1"></script>
 </head>
-
 <body>
-
 <header class="container">
     <nav>
         <ul>
@@ -51,10 +50,8 @@
         </ul>
     </nav>
 </header>
-
 <main id="main-body" class="container">
     ${content}
 </main>
-
 </body>
 </html>
