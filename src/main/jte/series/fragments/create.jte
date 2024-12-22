@@ -7,14 +7,14 @@
         <label>
             ID
             <input
-                    name="series-id"
+                    name="id"
                     placeholder="ID"
                     autocomplete="series-id"
             />
         </label>
         <label>
             Number Type
-            <select name="series-type" aria-label="Select the number type..." required>
+            <select name="type" aria-label="Select the number type..." required>
                 @for(NumberType type : NumberType.values())
                     @if(type == NumberType.FLOAT4)
                         <option selected>${type}</option>
@@ -26,7 +26,7 @@
         </label>
         <label>
             Partition Period
-            <select name="series-partition" aria-label="Select the partition period..." required>
+            <select name="partition" aria-label="Select the partition period..." required>
                 @for(PartitionPeriod period : PartitionPeriod.values())
                     @if(period == PartitionPeriod.MONTH)
                         <option selected>${period}</option>
@@ -40,7 +40,7 @@
             Interval (ms)
             <input
                     type="number"
-                    name="series-interval"
+                    name="interval"
                     placeholder="60000"
                     autocomplete="series-interval"
                     min="1"
@@ -51,7 +51,7 @@
             Minimum
             <input
                     type="number"
-                    name="series-minimum"
+                    name="min"
                     placeholder="-1.0"
                     autocomplete="series-minimum"
             />
@@ -60,7 +60,7 @@
             Maximum
             <input
                     type="number"
-                    name="series-maximum"
+                    name="max"
                     placeholder="1.0"
                     autocomplete="series-maximum"
             />
@@ -69,5 +69,8 @@
     <input
             type="submit"
             value="Save"
+            hx-post="/ui/series"
+            hx-target="#main-body"
+            hx-swap="innerHTML"
     />
 </form>

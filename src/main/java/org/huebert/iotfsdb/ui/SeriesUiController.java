@@ -1,14 +1,13 @@
 package org.huebert.iotfsdb.ui;
 
-import com.google.common.net.HttpHeaders;
 import org.apache.logging.log4j.util.Strings;
 import org.huebert.iotfsdb.schema.FindSeriesRequest;
+import org.huebert.iotfsdb.schema.NumberType;
+import org.huebert.iotfsdb.schema.PartitionPeriod;
+import org.huebert.iotfsdb.schema.SeriesDefinition;
 import org.huebert.iotfsdb.schema.SeriesFile;
-import org.huebert.iotfsdb.service.ExportService;
 import org.huebert.iotfsdb.service.SeriesService;
-import org.huebert.iotfsdb.service.TimeConverter;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,8 +20,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 @Controller
@@ -31,19 +30,20 @@ public class SeriesUiController {
 
     private final SeriesService seriesService;
 
-    private final ExportService exportService;
+    private final ExportUiService exportService;
 
-    public SeriesUiController(SeriesService seriesService, ExportService exportService) {
+    public SeriesUiController(SeriesService seriesService, ExportUiService exportService) {
         this.seriesService = seriesService;
         this.exportService = exportService;
     }
 
     @GetMapping
-    public String getIndex() {
-        return "series/search";
+    public String getIndex(Model model) {
+        model.addAttribute("series", List.of());
+        return "series/index";
     }
 
-    @PostMapping
+    @PostMapping("search")
     public String search(Model model, @RequestParam("search") String pattern) {
         FindSeriesRequest findSeriesRequest = new FindSeriesRequest();
         if (!Strings.isBlank(pattern)) {
@@ -83,23 +83,37 @@ public class SeriesUiController {
 
     @GetMapping(value = "{id}/export", produces = "application/zip")
     public ResponseEntity<StreamingResponseBody> export(@PathVariable("id") String id) {
-        String formattedTime = TimeConverter.toUtc(ZonedDateTime.now()).format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
-        FindSeriesRequest request = new FindSeriesRequest();
-        request.setPattern(Pattern.compile(id));
-        return ResponseEntity.ok()
-            .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
-            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=iotfsdb-" + id + "-" + formattedTime + ".zip")
-            .contentType(MediaType.parseMediaType("application/zip"))
-            .body(out -> {
-                try (out) {
-                    exportService.export(request, out);
-                }
-            });
+        return exportService.export(id);
+    }
+
+    @PostMapping
+    public String createSeries(
+        Model model,
+        @RequestParam("id") String id,
+        @RequestParam("type") NumberType type,
+        @RequestParam("interval") Long interval,
+        @RequestParam("partition") PartitionPeriod partition,
+        @RequestParam(value = "min", required = false) Double min,
+        @RequestParam(value = "max", required = false) Double max
+    ) {
+        SeriesFile seriesFile = SeriesFile.builder()
+            .definition(SeriesDefinition.builder()
+                .id(id)
+                .type(type)
+                .interval(interval)
+                .partition(partition)
+                .min(min)
+                .max(max)
+                .build())
+            .metadata(Map.of())
+            .build();
+        model.addAttribute("series", List.of(seriesFile));
+        return "series/fragments/search";
     }
 
     @GetMapping("create")
-    public String createSeries(Model model) {
-        return "series/create";
+    public String createSeriesForm(Model model) {
+        return "series/fragments/create";
     }
 
 }
