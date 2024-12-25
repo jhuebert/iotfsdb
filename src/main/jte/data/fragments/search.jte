@@ -35,17 +35,14 @@
                 Time Reducer
                 <select name="timeReducer" aria-label="Select the time reducer..." required>
                     @for(Reducer reducer : Reducer.values())
-                        @if(reducer == Reducer.AVERAGE)
-                            <option selected>${reducer}</option>
-                        @else
-                            <option>${reducer}</option>
-                        @endif
+                        <option selected="${reducer == Reducer.AVERAGE}">${reducer}</option>
                     @endfor
                 </select>
             </label>
             <label>
                 Series Reducer
                 <select name="seriesReducer" aria-label="Select the series reducer...">
+<%--                    Have text for none--%>
                     <option></option>
                     @for(Reducer reducer : Reducer.values())
                         <option>${reducer}</option>

@@ -45,21 +45,14 @@
             </details>
         </div>
         <div>
-            <button title="Chart Series"><img src="/icons/graph-up.svg"/></button>
-            <button
-                    class="secondary"
-                    title="Export Series"
-                    onclick="location.href='/ui/series/${file.getId()}/export'"
-            >
+            <button title="Chart Series">
+                <img src="/icons/graph-up.svg"/>
+            </button>
+            <button class="secondary" title="Export Series" onclick="location.href='/ui/series/${file.getId()}/export'">
                 <img src="/icons/download.svg"/>
             </button>
-            <button
-                    class="secondary"
-                    title="Delete Series"
-                    hx-delete="/ui/series/${file.getId()}"
-                    hx-confirm="Are you sure you want to delete ${file.getId()}?"
-                    hx-target="closest .series-row"
-            >
+            <button class="secondary" title="Delete Series" hx-delete="/ui/series/${file.getId()}" hx-confirm="Are you sure you want to delete ${file.getId()}?"
+                    hx-target="closest .series-row">
                 <img src="/icons/trash.svg"/>
             </button>
         </div>

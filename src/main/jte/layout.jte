@@ -29,21 +29,13 @@
             <li><a href="/ui/series">Series</a></li>
             <li><a href="/ui/data">Data</a></li>
             <li>
-                <button
-                        title="Export Series"
-                        onclick="location.href='/ui/export'"
-                >
+                <button title="Export Series" onclick="location.href='/ui/export'">
                     <img src="/icons/download.svg"/> Export
                 </button>
             </li>
             <%--            TODO Import Database --%>
             <li>
-                <button
-                        title="Create Series"
-                        hx-get="/ui/series/create"
-                        hx-target="#main-body"
-                        hx-swap="innerHTML"
-                >
+                <button title="Create Series" hx-get="/ui/series/create" hx-target="#main-body" hx-swap="innerHTML">
                     <img src="/icons/plus.svg"/> Series
                 </button>
             </li>
