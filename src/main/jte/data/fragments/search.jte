@@ -8,12 +8,17 @@
 !{DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");}
 
 <form>
-    <input name="search" type="search" placeholder="Search"/>
     <fieldset role="group">
-        <input type="datetime-local" name="from" aria-label="From Time" value="${ZonedDateTime.now().minusDays(1).toLocalDateTime().format(formatter)}">
-        <input type="datetime-local" name="to" aria-label="To Time" value="${ZonedDateTime.now().toLocalDateTime().format(formatter)}">
+        <input name="search" type="search" placeholder="Search"/>
         <button hx-post="/ui/data/search" hx-target="#chart-data" hx-swap="innerHTML">Search</button>
     </fieldset>
+    <details>
+        <summary>Time</summary>
+        <fieldset>
+            <input type="datetime-local" name="from" aria-label="From Time" value="${ZonedDateTime.now().minusDays(1).toLocalDateTime().format(formatter)}">
+            <input type="datetime-local" name="to" aria-label="To Time" value="${ZonedDateTime.now().toLocalDateTime().format(formatter)}">
+        </fieldset>
+    </details>
     <details>
         <summary>Advanced</summary>
         <fieldset class="grid">
@@ -42,7 +47,6 @@
             <label>
                 Series Reducer
                 <select name="seriesReducer" aria-label="Select the series reducer...">
-<%--                    Have text for none--%>
                     <option></option>
                     @for(Reducer reducer : Reducer.values())
                         <option>${reducer}</option>

@@ -1,5 +1,4 @@
 @import org.huebert.iotfsdb.ui.PlotData
-@import java.util.List
 
 @param PlotData plotData
 
