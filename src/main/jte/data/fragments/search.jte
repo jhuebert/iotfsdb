@@ -1,22 +1,25 @@
+@import org.huebert.iotfsdb.schema.FindDataRequest
 @import org.huebert.iotfsdb.schema.Reducer
 @import org.huebert.iotfsdb.ui.PlotData
+@import org.huebert.iotfsdb.ui.SearchParser
 @import java.time.ZonedDateTime
 @import java.time.format.DateTimeFormatter
 
+@param FindDataRequest request
 @param PlotData plotData
 
 !{DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");}
 
 <form>
     <fieldset role="group">
-        <input name="search" type="search" placeholder="Search"/>
+        <input name="search" type="search" placeholder="Search" value="${request != null ? SearchParser.toSearch(request.getSeries()) : null}"/>
         <button hx-post="/ui/data/search" hx-target="#chart-data" hx-swap="innerHTML">Search</button>
     </fieldset>
     <details>
         <summary>Time</summary>
         <fieldset>
-            <input type="datetime-local" name="from" aria-label="From Time" value="${ZonedDateTime.now().minusDays(1).toLocalDateTime().format(formatter)}">
-            <input type="datetime-local" name="to" aria-label="To Time" value="${ZonedDateTime.now().toLocalDateTime().format(formatter)}">
+            <input type="datetime-local" name="from" aria-label="From Time" value="${request != null ? request.getFrom().toLocalDateTime().format(formatter) : ZonedDateTime.now().minusDays(1).toLocalDateTime().format(formatter)}">
+            <input type="datetime-local" name="to" aria-label="To Time" value="${request != null ? request.getTo().toLocalDateTime().format(formatter) : ZonedDateTime.now().toLocalDateTime().format(formatter)}">
         </fieldset>
     </details>
     <details>
@@ -24,15 +27,15 @@
         <fieldset class="grid">
             <label>
                 Size
-                <input type="number" name="size" aria-label="Size" min="1" value="250">
+                <input type="number" name="size" aria-label="Size" min="1" value="${request != null ? request.getSize() : 250}">
             </label>
             <label>
                 Interval (ms)
-                <input type="number" name="interval" aria-label="Size" min="1" value="60000">
+                <input type="number" name="interval" aria-label="Size" min="1" value="${request != null ? request.getInterval() : 60000}">
             </label>
             <label>
                 Null Value
-                <input type="number" name="nullValue" aria-label="Null Value">
+                <input type="number" name="nullValue" aria-label="Null Value" value="${request != null ? request.getNullValue() : null}">
             </label>
         </fieldset>
         <fieldset class="grid">
@@ -40,7 +43,7 @@
                 Time Reducer
                 <select name="timeReducer" aria-label="Select the time reducer..." required>
                     @for(Reducer reducer : Reducer.values())
-                        <option selected="${reducer == Reducer.AVERAGE}">${reducer}</option>
+                        <option selected="${request != null ? reducer == request.getTimeReducer() : reducer == Reducer.AVERAGE}">${reducer}</option>
                     @endfor
                 </select>
             </label>
@@ -49,7 +52,7 @@
                 <select name="seriesReducer" aria-label="Select the series reducer...">
                     <option></option>
                     @for(Reducer reducer : Reducer.values())
-                        <option>${reducer}</option>
+                        <option selected="${request != null && reducer == request.getSeriesReducer()}">${reducer}</option>
                     @endfor
                 </select>
             </label>
@@ -57,15 +60,15 @@
         <fieldset class="grid">
             <label>
                 Include Null
-                <input type="checkbox" role="switch" name="includeNull" aria-label="Include null">
+                <input type="checkbox" role="switch" name="includeNull" aria-label="Include null" checked="${request != null && request.isIncludeNull()}">
             </label>
             <label>
                 Use Big Decimal
-                <input type="checkbox" role="switch" name="useBigDecimal" aria-label="Use Big Decimal">
+                <input type="checkbox" role="switch" name="useBigDecimal" aria-label="Use Big Decimal" checked="${request != null && request.isUseBigDecimal()}">
             </label>
             <label>
                 Use Previous
-                <input type="checkbox" role="switch" name="usePrevious" aria-label="Use Previous">
+                <input type="checkbox" role="switch" name="usePrevious" aria-label="Use Previous" checked="${request != null && request.isUsePrevious()}">
             </label>
         </fieldset>
     </details>

@@ -1,12 +1,15 @@
 package org.huebert.iotfsdb.ui;
 
-import org.apache.logging.log4j.util.Strings;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.schema.NumberType;
 import org.huebert.iotfsdb.schema.PartitionPeriod;
 import org.huebert.iotfsdb.schema.SeriesDefinition;
 import org.huebert.iotfsdb.schema.SeriesFile;
 import org.huebert.iotfsdb.service.SeriesService;
+import org.huebert.iotfsdb.ui.service.ExportUiService;
+import org.huebert.iotfsdb.ui.service.ObjectEncoder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -20,10 +23,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+@Slf4j
 @Controller
 @RequestMapping("/ui/series")
 public class SeriesUiController {
@@ -32,25 +37,39 @@ public class SeriesUiController {
 
     private final ExportUiService exportService;
 
-    public SeriesUiController(SeriesService seriesService, ExportUiService exportService) {
+    private final ObjectEncoder objectEncoder;
+
+    public SeriesUiController(SeriesService seriesService, ExportUiService exportService, ObjectEncoder objectEncoder) {
         this.seriesService = seriesService;
         this.exportService = exportService;
+        this.objectEncoder = objectEncoder;
     }
 
     @GetMapping
-    public String getIndex(Model model) {
-        model.addAttribute("series", List.of());
+    public String getIndex(Model model, @RequestParam(value = "request", required = false) String request) {
+        List<SeriesFile> series = List.of();
+        try {
+            if (request != null) {
+                FindSeriesRequest findSeriesRequest = objectEncoder.decode(request, FindSeriesRequest.class);
+                series = seriesService.findSeries(findSeriesRequest);
+                model.addAttribute("request", findSeriesRequest);
+            }
+        } catch (IOException e) {
+            log.warn("could not parse request: {}", request);
+        }
+        model.addAttribute("series", series);
         return "series/index";
     }
 
     @PostMapping("search")
-    public String search(Model model, @RequestParam("search") String pattern) {
-        FindSeriesRequest findSeriesRequest = new FindSeriesRequest();
-        if (!Strings.isBlank(pattern)) {
-            //TODO Handle metadata
-            findSeriesRequest.setPattern(Pattern.compile(".*" + pattern + ".*"));
+    public String search(Model model, HttpServletResponse response, @RequestParam("search") String search) {
+        FindSeriesRequest request = SearchParser.fromSearch(search);
+        model.addAttribute("series", seriesService.findSeries(request));
+        try {
+            response.addHeader("HX-Push-Url", "/ui/series?request=" + objectEncoder.encode(request));
+        } catch (IOException e) {
+            log.warn("could not serialize {}", request);
         }
-        model.addAttribute("series", seriesService.findSeries(findSeriesRequest));
         return "series/fragments/results";
     }
 
@@ -90,6 +109,7 @@ public class SeriesUiController {
     @PostMapping
     public String createSeries(
         Model model,
+        HttpServletResponse response,
         @RequestParam("id") String id,
         @RequestParam("type") NumberType type,
         @RequestParam("interval") Long interval,
@@ -109,6 +129,14 @@ public class SeriesUiController {
             .metadata(Map.of())
             .build();
         model.addAttribute("series", List.of(seriesFile));
+
+        FindSeriesRequest request = new FindSeriesRequest(Pattern.compile(id), Map.of());
+        try {
+            response.addHeader("HX-Push-Url", "/ui/series?request=" + objectEncoder.encode(request));
+        } catch (IOException e) {
+            log.warn("could not serialize {}", request);
+        }
+
         return "series/fragments/search";
     }
 

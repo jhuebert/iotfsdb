@@ -26,7 +26,7 @@
         <li><a href="/ui/series">Series</a></li>
         <li><a href="/ui/data">Data</a></li>
         <li>
-            <button title="Export Series" onclick="location.href='/ui/export'">
+            <button title="Export Database" onclick="location.href='/ui/export'">
                 <img src="/icons/download.svg"/>
             </button>
         </li>

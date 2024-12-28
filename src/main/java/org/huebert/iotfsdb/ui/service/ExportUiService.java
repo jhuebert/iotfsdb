@@ -1,4 +1,4 @@
-package org.huebert.iotfsdb.ui;
+package org.huebert.iotfsdb.ui.service;
 
 import com.google.common.net.HttpHeaders;
 import org.huebert.iotfsdb.schema.FindSeriesRequest;

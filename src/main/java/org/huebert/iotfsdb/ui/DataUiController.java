@@ -1,12 +1,13 @@
 package org.huebert.iotfsdb.ui;
 
-import org.apache.logging.log4j.util.Strings;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.schema.FindDataRequest;
 import org.huebert.iotfsdb.schema.FindDataResponse;
-import org.huebert.iotfsdb.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.schema.Reducer;
 import org.huebert.iotfsdb.schema.SeriesData;
 import org.huebert.iotfsdb.service.QueryService;
+import org.huebert.iotfsdb.ui.service.ObjectEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,28 +15,51 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.regex.Pattern;
 
+@Slf4j
 @Controller
 @RequestMapping("/ui/data")
 public class DataUiController {
 
     private final QueryService queryService;
 
-    public DataUiController(QueryService queryService) {
+    private final ObjectEncoder objectEncoder;
+
+    public DataUiController(QueryService queryService, ObjectEncoder objectEncoder) {
         this.queryService = queryService;
+        this.objectEncoder = objectEncoder;
     }
 
     @GetMapping
-    public String getIndex(Model model) {
+    public String getIndex(
+        Model model,
+        @RequestParam(value = "request", required = false) String request
+    ) {
+
         PlotData plotData = PlotData.builder()
             .labels(List.of())
             .data(List.of())
             .build();
+
+        try {
+            if (request != null) {
+                FindDataRequest findDataRequest = objectEncoder.decode(request, FindDataRequest.class);
+                List<FindDataResponse> data = queryService.findData(findDataRequest);
+                plotData = PlotData.builder()
+                    .labels(getLabels(data))
+                    .data(getData(data))
+                    .build();
+                model.addAttribute("request", findDataRequest);
+            }
+        } catch (IOException e) {
+            log.warn("could not parse request: {}", request);
+        }
+
         model.addAttribute("plotData", plotData);
         return "data/index";
     }
@@ -59,7 +83,8 @@ public class DataUiController {
     @PostMapping("search")
     public String search(
         Model model,
-        @RequestParam("search") String pattern,
+        HttpServletResponse response,
+        @RequestParam("search") String search,
         @RequestParam("from") LocalDateTime from,
         @RequestParam("to") LocalDateTime to,
         @RequestParam(value = "interval", required = false, defaultValue = "60000") Long interval,
@@ -72,11 +97,7 @@ public class DataUiController {
         @RequestParam(value = "seriesReducer", required = false) Reducer seriesReducer
     ) {
         FindDataRequest request = new FindDataRequest();
-        FindSeriesRequest series = new FindSeriesRequest();
-        if (!Strings.isBlank(pattern)) {
-            series.setPattern(Pattern.compile(".*" + pattern + ".*"));
-        }
-        request.setSeries(series);
+        request.setSeries(SearchParser.fromSearch(search));
         request.setFrom(from.atZone(ZoneId.of("UTC")));
         request.setTo(to.atZone(ZoneId.of("UTC")));
 
@@ -97,6 +118,13 @@ public class DataUiController {
             .build();
 
         model.addAttribute("plotData", plotData);
+
+        try {
+            response.addHeader("HX-Push-Url", "/ui/data?request=" + objectEncoder.encode(request));
+        } catch (IOException e) {
+            log.warn("could not serialize {}", request);
+        }
+
         return "data/fragments/script";
     }
 }
