@@ -69,7 +69,7 @@ public class FindDataRequest {
     @AssertTrue
     public boolean isRangeValid() {
 
-        if (dateTimePreset != DateTimePreset.NONE) {
+        if ((dateTimePreset != null) && (dateTimePreset != DateTimePreset.NONE)) {
             return true;
         }
 
