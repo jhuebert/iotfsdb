@@ -2,6 +2,7 @@ package org.huebert.iotfsdb.ui;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.huebert.iotfsdb.schema.DateTimePreset;
 import org.huebert.iotfsdb.schema.FindDataRequest;
 import org.huebert.iotfsdb.schema.FindDataResponse;
 import org.huebert.iotfsdb.schema.Reducer;
@@ -85,6 +86,7 @@ public class DataUiController {
         Model model,
         HttpServletResponse response,
         @RequestParam("search") String search,
+        @RequestParam("dateTimePreset") DateTimePreset dateTimePreset,
         @RequestParam("from") LocalDateTime from,
         @RequestParam("to") LocalDateTime to,
         @RequestParam(value = "interval", required = false, defaultValue = "60000") Long interval,
@@ -98,6 +100,7 @@ public class DataUiController {
     ) {
         FindDataRequest request = new FindDataRequest();
         request.setSeries(SearchParser.fromSearch(search));
+        request.setDateTimePreset(dateTimePreset);
         request.setFrom(from.atZone(ZoneId.of("UTC")));
         request.setTo(to.atZone(ZoneId.of("UTC")));
 

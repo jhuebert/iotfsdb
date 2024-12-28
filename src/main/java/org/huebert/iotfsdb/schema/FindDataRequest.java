@@ -2,6 +2,7 @@ package org.huebert.iotfsdb.schema;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.google.common.collect.Range;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotNull;
@@ -24,12 +25,13 @@ import java.util.function.Predicate;
 @Schema(description = "Data search request")
 public class FindDataRequest {
 
+    @Schema(description = "Relative time range to use in place of an explicitly provided from and to time. This takes priority over from and to if they are also specified.")
+    private DateTimePreset dateTimePreset;
+
     @Schema(description = "Earliest date and time that values should be have")
-    @NotNull
     private ZonedDateTime from;
 
     @Schema(description = "Latest date and time that values should be have", defaultValue = "Current date and time")
-    @NotNull
     private ZonedDateTime to = ZonedDateTime.now();
 
     @Schema(description = "Properties used to match series", defaultValue = ".*")
@@ -66,10 +68,24 @@ public class FindDataRequest {
     @JsonIgnore
     @AssertTrue
     public boolean isRangeValid() {
+
+        if (dateTimePreset != DateTimePreset.NONE) {
+            return true;
+        }
+
         if ((from == null) || (to == null)) {
             return false;
         }
+
         return to.compareTo(from) > 0;
+    }
+
+    public Range<ZonedDateTime> getRange() {
+        if (dateTimePreset != null) {
+            ZonedDateTime now = ZonedDateTime.now();
+            return Range.closed(now.minus(dateTimePreset.getDuration()), now);
+        }
+        return Range.closed(from, to);
     }
 
     public Predicate<SeriesData> getNullPredicate() {

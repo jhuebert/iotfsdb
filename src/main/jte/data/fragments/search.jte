@@ -1,3 +1,4 @@
+@import org.huebert.iotfsdb.schema.DateTimePreset
 @import org.huebert.iotfsdb.schema.FindDataRequest
 @import org.huebert.iotfsdb.schema.Reducer
 @import org.huebert.iotfsdb.ui.PlotData
@@ -10,6 +11,19 @@
 
 !{DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");}
 
+<script>
+function dateTimePresetChanged(self) {
+  const fromDateTime = document.getElementById('fromDateTime');
+  const toDateTime = document.getElementById('toDateTime');
+  if (self.value === 'NONE') {
+    fromDateTime.style.display = 'block';
+    toDateTime.style.display = 'block';
+  } else {
+    fromDateTime.style.display = 'none';
+    toDateTime.style.display = 'none';
+  }
+}
+</script>
 <form>
     <fieldset role="group">
         <input name="search" type="search" placeholder="Search" value="${request != null ? SearchParser.toSearch(request.getSeries()) : null}"/>
@@ -17,9 +31,17 @@
     </fieldset>
     <details>
         <summary>Time</summary>
+        <label>
+            Preset
+            <select name="dateTimePreset" aria-label="Select the date time preset..." onchange="dateTimePresetChanged(this)">
+                @for(DateTimePreset preset : DateTimePreset.values())
+                    <option selected="${request != null ? preset == request.getDateTimePreset() : preset == DateTimePreset.LAST_24_HOURS}">${preset}</option>
+                @endfor
+            </select>
+        </label>
         <fieldset>
-            <input type="datetime-local" name="from" aria-label="From Time" value="${request != null ? request.getFrom().toLocalDateTime().format(formatter) : ZonedDateTime.now().minusDays(1).toLocalDateTime().format(formatter)}">
-            <input type="datetime-local" name="to" aria-label="To Time" value="${request != null ? request.getTo().toLocalDateTime().format(formatter) : ZonedDateTime.now().toLocalDateTime().format(formatter)}">
+            <input id="fromDateTime" style="display: ${request == null ? "none" : (request.getDateTimePreset() == null || request.getDateTimePreset() == DateTimePreset.NONE ? "block" : "none")}" type="datetime-local" name="from" aria-label="From Time" value="${request != null ? request.getFrom().toLocalDateTime().format(formatter) : ZonedDateTime.now().minusDays(1).toLocalDateTime().format(formatter)}">
+            <input id="toDateTime" style="display: ${request == null ? "none" : (request.getDateTimePreset() == null || request.getDateTimePreset() == DateTimePreset.NONE ? "block" : "none")}"  type="datetime-local" name="to" aria-label="To Time" value="${request != null ? request.getTo().toLocalDateTime().format(formatter) : ZonedDateTime.now().toLocalDateTime().format(formatter)}">
         </fieldset>
     </details>
     <details>
