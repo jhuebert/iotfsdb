@@ -81,7 +81,7 @@ public class FindDataRequest {
     }
 
     public Range<ZonedDateTime> getRange() {
-        if (dateTimePreset != null) {
+        if ((dateTimePreset != null) && (dateTimePreset != DateTimePreset.NONE)) {
             ZonedDateTime now = ZonedDateTime.now();
             return Range.closed(now.minus(dateTimePreset.getDuration()), now);
         }
