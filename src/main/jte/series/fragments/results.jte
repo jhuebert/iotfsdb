@@ -8,14 +8,11 @@
 
 @for(SeriesFile file : series)
     <article class="series-row">
-        <div class="grid" style="grid-template-columns: 4fr 2fr">
+        <div class="grid" style="grid-template-columns: 4fr 1fr">
             <div>
                 <h4>${file.getId()}</h4>
             </div>
             <div class="grid">
-                <button title="Chart Series">
-                    <img src="/icons/graph-up.svg"/>
-                </button>
                 <button class="secondary" title="Export Series"
                         onclick="location.href='/ui/series/${file.getId()}/export'">
                     <img src="/icons/download.svg"/>
@@ -23,7 +20,7 @@
                 @if(!environment.getProperty("iotfsdb.read-only", Boolean.class, true))
                     <button class="secondary" title="Delete Series" hx-delete="/ui/series/${file.getId()}"
                             hx-confirm="Are you sure you want to delete '${file.getId()}'?"
-                            hx-target="closest .series-row">
+                            hx-target="closest .series-row" hx-on::response-error="handleHtmxResponseError(event)">
                         <img src="/icons/trash.svg"/>
                     </button>
                 @endif

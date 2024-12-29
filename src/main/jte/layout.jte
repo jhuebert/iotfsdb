@@ -20,6 +20,13 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@^4"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@^2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@^1"></script>
+    <script>
+        function handleHtmxResponseError(event) {
+          console.error(event);
+          document.getElementById('error-content').innerHTML = event.detail.error;
+          document.getElementById('error-dialog').showModal();
+        }
+    </script>
 </head>
 <body class="container-fluid" style="min-width: 420px">
 <nav>
@@ -36,7 +43,8 @@
         </li>
         @if(!environment.getProperty("iotfsdb.read-only", Boolean.class, true))
             <li>
-                <button title="Create Series" hx-get="/ui/series/create" hx-target="#main-body" hx-swap="innerHTML">
+                <button title="Create Series" hx-get="/ui/series/create" hx-target="#main-body" hx-swap="innerHTML"
+                        hx-on::response-error="handleHtmxResponseError(event)">
                     <img src="/icons/plus.svg"/>
                 </button>
             </li>
@@ -45,6 +53,20 @@
 </nav>
 <div id="main-body">
     ${content}
+</div>
+<div id="error-div">
+    <dialog id="error-dialog">
+        <article>
+            <header>
+                <button aria-label="Close" rel="prev"
+                        onclick="document.getElementById('error-dialog').close()"></button>
+                <p>
+                    <strong id="error-title">Error</strong>
+                </p>
+            </header>
+            <p id="error-content"></p>
+        </article>
+    </dialog>
 </div>
 </body>
 </html>

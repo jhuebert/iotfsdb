@@ -19,16 +19,17 @@
         <div class="group">
             @if(isNew)
                 <button hx-post="/ui/series/${file.getId()}/metadata" hx-target="closest .metadata-row"
-                        hx-swap="beforebegin">
+                        hx-swap="beforebegin" hx-on::response-error="handleHtmxResponseError(event)">
                     <img src="/icons/floppy.svg"/>
                 </button>
             @else
                 <button hx-post="/ui/series/${file.getId()}/metadata/${key}" hx-target="closest .metadata-row"
-                        hx-swap="outerHTML">
+                        hx-swap="outerHTML" hx-on::response-error="handleHtmxResponseError(event)">
                     <img src="/icons/floppy.svg"/>
                 </button>
                 <button class="secondary" title="Delete Series" hx-delete="/ui/series/${file.getId()}/metadata/${key}"
-                        hx-confirm="Are you sure you want to delete '${key}'?" hx-target="closest .metadata-row">
+                        hx-confirm="Are you sure you want to delete '${key}'?" hx-target="closest .metadata-row"
+                        hx-on::response-error="handleHtmxResponseError(event)">
                     <img src="/icons/trash.svg"/>
                 </button>
             @endif
