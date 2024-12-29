@@ -1,4 +1,4 @@
-package org.huebert.iotfsdb.ui;
+package org.huebert.iotfsdb.ui.service;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

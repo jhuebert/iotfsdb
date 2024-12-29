@@ -72,7 +72,7 @@ public class DataService {
 
     public synchronized void deleteSeries(@NotBlank String seriesId) {
         seriesMap.remove(seriesId);
-        partitionCache.invalidateAll(seriesPartitions.remove(seriesId));
+        partitionCache.invalidateAll(Optional.ofNullable(seriesPartitions.remove(seriesId)).orElseGet(Set::of));
         persistenceAdapter.deleteSeries(seriesId);
     }
 

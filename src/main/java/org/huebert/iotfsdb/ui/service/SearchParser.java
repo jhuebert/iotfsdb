@@ -1,4 +1,4 @@
-package org.huebert.iotfsdb.ui;
+package org.huebert.iotfsdb.ui.service;
 
 import org.apache.logging.log4j.util.Strings;
 import org.huebert.iotfsdb.schema.FindSeriesRequest;

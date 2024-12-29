@@ -1,7 +1,9 @@
 @import java.util.List
 @import java.util.Map.Entry
 @import org.huebert.iotfsdb.schema.SeriesFile
+@import org.springframework.core.env.Environment
 
+@param Environment environment
 @param List<SeriesFile> series
 
 @for(SeriesFile file : series)
@@ -18,10 +20,13 @@
                         onclick="location.href='/ui/series/${file.getId()}/export'">
                     <img src="/icons/download.svg"/>
                 </button>
-                <button class="secondary" title="Delete Series" hx-delete="/ui/series/${file.getId()}"
-                        hx-confirm="Are you sure you want to delete '${file.getId()}'?" hx-target="closest .series-row">
-                    <img src="/icons/trash.svg"/>
-                </button>
+                @if(!environment.getProperty("iotfsdb.read-only", Boolean.class, true))
+                    <button class="secondary" title="Delete Series" hx-delete="/ui/series/${file.getId()}"
+                            hx-confirm="Are you sure you want to delete '${file.getId()}'?"
+                            hx-target="closest .series-row">
+                        <img src="/icons/trash.svg"/>
+                    </button>
+                @endif
             </div>
         </div>
         <hr/>
@@ -57,9 +62,11 @@
                 <br>
                 <h5>Metadata</h5>
                 @for(Entry<String, String> entry : file.getMetadata().entrySet())
-                    @template.series.fragments.metadata-row(file = file, key = entry.getKey(), value = entry.getValue())
+                    @template.series.fragments.metadata-row(environment = environment, file = file, key = entry.getKey(), value = entry.getValue())
                 @endfor
-                @template.series.fragments.metadata-row(file = file, key = null, value = null)
+                @if(!environment.getProperty("iotfsdb.read-only", Boolean.class, true))
+                    @template.series.fragments.metadata-row(environment = environment, file = file, key = null, value = null)
+                @endif
             </details>
         </div>
     </article>

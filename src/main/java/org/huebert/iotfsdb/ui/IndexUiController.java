@@ -1,6 +1,7 @@
 package org.huebert.iotfsdb.ui;
 
 import org.huebert.iotfsdb.ui.service.ExportUiService;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -9,9 +10,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.springframework.web.servlet.view.RedirectView;
 
-//TODO Conditionally load UI
 @Controller
 @RequestMapping("/ui")
+@ConditionalOnProperty(prefix = "iotfsdb", value = "ui", havingValue = "true")
 public class IndexUiController {
 
     private final ExportUiService exportService;

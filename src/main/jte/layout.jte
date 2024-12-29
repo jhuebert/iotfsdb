@@ -1,5 +1,7 @@
 @import gg.jte.Content
+@import org.springframework.core.env.Environment
 
+@param Environment environment
 @param String title
 @param Content content
 
@@ -12,7 +14,9 @@
     <title>iotfsdb - ${title}</title>
     <link rel="icon" href="/icons/cpu.svg" sizes="any" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
-    <script src="https://unpkg.com/htmx.org@2.0.3" integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.3"
+            integrity="sha384-0895/pl2MU10Hqc6jd4RvrthNlDiE9U1tWmX7WRESftEDRosgxNsQG/Ze9YMRzHq"
+            crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@^4"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@^2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@^1"></script>
@@ -30,11 +34,13 @@
                 <img src="/icons/download.svg"/>
             </button>
         </li>
-        <li>
-            <button title="Create Series" hx-get="/ui/series/create" hx-target="#main-body" hx-swap="innerHTML">
-                <img src="/icons/plus.svg"/>
-            </button>
-        </li>
+        @if(!environment.getProperty("iotfsdb.read-only", Boolean.class, true))
+            <li>
+                <button title="Create Series" hx-get="/ui/series/create" hx-target="#main-body" hx-swap="innerHTML">
+                    <img src="/icons/plus.svg"/>
+                </button>
+            </li>
+        @endif
     </ul>
 </nav>
 <div id="main-body">

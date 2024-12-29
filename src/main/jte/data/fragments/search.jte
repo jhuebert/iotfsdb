@@ -1,8 +1,8 @@
 @import org.huebert.iotfsdb.schema.DateTimePreset
 @import org.huebert.iotfsdb.schema.FindDataRequest
 @import org.huebert.iotfsdb.schema.Reducer
-@import org.huebert.iotfsdb.ui.PlotData
-@import org.huebert.iotfsdb.ui.SearchParser
+@import org.huebert.iotfsdb.ui.service.PlotData
+@import org.huebert.iotfsdb.ui.service.SearchParser
 @import java.time.ZonedDateTime
 @import java.time.format.DateTimeFormatter
 
