@@ -19,4 +19,6 @@ public class IotfsdbProperties {
 
     private String partitionCache = "expireAfterAccess=5m,maximumSize=10000,softValues";
 
+    private boolean ui = true;
+
 }
