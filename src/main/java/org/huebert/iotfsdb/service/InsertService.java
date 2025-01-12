@@ -2,6 +2,7 @@ package org.huebert.iotfsdb.service;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.huebert.iotfsdb.partition.PartitionAdapter;
 import org.huebert.iotfsdb.schema.InsertRequest;
 import org.huebert.iotfsdb.schema.PartitionPeriod;
 import org.huebert.iotfsdb.schema.SeriesData;
@@ -14,6 +15,7 @@ import java.nio.ByteBuffer;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Validated
@@ -44,11 +46,14 @@ public class InsertService {
                 PartitionKey key = entry.getKey();
                 PartitionRange details = partitionService.getRange(key);
                 details.withWrite(() -> {
-                    ByteBuffer buffer = dataService.getBuffer(key, details.getSize(), details.adapter());
+                    PartitionAdapter adapter = details.adapter();
+                    ByteBuffer buffer = dataService.getBuffer(key, details.getSize(), adapter);
                     for (SeriesData value : entry.getValue()) {
                         LocalDateTime local = TimeConverter.toUtc(value.getTime());
                         int index = details.getIndex(local);
-                        details.adapter().put(buffer, index, value.getValue());
+                        if (request.isOverwrite() || adapter.getStream(buffer, index, 1).anyMatch(Objects::isNull)) {
+                            adapter.put(buffer, index, value.getValue());
+                        }
                     }
                 });
             });

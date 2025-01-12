@@ -13,6 +13,7 @@ import org.huebert.iotfsdb.IotfsdbProperties;
 import org.huebert.iotfsdb.schema.PartitionPeriod;
 import org.huebert.iotfsdb.schema.SeriesFile;
 import org.huebert.iotfsdb.service.PartitionKey;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
@@ -53,7 +54,7 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
 
     public static final String SERIES_JSON = "series.json";
 
-    private final IotfsdbProperties properties;
+    private final Path propertyRoot;
 
     private final ObjectMapper objectMapper;
 
@@ -63,11 +64,19 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
 
     private final boolean zip;
 
+    @Autowired
     public FilePersistenceAdapter(@NotNull IotfsdbProperties properties, @NotNull ObjectMapper objectMapper) {
-        this.properties = properties;
-        this.objectMapper = objectMapper;
+        this(properties.getRoot(), objectMapper);
+    }
 
-        Path propertyRoot = properties.getRoot();
+    public static FilePersistenceAdapter create(Path propertyRoot, ObjectMapper objectMapper) {
+        return new FilePersistenceAdapter(propertyRoot, objectMapper);
+    }
+
+    private FilePersistenceAdapter(Path propertyRoot, ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+        this.propertyRoot = propertyRoot;
+
         if (propertyRoot == null) {
             throw new IllegalArgumentException("root database path is null");
         }
@@ -184,7 +193,7 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
             OpenOption[] openOptions = readOnly ? OPEN_OPTIONS_READ : OPEN_OPTIONS_READ_WRITE;
             if (zip) {
                 String prefix = String.format("iotfsdb-%s-%s-", key.seriesId(), key.partitionId());
-                path = Files.copy(path, Files.createTempFile(properties.getRoot().getParent(), prefix, ".tmp"), StandardCopyOption.REPLACE_EXISTING);
+                path = Files.copy(path, Files.createTempFile(propertyRoot.getParent(), prefix, ".tmp"), StandardCopyOption.REPLACE_EXISTING);
                 openOptions = OPEN_OPTIONS_TEMP;
             }
             // File size must be retrieved before open if it is a temp file that deletes on close
@@ -194,6 +203,17 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
             return new FileByteBuffer(fileChannel, byteBuffer);
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void close() {
+        if (fileSystem != null) {
+            try {
+                fileSystem.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

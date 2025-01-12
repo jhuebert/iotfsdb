@@ -86,7 +86,10 @@ public class PartitionService {
 
     private PartitionRange calculateRange(PartitionKey key) {
         SeriesFile series = dataService.getSeries(key.seriesId()).orElseThrow();
-        SeriesDefinition definition = series.getDefinition();
+        return calculateRange(series.getDefinition(), key);
+    }
+
+    public static PartitionRange calculateRange(SeriesDefinition definition, PartitionKey key) {
         Range<LocalDateTime> range = getRange(definition, key.partitionId());
         PartitionAdapter adapter = getAdapter(definition);
         return new PartitionRange(key, range, definition.getIntervalDuration(), adapter, new ReentrantReadWriteLock());

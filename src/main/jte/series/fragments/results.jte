@@ -19,7 +19,7 @@
                 </button>
                 @if(!environment.getProperty("iotfsdb.read-only", Boolean.class, true))
                     <button class="secondary" title="Delete Series" hx-delete="/ui/series/${file.getId()}"
-                            hx-confirm="Are you sure you want to delete '${file.getId()}'?"
+                            hx-confirm="Are you sure you want to delete '${file.getId()}'?" hx-swap="outerHTML"
                             hx-target="closest .series-row" hx-on::response-error="handleHtmxResponseError(event)">
                         <img src="/icons/trash.svg"/>
                     </button>
