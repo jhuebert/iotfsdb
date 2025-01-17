@@ -44,6 +44,10 @@ import java.util.stream.Collectors;
 public class ReducerService {
 
     public Collector<Number, ?, Number> getCollector(@Valid @NotNull FindDataRequest request, @NotNull Reducer reducer) {
+        return getCollector(reducer, request.isUseBigDecimal(), request.getNullValue());
+    }
+
+    public Collector<Number, ?, Number> getCollector(@NotNull Reducer reducer, boolean useBigDecimal, Number nullValue) {
         Collector<Number, ?, Number> collector;
         if (reducer == Reducer.COUNT) {
             collector = new CountingCollector();
@@ -55,13 +59,13 @@ public class ReducerService {
             collector = new CountingDistinctCollector();
         } else if (reducer == Reducer.MODE) {
             collector = new ModeCollector();
-        } else if (request.isUseBigDecimal()) {
+        } else if (useBigDecimal) {
             collector = getBigDecimalCollector(reducer);
         } else {
             collector = getDoubleCollector(reducer);
         }
         return Collectors.mapping(
-            v -> v != null ? v : request.getNullValue(),
+            v -> v != null ? v : nullValue,
             Collectors.filtering(
                 Objects::nonNull,
                 collector

@@ -27,8 +27,7 @@ public class InsertRequest {
     @NotEmpty
     private List<SeriesData> values;
 
-    @Builder.Default
-    @Schema(description = "Whether existing values should be replaced by the data in this request", defaultValue = "true")
-    private boolean overwrite = true;
+    @Schema(description = "Reducer that handles situations where there is a non-null value that already exists. The default behavior is to overwrite any preexisting data.")
+    private Reducer reducer;
 
 }
