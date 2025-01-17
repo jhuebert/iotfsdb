@@ -36,11 +36,7 @@
     <ul>
         <li><a href="/ui/series">Series</a></li>
         <li><a href="/ui/data">Data</a></li>
-        <li>
-            <button title="Export Database" onclick="location.href='/ui/export'">
-                <img src="/icons/download.svg"/>
-            </button>
-        </li>
+        <li><a href="/ui/transfer">Transfer</a></li>
         @if(!environment.getProperty("iotfsdb.read-only", Boolean.class, true))
             <li>
                 <button title="Create Series" hx-get="/ui/series/create" hx-target="#main-body" hx-swap="innerHTML"
