@@ -79,7 +79,7 @@ public class InsertServiceTest {
             new SeriesData(time2, null),
             new SeriesData(time3, 2),
             new SeriesData(time4, 3)
-        )));
+        ), null));
 
         verify(partitionAdapter).put(byteBuffer1, 6, 1);
         verify(partitionAdapter).put(byteBuffer2, 7, null);
