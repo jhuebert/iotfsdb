@@ -49,13 +49,7 @@ public class InsertService {
             return PartitionKey.getKey(seriesId, partitionPeriod, local);
         }));
 
-        Collector<Number, ?, Number> collector;
-        if ((request.getReducer() == null) || (request.getReducer() == Reducer.LAST)) {
-            collector = null;
-        } else {
-            collector = reducerService.getCollector(request.getReducer(), false, null);
-        }
-
+        Collector<Number, ?, Number> collector = request.getReducer() == null ? null : reducerService.getCollector(request.getReducer(), false, null);
         partitionGroups.entrySet().parallelStream()
             .forEach(entry -> insertIntoPartition(entry.getKey(), entry.getValue(), collector));
     }
