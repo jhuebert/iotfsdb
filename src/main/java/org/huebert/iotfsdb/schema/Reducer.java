@@ -10,6 +10,7 @@ public enum Reducer {
     MEDIAN,
     MINIMUM,
     MODE,
+    MULTIPLY,
     SQUARE_SUM,
     SUM
 }

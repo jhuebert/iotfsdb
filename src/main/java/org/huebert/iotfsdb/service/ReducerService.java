@@ -9,6 +9,7 @@ import org.huebert.iotfsdb.collectors.BigDecimalAveragingCollector;
 import org.huebert.iotfsdb.collectors.BigDecimalMaximumCollector;
 import org.huebert.iotfsdb.collectors.BigDecimalMedianCollector;
 import org.huebert.iotfsdb.collectors.BigDecimalMinimumCollector;
+import org.huebert.iotfsdb.collectors.BigDecimalMultiplyingCollector;
 import org.huebert.iotfsdb.collectors.BigDecimalSummingCollector;
 import org.huebert.iotfsdb.collectors.CountingCollector;
 import org.huebert.iotfsdb.collectors.CountingDistinctCollector;
@@ -18,6 +19,7 @@ import org.huebert.iotfsdb.collectors.MaximumCollector;
 import org.huebert.iotfsdb.collectors.MedianCollector;
 import org.huebert.iotfsdb.collectors.MinimumCollector;
 import org.huebert.iotfsdb.collectors.ModeCollector;
+import org.huebert.iotfsdb.collectors.MultiplyingCollector;
 import org.huebert.iotfsdb.collectors.SummingCollector;
 import org.huebert.iotfsdb.schema.FindDataRequest;
 import org.huebert.iotfsdb.schema.FindDataResponse;
@@ -87,6 +89,8 @@ public class ReducerService {
             collector = Collectors.mapping(v -> v * v, new SummingCollector());
         } else if (reducer == Reducer.MEDIAN) {
             collector = new MedianCollector();
+        } else if (reducer == Reducer.MULTIPLY) {
+            collector = new MultiplyingCollector();
         } else {
             throw new IllegalArgumentException(String.format("reducer %s not supported", reducer));
         }
@@ -107,6 +111,8 @@ public class ReducerService {
             collector = Collectors.mapping(v -> v.pow(2), new BigDecimalSummingCollector());
         } else if (reducer == Reducer.MEDIAN) {
             collector = new BigDecimalMedianCollector();
+        } else if (reducer == Reducer.MULTIPLY) {
+            collector = new BigDecimalMultiplyingCollector();
         } else {
             throw new IllegalArgumentException(String.format("reducer %s not supported", reducer));
         }
