@@ -1,7 +1,6 @@
 @param String id
 @param String label = null
 @param String value = null
-@param boolean readOnly = false
 @param boolean disabled = false
 @param String placeholder = null
 
@@ -9,6 +8,11 @@
     @if(label != null)
         <label for="${id}">${label}</label>
     @endif
-    <input class="form-control" id="${id}" name="${id}" value="${value}" readonly="${readOnly}" disabled="${disabled}"
+    <input class="form-control"
+           id="${id}"
+           name="${id}"
+           value="${value}"
+           disabled="${disabled}"
+           autocomplete="${id}"
            placeholder="${placeholder}">
 </div>

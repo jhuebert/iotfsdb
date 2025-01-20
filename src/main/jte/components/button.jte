@@ -1,7 +1,6 @@
 @import gg.jte.Content
 
 @param boolean secondary = false
-@param boolean disabled = false
 @param String style = null
 @param Content hxGet = null
 @param Content hxPost = null
@@ -13,7 +12,6 @@
 
 <button class="btn ${secondary ? "btn-secondary" : "btn-primary"}"
         style="${style}"
-        disabled="${disabled}"
         hx-get="${hxGet}"
         hx-post="${hxPost}"
         hx-delete="${hxDelete}"
