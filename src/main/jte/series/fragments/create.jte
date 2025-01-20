@@ -3,8 +3,8 @@
 
 <script>
     function onNumberTypeChanged(self) {
-      const minElement = document.getElementById('typeMinimum');
-      const maxElement = document.getElementById('typeMaximum');
+      const minElement = document.getElementById('minimum');
+      const maxElement = document.getElementById('maximum');
       if (self.value.startsWith('MAPPED') || self.value.startsWith('CURVED')) {
         minElement.style.display = 'block';
         maxElement.style.display = 'block';
@@ -18,40 +18,19 @@
 </script>
 <h2>Create Series</h2>
 <form>
-    <fieldset>
-        <label>
-            ID
-            <input name="id" placeholder="ID" autocomplete="series-id"/>
-        </label>
-        <label>
-            Number Type
-            <select name="type" aria-label="Select the number type..." required onchange="onNumberTypeChanged(this)">
-                @for(NumberType type : NumberType.values())
-                    <option selected="${type == NumberType.FLOAT4}">${type}</option>
-                @endfor
-            </select>
-        </label>
-        <label>
-            Partition Period
-            <select name="partition" aria-label="Select the partition period..." required>
-                @for(PartitionPeriod period : PartitionPeriod.values())
-                    <option selected="${period == PartitionPeriod.MONTH}">${period}</option>
-                @endfor
-            </select>
-        </label>
-        <label>
-            Interval (ms)
-            <input type="number" name="interval" placeholder="60000" autocomplete="series-interval" min="1" step="1"/>
-        </label>
-        <label id="typeMinimum" style="display:none">
-            Minimum
-            <input type="number" name="min" placeholder="-1.0" autocomplete="series-minimum"/>
-        </label>
-        <label id="typeMaximum" style="display:none">
-            Maximum
-            <input type="number" name="max" placeholder="1.0" autocomplete="series-maximum"/>
-        </label>
-    </fieldset>
-    <input type="submit" value="Create" hx-post="/ui/series" hx-target="#main-body" hx-swap="innerHTML"
-           hx-on::response-error="handleHtmxResponseError(event)"/>
+    <div class="row mb-3">
+        @template.components.text(id = "id", label = "ID")
+    </div>
+    <div class="row mb-3">
+        @template.components.select(id = "type", label = "Number Type", values = NumberType.values(), selected = NumberType.FLOAT4)
+        @template.components.select(id = "partition", label = "Partition Period", values = PartitionPeriod.values(), selected = PartitionPeriod.MONTH)
+    </div>
+    <div class="row mb-3">
+        @template.components.number(id = "interval", label = "Interval (ms)", min = 1, step = 60000, value = 60000)
+        @template.components.number(id = "minimum", label = "Minimum", style = "display:none")
+        @template.components.number(id = "maximum", label = "Maximum", style = "display:none")
+    </div>
+    <div class="row p-3">
+        @template.components.button(content = @`Create`, hxPost = @`/ui/series`, hxTarget = "#main-body")
+    </div>
 </form>

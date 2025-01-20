@@ -4,118 +4,53 @@
 @import org.huebert.iotfsdb.ui.service.PlotData
 @import org.huebert.iotfsdb.ui.service.SearchParser
 @import java.time.ZonedDateTime
-@import java.time.format.DateTimeFormatter
 
 @param FindDataRequest request
 @param PlotData plotData
 
-!{DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");}
-
 <script>
     function dateTimePresetChanged(self) {
-      const fromDateTime = document.getElementById('fromDateTime');
-      const toDateTime = document.getElementById('toDateTime');
+      const fromDateTime = document.getElementById('from');
+      const toDateTime = document.getElementById('to');
       if (self.value === 'NONE') {
-        fromDateTime.style.display = 'block';
-        toDateTime.style.display = 'block';
+        fromDateTime.disabled = false;
+        toDateTime.disabled = false;
       } else {
-        fromDateTime.style.display = 'none';
-        toDateTime.style.display = 'none';
+        fromDateTime.disabled = true;
+        toDateTime.disabled = true;
       }
     }
 </script>
 <form>
-    <fieldset role="group">
-        <input name="search" type="search" placeholder="Search"
-               value="${request != null ? SearchParser.toSearch(request.getSeries()) : null}"/>
-        <button hx-post="/ui/data/search" hx-target="#chart-data" hx-swap="innerHTML"
-                hx-on::response-error="handleHtmxResponseError(event)">Search
-        </button>
-    </fieldset>
-    <details>
-        <summary>Time</summary>
-        <label>
-            Preset
-            <select name="dateTimePreset" aria-label="Select the date time preset..."
-                    onchange="dateTimePresetChanged(this)">
-                @for(DateTimePreset preset : DateTimePreset.values())
-                    <option
-                        selected="${request != null ? preset == request.getDateTimePreset() : preset == DateTimePreset.LAST_24_HOURS}">${preset}</option>
-                @endfor
-            </select>
-        </label>
-        <fieldset>
-            <input id="fromDateTime"
-                   style="display: ${request == null ? "none" : (request.getDateTimePreset() == null || request.getDateTimePreset() == DateTimePreset.NONE ? "block" : "none")}"
-                   type="datetime-local" name="from" aria-label="From Time"
-                   value="${request != null ? request.getFrom().toLocalDateTime().format(formatter) : ZonedDateTime.now().minusDays(1).toLocalDateTime().format(formatter)}">
-            <input id="toDateTime"
-                   style="display: ${request == null ? "none" : (request.getDateTimePreset() == null || request.getDateTimePreset() == DateTimePreset.NONE ? "block" : "none")}"
-                   type="datetime-local" name="to" aria-label="To Time"
-                   value="${request != null ? request.getTo().toLocalDateTime().format(formatter) : ZonedDateTime.now().toLocalDateTime().format(formatter)}">
-        </fieldset>
-    </details>
-    <details>
-        <summary>Advanced</summary>
-        <fieldset class="grid">
-            <label>
-                Size
-                <input type="number" name="size" aria-label="Size" min="1"
-                       value="${request != null ? request.getSize() : 250}">
-            </label>
-            <label>
-                Interval (ms)
-                <input type="number" name="interval" aria-label="Size" min="1"
-                       value="${request != null ? request.getInterval() : 60000}">
-            </label>
-            <label>
-                Null Value
-                <input type="number" name="nullValue" aria-label="Null Value"
-                       value="${request != null ? request.getNullValue() : null}">
-            </label>
-        </fieldset>
-        <fieldset class="grid">
-            <label>
-                Time Reducer
-                <select name="timeReducer" aria-label="Select the time reducer..." required>
-                    @for(Reducer reducer : Reducer.values())
-                        <option
-                            selected="${request != null ? reducer == request.getTimeReducer() : reducer == Reducer.AVERAGE}">${reducer}</option>
-                    @endfor
-                </select>
-            </label>
-            <label>
-                Series Reducer
-                <select name="seriesReducer" aria-label="Select the series reducer...">
-                    <option></option>
-                    @for(Reducer reducer : Reducer.values())
-                        <option
-                            selected="${request != null && reducer == request.getSeriesReducer()}">${reducer}</option>
-                    @endfor
-                </select>
-            </label>
-        </fieldset>
-        <fieldset class="grid">
-            <label>
-                Include Null
-                <input type="checkbox" role="switch" name="includeNull" aria-label="Include null"
-                       checked="${request != null && request.isIncludeNull()}">
-            </label>
-            <label>
-                Use Big Decimal
-                <input type="checkbox" role="switch" name="useBigDecimal" aria-label="Use Big Decimal"
-                       checked="${request != null && request.isUseBigDecimal()}">
-            </label>
-            <label>
-                Use Previous
-                <input type="checkbox" role="switch" name="usePrevious" aria-label="Use Previous"
-                       checked="${request != null && request.isUsePrevious()}">
-            </label>
-        </fieldset>
-    </details>
+    <div class="row mb-3">
+        @template.components.search(hxPost = @`/ui/data/search`, hxTarget = "#chart-data", value = SearchParser.toSearch(request))
+    </div>
+    <div class="row mb-3">
+        @template.components.select(id = "dateTimePreset", label = "Preset", onchange="dateTimePresetChanged(this)", values = DateTimePreset.values(), selected = request != null ? request.getDateTimePreset() : DateTimePreset.LAST_24_HOURS)
+        @template.components.datetime(id = "from", label = "From", disabled = request == null || (request.getDateTimePreset() != null && request.getDateTimePreset() != DateTimePreset.NONE), value = request != null && request.getFrom() != null ? request.getFrom() : ZonedDateTime.now().minusDays(1))
+        @template.components.datetime(id = "to", label = "To", disabled = request == null || (request.getDateTimePreset() != null && request.getDateTimePreset() != DateTimePreset.NONE), value = request != null && request.getTo() != null ? request.getTo() : ZonedDateTime.now())
+    </div>
+    <div class="row mb-3">
+        <details>
+            <summary>Additional Parameters</summary>
+            <div class="row mt-3 mb-3">
+                @template.components.number(id = "size", label = "Size", min = 1, value = request != null ? request.getSize() : 250)
+                @template.components.number(id = "interval", label = "Interval (ms)", min = 1L, step = 60000L, value = request != null ? request.getInterval() : 60000L)
+                @template.components.number(id = "nullValue", label = "Null Value", value = request != null && request.getNullValue() != null ? request.getNullValue().doubleValue() : null)
+            </div>
+            <div class="row mb-3">
+                @template.components.select(id = "timeReducer", label = "Time Reducer", values = Reducer.values(), selected = request != null ? request.getTimeReducer() : Reducer.AVERAGE)
+                @template.components.select(id = "seriesReducer", label = "Series Reducer", emptyOption = true, values = Reducer.values(), selected = request != null ? request.getSeriesReducer() : null)
+            </div>
+            <div class="row mb-3">
+                @template.components.switch(id = "includeNull", label = "Include Null", checked = request != null && request.isIncludeNull())
+                @template.components.switch(id = "useBigDecimal", label = "Use Big Decimal", checked = request != null && request.isUseBigDecimal())
+                @template.components.switch(id = "usePrevious", label = "Use Previous", checked = request != null && request.isUsePrevious())
+            </div>
+        </details>
+    </div>
 </form>
 <div>
-    <hr/>
     <canvas id="plot"></canvas>
     <script>
         const chart = new Chart(document.getElementById('plot'), {

@@ -8,6 +8,7 @@ import org.huebert.iotfsdb.schema.FindDataResponse;
 import org.huebert.iotfsdb.schema.Reducer;
 import org.huebert.iotfsdb.schema.SeriesData;
 import org.huebert.iotfsdb.service.QueryService;
+import org.huebert.iotfsdb.service.TimeConverter;
 import org.huebert.iotfsdb.ui.service.ObjectEncoder;
 import org.huebert.iotfsdb.ui.service.PlotData;
 import org.huebert.iotfsdb.ui.service.SearchParser;
@@ -78,8 +79,8 @@ public class DataUiController {
         HttpServletResponse response,
         @RequestParam("search") String search,
         @RequestParam("dateTimePreset") DateTimePreset dateTimePreset,
-        @RequestParam("from") LocalDateTime from,
-        @RequestParam("to") LocalDateTime to,
+        @RequestParam(value = "from", required = false) LocalDateTime from,
+        @RequestParam(value = "to", required = false) LocalDateTime to,
         @RequestParam(value = "interval", required = false, defaultValue = "60000") Long interval,
         @RequestParam(value = "size", required = false, defaultValue = "250") Integer size,
         @RequestParam(value = "includeNull", required = false) String includeNull,
@@ -93,8 +94,8 @@ public class DataUiController {
         FindDataRequest request = new FindDataRequest();
         request.setSeries(SearchParser.fromSearch(search));
         request.setDateTimePreset(dateTimePreset);
-        request.setFrom(from.atZone(ZoneId.of("UTC")));
-        request.setTo(to.atZone(ZoneId.of("UTC")));
+        request.setFrom(from != null ? TimeConverter.toUtc(from) : null);
+        request.setTo(to != null ? TimeConverter.toUtc(to) : null);
         request.setInterval(interval);
         request.setSize(size);
         request.setIncludeNull("on".equalsIgnoreCase(includeNull));

@@ -1,6 +1,7 @@
 package org.huebert.iotfsdb.ui.service;
 
 import org.apache.logging.log4j.util.Strings;
+import org.huebert.iotfsdb.schema.FindDataRequest;
 import org.huebert.iotfsdb.schema.FindSeriesRequest;
 
 import java.util.ArrayList;
@@ -25,7 +26,17 @@ public class SearchParser {
         return request;
     }
 
+    public static String toSearch(FindDataRequest request) {
+        if (request == null) {
+            return null;
+        }
+        return toSearch(request.getSeries());
+    }
+
     public static String toSearch(FindSeriesRequest request) {
+        if (request == null) {
+            return null;
+        }
         List<String> parts = new ArrayList<>();
         parts.add(request.getPattern().toString());
         for (Map.Entry<String, Pattern> entry : request.getMetadata().entrySet()) {

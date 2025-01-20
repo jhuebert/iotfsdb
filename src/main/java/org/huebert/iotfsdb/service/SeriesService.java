@@ -65,7 +65,7 @@ public class SeriesService {
 
         for (Map.Entry<String, Pattern> entry : metadata.entrySet()) {
             String seriesValue = seriesMetadata.get(entry.getKey());
-            if (!entry.getValue().matcher(seriesValue).matches()) {
+            if ((seriesValue == null) || !entry.getValue().matcher(seriesValue).matches()) {
                 return false;
             }
         }

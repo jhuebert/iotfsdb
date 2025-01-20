@@ -8,31 +8,20 @@
 
 !{boolean isNew = (key == null) && (value == null);}
 
-<form class="grid metadata-row" style="grid-template-columns: 4fr 2fr"
-      hx-on::after-request="if(event.detail.successful) this.reset()">
-    <div role="group">
-        <input name="key" placeholder="Key" autocomplete="metadata-key" value="${key}" readonly="${!isNew}"/>
-        <input name="value" placeholder="Value" autocomplete="metadata-value" value="${value}"
-               readonly="${environment.getProperty("iotfsdb.read-only", Boolean.class, true)}"/>
+<form class="metadata-row" hx-on::after-request="if(event.detail.successful) this.reset()">
+    <div class="row mb-3">
+        @template.components.text(id = "key", value = key, disabled = !isNew, placeholder = "Key")
+        @template.components.text(id = "value", value = value, disabled = environment.getProperty("iotfsdb.read-only", Boolean.class, true), placeholder = "Value")
+        @if(!environment.getProperty("iotfsdb.read-only", Boolean.class, true))
+            <div class="col col-md-auto">
+                @if(isNew)
+                    @template.components.button(content = @`<img src="/icons/floppy.svg"/>`, hxPost = @`/ui/series/${file.getId()}/metadata`, hxTarget = "closest .metadata-row", hxSwap = "beforebegin")
+                    @template.components.button(content = @`<img src="/icons/trash.svg"/>`, secondary = true, style="visibility: hidden")
+                @else
+                    @template.components.button(content = @`<img src="/icons/floppy.svg"/>`, hxPost = @`/ui/series/${file.getId()}/metadata/${key}`, hxTarget = "closest .metadata-row", hxSwap = "outerHTML")
+                    @template.components.button(content = @`<img src="/icons/trash.svg"/>`, secondary = true, hxConfirm = @`Are you sure you want to delete '${key}'?`, hxDelete = @`/ui/series/${file.getId()}/metadata/${key}`, hxTarget = "closest .metadata-row")
+                @endif
+            </div>
+        @endif
     </div>
-    @if(!environment.getProperty("iotfsdb.read-only", Boolean.class, true))
-        <div class="group">
-            @if(isNew)
-                <button hx-post="/ui/series/${file.getId()}/metadata" hx-target="closest .metadata-row"
-                        hx-swap="beforebegin" hx-on::response-error="handleHtmxResponseError(event)">
-                    <img src="/icons/floppy.svg"/>
-                </button>
-            @else
-                <button hx-post="/ui/series/${file.getId()}/metadata/${key}" hx-target="closest .metadata-row"
-                        hx-swap="outerHTML" hx-on::response-error="handleHtmxResponseError(event)">
-                    <img src="/icons/floppy.svg"/>
-                </button>
-                <button class="secondary" title="Delete Series" hx-delete="/ui/series/${file.getId()}/metadata/${key}"
-                        hx-confirm="Are you sure you want to delete '${key}'?" hx-target="closest .metadata-row"
-                        hx-on::response-error="handleHtmxResponseError(event)">
-                    <img src="/icons/trash.svg"/>
-                </button>
-            @endif
-        </div>
-    @endif
 </form>

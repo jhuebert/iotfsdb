@@ -6,69 +6,57 @@
 @param Environment environment
 @param List<SeriesFile> series
 
-@for(SeriesFile file : series)
-    <article class="series-row">
-        <div class="grid" style="grid-template-columns: 4fr 1fr">
-            <div>
-                <h4>${file.getId()}</h4>
-            </div>
-            <div class="grid">
-                <button class="secondary" title="Export Series"
-                        onclick="location.href='/ui/series/${file.getId()}/export'">
-                    <img src="/icons/download.svg"/>
-                </button>
-                @if(!environment.getProperty("iotfsdb.read-only", Boolean.class, true))
-                    <button class="secondary" title="Delete Series" hx-delete="/ui/series/${file.getId()}"
-                            hx-confirm="Are you sure you want to delete '${file.getId()}'?" hx-swap="outerHTML"
-                            hx-target="closest .series-row" hx-on::response-error="handleHtmxResponseError(event)">
-                        <img src="/icons/trash.svg"/>
-                    </button>
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th scope="col"><h4>ID</h4></th>
+        <th scope="col"><h4>Type</h4></th>
+        <th scope="col"><h4>Partition</h4></th>
+        <th scope="col"><h4>Interval</h4></th>
+        <th scope="col"><h4>Range</h4></th>
+        <th scope="col"></th>
+    </tr>
+    </thead>
+    <tbody>
+    @for(SeriesFile file : series)
+        <tr class="align-middle series-row">
+            <td>${file.getId()}</td>
+            <td><kbd>${file.getDefinition().getType()}</kbd></td>
+            <td><kbd>${file.getDefinition().getPartition()}</kbd></td>
+            <td>${file.getDefinition().getInterval()}ms</td>
+            <td>
+                @if((file.getDefinition().getMin() != null) || (file.getDefinition().getMax() != null))
+                    ${file.getDefinition().getMin()} - ${file.getDefinition().getMax()}
                 @endif
-            </div>
-        </div>
-        <hr/>
-        <div>
-            <details>
-                <summary>Details</summary>
-                <div class="grid">
-                    <div>
-                        <div><h6>Type</h6></div>
-                        <div><kbd>${file.getDefinition().getType()}</kbd></div>
-                    </div>
-                    <div>
-                        <div><h6>Partition</h6></div>
-                        <div><kbd>${file.getDefinition().getPartition()}</kbd></div>
-                    </div>
-                    <div>
-                        <div><h6>Interval (ms)</h6></div>
-                        <div>${file.getDefinition().getInterval()}</div>
-                    </div>
-                    @if(file.getDefinition().getMin() != null)
-                        <div>
-                            <div><h6>Minimum</h6></div>
-                            <div>${file.getDefinition().getMin()}</div>
-                        </div>
-                    @endif
-                    @if(file.getDefinition().getMax() != null)
-                        <div>
-                            <div><h6>Maximum</h6></div>
-                            <div>${file.getDefinition().getMax()}</div>
-                        </div>
-                    @endif
-                </div>
-                <br>
-                <h5>Metadata</h5>
-                @for(Entry<String, String> entry : file.getMetadata().entrySet())
-                    @template.series.fragments.metadata-row(environment = environment, file = file, key = entry.getKey(), value = entry.getValue())
-                @endfor
+            </td>
+            <td>
+                @template.components.anchor(content = @`<img src="/icons/download.svg"/>`, href = @`/ui/series/${file.getId()}/export`)
                 @if(!environment.getProperty("iotfsdb.read-only", Boolean.class, true))
-                    @template.series.fragments.metadata-row(environment = environment, file = file, key = null, value = null)
+                    @template.components.button(content = @`<img src="/icons/trash.svg"/>`, secondary = true, hxDelete = @`/ui/series/${file.getId()}`, hxConfirm = @`Are you sure you want to delete '${file.getId()}'?`, hxSwap = "outerHTML", hxTarget = "closest .series-row")
                 @endif
-            </details>
-        </div>
-    </article>
-@else
-    <div style="text-align: center">
-        <h4>No results</h4>
-    </div>
-@endfor
+            </td>
+        </tr>
+        <tr>
+            <th colspan="6" scope="row">
+                <details>
+                    <summary>Metadata</summary>
+                    <div class="row mt-3">
+                        @for(Entry<String, String> entry : file.getMetadata().entrySet())
+                            @template.series.fragments.metadata-row(environment = environment, file = file, key = entry.getKey(), value = entry.getValue())
+                        @endfor
+                        @if(!environment.getProperty("iotfsdb.read-only", Boolean.class, true))
+                            @template.series.fragments.metadata-row(environment = environment, file = file, key = null, value = null)
+                        @endif
+                    </div>
+                </details>
+            </th>
+        </tr>
+    @else
+        <tr>
+            <th class="text-center" colspan="6" scope="row">
+                <h4>No results</h4>
+            </th>
+        </tr>
+    @endfor
+    </tbody>
+</table>

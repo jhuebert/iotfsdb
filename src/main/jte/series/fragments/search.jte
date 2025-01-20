@@ -8,16 +8,9 @@
 @param FindSeriesRequest request
 @param List<SeriesFile> series
 
-<form role="search">
-    <input name="search" type="search" placeholder="Search"
-           value="${request != null ? SearchParser.toSearch(request) : null}"/>
-    <button hx-post="/ui/series/search" hx-target="#results" hx-swap="innerHTML"
-            hx-on::response-error="handleHtmxResponseError(event)">Search
-    </button>
+<form class="mb-3">
+    @template.components.search(hxPost = @`/ui/series/search`, hxTarget = "#results", value = SearchParser.toSearch(request))
 </form>
-<div>
-    <hr/>
-    <div id="results">
-        @template.series.fragments.results(environment = environment, series = series)
-    </div>
+<div id="results">
+    @template.series.fragments.results(environment = environment, series = series)
 </div>
