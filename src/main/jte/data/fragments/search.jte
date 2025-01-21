@@ -22,30 +22,36 @@
     }
 </script>
 <form>
-    <div class="row mb-3">
-        @template.components.search(hxPost = @`/ui/data/search`, hxTarget = "#chart-data", value = SearchParser.toSearch(request))
+    <div class="row mb-1">
+        @template.components.search(hxPost = @`/ui/data/search`, hxTarget = "#chart-data", value = SearchParser.toSearch(request), small = true)
     </div>
-    <div class="row mb-3">
-        @template.components.select(id = "dateTimePreset", label = "Preset", onchange="dateTimePresetChanged(this)", values = DateTimePreset.values(), selected = request != null ? request.getDateTimePreset() : DateTimePreset.LAST_24_HOURS)
-        @template.components.datetime(id = "from", label = "From", disabled = request == null || (request.getDateTimePreset() != null && request.getDateTimePreset() != DateTimePreset.NONE), value = request != null && request.getFrom() != null ? request.getFrom() : ZonedDateTime.now().minusDays(1))
-        @template.components.datetime(id = "to", label = "To", disabled = request == null || (request.getDateTimePreset() != null && request.getDateTimePreset() != DateTimePreset.NONE), value = request != null && request.getTo() != null ? request.getTo() : ZonedDateTime.now())
+    <div class="row mb-1">
+        <div class="col col-md-auto">
+            @template.components.select(id = "dateTimePreset", small = true, onchange="dateTimePresetChanged(this)", values = DateTimePreset.values(), selected = request != null ? request.getDateTimePreset() : DateTimePreset.LAST_24_HOURS)
+        </div>
+        <div class="col">
+            @template.components.datetime(id = "from", small = true, disabled = request == null || (request.getDateTimePreset() != null && request.getDateTimePreset() != DateTimePreset.NONE), value = request != null && request.getFrom() != null ? request.getFrom() : ZonedDateTime.now().minusDays(1))
+        </div>
+        <div class="col">
+            @template.components.datetime(id = "to", small = true, disabled = request == null || (request.getDateTimePreset() != null && request.getDateTimePreset() != DateTimePreset.NONE), value = request != null && request.getTo() != null ? request.getTo() : ZonedDateTime.now())
+        </div>
     </div>
-    <div class="row mb-3">
+    <div class="row mb-1">
         <details>
-            <summary>Additional Parameters</summary>
-            <div class="row mt-3 mb-3">
-                @template.components.number(id = "size", label = "Size", min = 1, value = request != null ? request.getSize() : 250)
-                @template.components.number(id = "interval", label = "Interval (ms)", min = 1L, step = 60000L, value = request != null ? request.getInterval() : 60000L)
-                @template.components.number(id = "nullValue", label = "Null Value", value = request != null && request.getNullValue() != null ? request.getNullValue().doubleValue() : null)
+            <summary><small>Advanced</small></summary>
+            <div class="row mt-1 mb-1">
+                @template.components.number(id = "size", label = "Size", min = 1, value = request != null ? request.getSize() : 250, small = true)
+                @template.components.number(id = "interval", label = "Interval (ms)", min = 1L, step = 60000L, value = request != null ? request.getInterval() : 60000L, small = true)
+                @template.components.number(id = "nullValue", label = "Null Value", value = request != null && request.getNullValue() != null ? request.getNullValue().doubleValue() : null, small = true)
             </div>
-            <div class="row mb-3">
-                @template.components.select(id = "timeReducer", label = "Time Reducer", values = Reducer.values(), selected = request != null ? request.getTimeReducer() : Reducer.AVERAGE)
-                @template.components.select(id = "seriesReducer", label = "Series Reducer", emptyOption = true, values = Reducer.values(), selected = request != null ? request.getSeriesReducer() : null)
+            <div class="row mb-1">
+                @template.components.select(id = "timeReducer", small = true, label = "Time Reducer", values = Reducer.values(), selected = request != null ? request.getTimeReducer() : Reducer.AVERAGE)
+                @template.components.select(id = "seriesReducer", small = true, label = "Series Reducer", emptyOption = true, values = Reducer.values(), selected = request != null ? request.getSeriesReducer() : null)
             </div>
-            <div class="row mb-3">
-                @template.components.switch(id = "includeNull", label = "Include Null", checked = request != null && request.isIncludeNull())
-                @template.components.switch(id = "useBigDecimal", label = "Use Big Decimal", checked = request != null && request.isUseBigDecimal())
-                @template.components.switch(id = "usePrevious", label = "Use Previous", checked = request != null && request.isUsePrevious())
+            <div class="row mb-1">
+                @template.components.switch(id = "includeNull", label = "Include Null", checked = request != null && request.isIncludeNull(), small = true)
+                @template.components.switch(id = "useBigDecimal", label = "Use Big Decimal", checked = request != null && request.isUseBigDecimal(), small = true)
+                @template.components.switch(id = "usePrevious", label = "Use Previous", checked = request != null && request.isUsePrevious(), small = true)
             </div>
         </details>
     </div>

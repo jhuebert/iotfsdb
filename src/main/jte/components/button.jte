@@ -1,6 +1,7 @@
 @import gg.jte.Content
 
 @param boolean secondary = false
+@param boolean small = false
 @param String style = null
 @param Content hxGet = null
 @param Content hxPost = null
@@ -10,7 +11,7 @@
 @param String hxSwap = "innerHTML"
 @param Content content
 
-<button class="btn ${secondary ? "btn-secondary" : "btn-primary"}"
+<button class="btn ${secondary ? "btn-secondary" : "btn-primary"} ${small ? "btn-sm" : ""}"
         style="${style}"
         hx-get="${hxGet}"
         hx-post="${hxPost}"

@@ -4,12 +4,19 @@
 @param Object selected
 @param String onchange = null
 @param boolean emptyOption = false
+@param boolean small = false
 
 <div class="col">
     @if(label != null)
-        <label for="${id}">${label}</label>
+        <label for="${id}">
+            @if(small)
+                <small>${label}</small>
+            @else
+                ${label}
+            @endif
+        </label>
     @endif
-    <select class="form-select" id="${id}" name="${id}" aria-label="Select the ${label}..." required
+    <select class="form-select ${small ? "form-select-sm" : ""}" id="${id}" name="${id}" required
             onchange="${onchange}">
         @if(emptyOption)
             <option></option>

@@ -14,7 +14,7 @@
       }
     }
 </script>
-<h2>Create Series</h2>
+<h4>Create Series</h4>
 <form>
     <div class="row mb-3">
         @template.components.text(id = "id", label = "ID")

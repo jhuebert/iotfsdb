@@ -5,6 +5,7 @@
 @param String label = null
 @param ZonedDateTime value
 @param boolean disabled = false
+@param boolean small = false
 
 !{DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");}
 
@@ -12,7 +13,7 @@
     @if(label != null)
         <label for="${id}">${label}</label>
     @endif
-    <input class="form-control"
+    <input class="form-control ${small ? "form-control-sm" : ""}"
            id="${id}"
            disabled="${disabled}"
            type="datetime-local"
