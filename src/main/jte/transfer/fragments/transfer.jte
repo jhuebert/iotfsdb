@@ -8,7 +8,7 @@
     </div>
     @if(!environment.getProperty("iotfsdb.read-only", Boolean.class, true))
         <div class="row mb-3">
-            <form id='form' hx-encoding='multipart/form-data' hx-post='/ui/data/import'>
+            <form id='form' hx-encoding='multipart/form-data' hx-post='/ui/transfer/import'>
                 <div class="input-group">
                     <input class="form-control" type='file' name='file'>
                     @template.components.button(content = @`<img src="/icons/download.svg"/> Import Data`)
