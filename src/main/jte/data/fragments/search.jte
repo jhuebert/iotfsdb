@@ -76,6 +76,9 @@
             scales: {
                 x: {
                     type: 'time'
+                },
+                y: {
+                    position: 'right'
                 }
             }
           }

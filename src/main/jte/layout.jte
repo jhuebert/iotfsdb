@@ -31,7 +31,7 @@
         }
     </script>
 </head>
-<body class="container-fluid">
+<body class="container-fluid h-100 p-0">
 <nav class="navbar navbar-expand-lg bg-body-tertiary">
     <div class="container-fluid">
         <a class="navbar-brand" href="/ui">iotfsdb</a>
@@ -51,7 +51,7 @@
         </div>
     </div>
 </nav>
-<div class="mt-3" id="main-body">
+<div class="p-3" id="main-body">
     ${content}
 </div>
 <div id="error-div">
