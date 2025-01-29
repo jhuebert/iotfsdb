@@ -20,6 +20,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
             integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
             crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@^4"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment@^2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@^1"></script>
@@ -30,9 +31,16 @@
           document.getElementById('error-dialog').showModal();
         }
     </script>
+    <style>
+        html,
+        body {
+          height: 100%;
+          margin: 0;
+        }
+    </style>
 </head>
 <body class="container-fluid h-100 p-0">
-<nav class="navbar navbar-expand-lg bg-body-tertiary">
+<nav class="navbar navbar-expand-sm bg-body-tertiary">
     <div class="container-fluid">
         <a class="navbar-brand" href="/ui">iotfsdb</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
@@ -46,12 +54,12 @@
                 <li class="nav-item"><a class="nav-link" href="/ui/transfer">Transfer</a></li>
             </ul>
             @if(!environment.getProperty("iotfsdb.read-only", Boolean.class, true))
-                @template.components.button(content = @`<img src="/icons/plus.svg"/> Create Series`, hxGet=@`/ui/series/create`, hxTarget="#main-body")
+                @template.components.button(content = @`<i class="bi bi-plus"></i> Create Series`, hxGet=@`/ui/series/create`, hxTarget="#main-body")
             @endif
         </div>
     </div>
 </nav>
-<div class="p-3" id="main-body">
+<div class="h-100 p-3" id="main-body">
     ${content}
 </div>
 <div id="error-div">

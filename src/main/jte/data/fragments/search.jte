@@ -22,33 +22,27 @@
     }
 </script>
 <form>
-    <div class="row mb-1">
+    <div class="row mb-2">
         @template.components.search(hxPost = @`/ui/data/search`, hxTarget = "#chart-data", value = SearchParser.toSearch(request), small = true)
     </div>
-    <div class="row mb-1">
-        <div class="col col-md-auto">
-            @template.components.select(id = "dateTimePreset", small = true, onchange="dateTimePresetChanged(this)", values = DateTimePreset.values(), selected = request != null ? request.getDateTimePreset() : DateTimePreset.LAST_24_HOURS)
-        </div>
-        <div class="col">
-            @template.components.datetime(id = "from", small = true, disabled = request == null || (request.getDateTimePreset() != null && request.getDateTimePreset() != DateTimePreset.NONE), value = request != null && request.getFrom() != null ? request.getFrom() : ZonedDateTime.now().minusDays(1))
-        </div>
-        <div class="col">
-            @template.components.datetime(id = "to", small = true, disabled = request == null || (request.getDateTimePreset() != null && request.getDateTimePreset() != DateTimePreset.NONE), value = request != null && request.getTo() != null ? request.getTo() : ZonedDateTime.now())
-        </div>
+    <div class="row mb-2">
+        @template.components.select(id = "dateTimePreset", small = true, onchange="dateTimePresetChanged(this)", values = DateTimePreset.values(), selected = request != null ? request.getDateTimePreset() : DateTimePreset.LAST_24_HOURS)
+        @template.components.datetime(id = "from", small = true, disabled = request == null || (request.getDateTimePreset() != null && request.getDateTimePreset() != DateTimePreset.NONE), value = request != null && request.getFrom() != null ? request.getFrom() : ZonedDateTime.now().minusDays(1))
+        @template.components.datetime(id = "to", small = true, disabled = request == null || (request.getDateTimePreset() != null && request.getDateTimePreset() != DateTimePreset.NONE), value = request != null && request.getTo() != null ? request.getTo() : ZonedDateTime.now())
     </div>
-    <div class="row mb-1">
+    <div class="row mb-2">
         <details>
             <summary><small>Advanced</small></summary>
-            <div class="row mt-1 mb-1">
+            <div class="row mt-1 mb-2">
                 @template.components.number(id = "size", label = "Size", min = 1, value = request != null ? request.getSize() : 250, small = true)
                 @template.components.number(id = "interval", label = "Interval (ms)", min = 1L, step = 60000L, value = request != null ? request.getInterval() : 60000L, small = true)
                 @template.components.number(id = "nullValue", label = "Null Value", value = request != null && request.getNullValue() != null ? request.getNullValue().doubleValue() : null, small = true)
             </div>
-            <div class="row mb-1">
+            <div class="row mb-2">
                 @template.components.select(id = "timeReducer", small = true, label = "Time Reducer", values = Reducer.values(), selected = request != null ? request.getTimeReducer() : Reducer.AVERAGE)
                 @template.components.select(id = "seriesReducer", small = true, label = "Series Reducer", emptyOption = true, values = Reducer.values(), selected = request != null ? request.getSeriesReducer() : null)
             </div>
-            <div class="row mb-1">
+            <div class="row mb-2">
                 @template.components.switch(id = "includeNull", label = "Include Null", checked = request != null && request.isIncludeNull(), small = true)
                 @template.components.switch(id = "useBigDecimal", label = "Use Big Decimal", checked = request != null && request.isUseBigDecimal(), small = true)
                 @template.components.switch(id = "usePrevious", label = "Use Previous", checked = request != null && request.isUsePrevious(), small = true)
@@ -56,8 +50,8 @@
         </details>
     </div>
 </form>
-<div>
-    <canvas id="plot"></canvas>
+<div class="h-100">
+    <canvas id="plot" style="width: 100%; height: 100%;"></canvas>
     <script>
         const chart = new Chart(document.getElementById('plot'), {
           type: 'line',
@@ -68,6 +62,8 @@
           options: {
             animation: false,
             cubicInterpolationMode: 'monotone',
+            maintainAspectRatio: true,
+            responsive: true,
             elements: {
               line: {
                 spanGaps: true
@@ -79,6 +75,14 @@
                 },
                 y: {
                     position: 'right'
+                },
+                y2: {
+                    position: 'left',
+                    afterBuildTicks: (axis) => {
+                      axis.ticks = [...axis.chart.scales.y.ticks];
+                      axis.min = axis.chart.scales.y.min;
+                      axis.max = axis.chart.scales.y.max;
+                    }
                 }
             }
           }

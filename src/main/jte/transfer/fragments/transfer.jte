@@ -10,11 +10,11 @@
         <form id='form' hx-encoding='multipart/form-data' hx-post='/ui/transfer/import'>
             <div class="input-group">
                 <input class="form-control" type='file' name='file'>
-                @template.components.button(content = @`<img src="/icons/download.svg"/> Import Data`)
+                @template.components.button(content = @`<i class="bi bi-download"></i> Import Data`)
             </div>
         </form>
     </div>
 @endif
 <div class="row p-3">
-    @template.components.anchor(content = @`<img src="/icons/download.svg"/> Export Database`, href = @`/ui/transfer/export`)
+    @template.components.anchor(content = @`<i class="bi bi-download"></i> Export Database`, href = @`/ui/transfer/export`)
 </div>
