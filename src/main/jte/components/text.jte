@@ -6,7 +6,7 @@
 
 <div class="col">
     @if(label != null)
-        <label for="${id}">${label}</label>
+        <label class="text-nowrap" for="${id}">${label}</label>
     @endif
     <input class="form-control"
            id="${id}"

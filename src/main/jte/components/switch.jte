@@ -6,7 +6,7 @@
 <div class="col">
     <div class="form-check form-switch">
         <input class="form-check-input" type="checkbox" role="switch" id="${id}" name="${id}" checked="${checked}">
-        <label class="form-check-label" for="${id}">
+        <label class="form-check-label text-nowrap" for="${id}">
             @if(small)
                 <small>${label}</small>
             @else

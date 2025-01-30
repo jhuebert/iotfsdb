@@ -11,7 +11,7 @@
 @param String hxSwap = "innerHTML"
 @param Content content
 
-<button class="btn ${secondary ? "btn-secondary" : "btn-primary"} ${small ? "btn-sm" : ""}"
+<button class="btn ${secondary ? "btn-secondary" : "btn-primary"} ${small ? "btn-sm" : ""} text-nowrap"
         style="${style}"
         hx-get="${hxGet}"
         hx-post="${hxPost}"

@@ -42,7 +42,7 @@
 <body class="container-fluid h-100 p-0">
 <nav class="navbar navbar-expand-sm bg-body-tertiary">
     <div class="container-fluid">
-        <a class="navbar-brand" href="/ui"><i class="bi bi-cpu"></i> iotfsdb</a>
+        <a class="navbar-brand" href="/ui"><img src="/icons/cpu.svg" /> iotfsdb</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>

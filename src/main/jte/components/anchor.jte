@@ -3,6 +3,6 @@
 @param Content href = null
 @param Content content
 
-<a class="btn btn-primary" href="${href}">
+<a class="btn btn-primary text-nowrap" href="${href}">
     ${content}
 </a>

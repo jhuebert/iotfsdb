@@ -7,7 +7,7 @@
 @param boolean small = false
 
 <div class="col">
-    <label for="${id}">
+    <label class="text-nowrap" for="${id}">
         @if(small)
             <small>${label}</small>
         @else

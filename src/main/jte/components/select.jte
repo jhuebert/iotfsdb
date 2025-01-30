@@ -8,7 +8,7 @@
 
 <div class="col">
     @if(label != null)
-        <label for="${id}">
+        <label class="text-nowrap" for="${id}">
             @if(small)
                 <small>${label}</small>
             @else
