@@ -24,29 +24,39 @@
         <div class="card-body">
             <div class="row">
                 <div class="col">
-                    <div class="row card-subtitle text-body-secondary">
+                    <div class="row card-subtitle text-center">
                         <div class="col">
-                            <small>Type:</small>
-                            <small class="font-monospace">${file.getDefinition().getType()}</small>
+                            <div class="row">
+                                <small class="text-body-emphasis">Type</small>
+                                <small class="text-body-secondary text-body-secondary font-monospace">${file.getDefinition().getType()}</small>
+                            </div>
                         </div>
                         <div class="col">
-                            <small>Partition:</small>
-                            <small class="font-monospace">${file.getDefinition().getPartition()}</small>
+                            <div class="row">
+                                <small class="text-body-emphasis">Partition</small>
+                                <small class="text-body-secondary font-monospace">${file.getDefinition().getPartition()}</small>
+                            </div>
                         </div>
                         <div class="col">
-                            <small>Interval:</small>
-                            <small class="font-monospace">${file.getDefinition().getInterval()}ms</small>
+                            <div class="row">
+                                <small class="text-body-emphasis">Interval</small>
+                                <small class="text-body-secondary font-monospace">${file.getDefinition().getInterval()}ms</small>
+                            </div>
                         </div>
                         @if(file.getDefinition().getMin() != null)
                             <div class="col">
-                                <small>Minimum:</small>
-                                <small class="font-monospace">${file.getDefinition().getMin()}</small>
+                                <div class="row">
+                                    <small class="text-body-emphasis">Minimum</small>
+                                    <small class="text-body-secondary font-monospace">${file.getDefinition().getMin()}</small>
+                                </div>
                             </div>
                         @endif
                         @if(file.getDefinition().getMax() != null)
                             <div class="col">
-                                <small>Maximum:</small>
-                                <small class="font-monospace">${file.getDefinition().getMax()}</small>
+                                <div class="row">
+                                    <small class="text-body-emphasis">Maximum</small>
+                                    <small class="text-body-secondary font-monospace">${file.getDefinition().getMax()}</small>
+                                </div>
                             </div>
                         @endif
                     </div>
