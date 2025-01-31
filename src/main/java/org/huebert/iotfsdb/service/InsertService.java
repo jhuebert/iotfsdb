@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import org.huebert.iotfsdb.partition.PartitionAdapter;
 import org.huebert.iotfsdb.schema.InsertRequest;
 import org.huebert.iotfsdb.schema.PartitionPeriod;
-import org.huebert.iotfsdb.schema.Reducer;
 import org.huebert.iotfsdb.schema.SeriesData;
 import org.huebert.iotfsdb.schema.SeriesDefinition;
 import org.huebert.iotfsdb.schema.SeriesFile;
@@ -50,8 +49,7 @@ public class InsertService {
         }));
 
         Collector<Number, ?, Number> collector = request.getReducer() == null ? null : reducerService.getCollector(request.getReducer(), false, null);
-        partitionGroups.entrySet().parallelStream()
-            .forEach(entry -> insertIntoPartition(entry.getKey(), entry.getValue(), collector));
+        ParallelUtil.forEach(partitionGroups.entrySet(), entry -> insertIntoPartition(entry.getKey(), entry.getValue(), collector));
     }
 
     private void insertIntoPartition(PartitionKey key, List<SeriesData> data, Collector<Number, ?, Number> collector) {

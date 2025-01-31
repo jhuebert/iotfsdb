@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.schema.InsertRequest;
 import org.huebert.iotfsdb.service.ImportService;
 import org.huebert.iotfsdb.service.InsertService;
+import org.huebert.iotfsdb.service.ParallelUtil;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
@@ -46,7 +47,7 @@ public class MutatingSeriesDataController {
     @PostMapping
     @ResponseStatus(NO_CONTENT)
     public void insert(@NotNull @Valid @RequestBody List<InsertRequest> request) {
-        request.parallelStream().forEach(insertService::insert);
+        ParallelUtil.forEach(request, insertService::insert);
     }
 
     @Operation(tags = "Data", summary = "Imports a database archive")

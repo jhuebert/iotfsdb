@@ -112,7 +112,7 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
     @Override
     public List<SeriesFile> getSeries() {
         try (Stream<Path> stream = Files.list(rootPath)) {
-            return stream.parallel()
+            return stream
                 .filter(Files::isDirectory)
                 .filter(Files::isReadable)
                 .map(s -> s.resolve(SERIES_JSON))
@@ -156,7 +156,7 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
         PartitionPeriod partitionPeriod = seriesFile.getDefinition().getPartition();
         String seriesId = seriesFile.getId();
         try (Stream<Path> stream = Files.list(getSeriesRoot(seriesId))) {
-            return stream.parallel()
+            return stream
                 .filter(Files::exists)
                 .filter(Files::isRegularFile)
                 .filter(Files::isReadable)
