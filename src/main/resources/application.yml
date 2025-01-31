@@ -26,5 +26,5 @@ iotfsdb:
 
 gg:
   jte:
-    developmentMode: true
-#    usePrecompiledTemplates: true
+    developmentMode: false
+    usePrecompiledTemplates: true
