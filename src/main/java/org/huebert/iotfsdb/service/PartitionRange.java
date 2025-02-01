@@ -8,7 +8,6 @@ import org.huebert.iotfsdb.partition.PartitionAdapter;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 
 public record PartitionRange(
@@ -27,27 +26,12 @@ public record PartitionRange(
         return getIndex(range.upperEndpoint()) + 1;
     }
 
-    public void withRead(RunnableWithException runnable) {
-        withLock(rwLock.readLock(), runnable);
+    public void withRead(LockUtil.RunnableWithException runnable) {
+        LockUtil.withRead(rwLock, runnable);
     }
 
-    public void withWrite(RunnableWithException runnable) {
-        withLock(rwLock.writeLock(), runnable);
-    }
-
-    private static void withLock(Lock lock, RunnableWithException runnable) {
-        lock.lock();
-        try {
-            runnable.run();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public interface RunnableWithException {
-        void run() throws Exception;
+    public void withWrite(LockUtil.RunnableWithException runnable) {
+        LockUtil.withWrite(rwLock, runnable);
     }
 
 }

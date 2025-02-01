@@ -1,0 +1,8 @@
+iotfsdb:
+  root: "memory"
+  read-only: false
+  ui: true
+
+gg:
+  jte:
+    developmentMode: true

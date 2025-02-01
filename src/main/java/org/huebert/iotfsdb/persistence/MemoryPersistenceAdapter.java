@@ -69,6 +69,11 @@ public class MemoryPersistenceAdapter implements PersistenceAdapter {
         return byteBufferMap.get(key);
     }
 
+    @Override
+    public void close() {
+        // Do nothing
+    }
+
     @AllArgsConstructor
     private static class MemoryPartitionByteBuffer implements PartitionByteBuffer {
 

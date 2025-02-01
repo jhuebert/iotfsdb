@@ -9,6 +9,7 @@ import org.huebert.iotfsdb.collectors.BigDecimalAveragingCollector;
 import org.huebert.iotfsdb.collectors.BigDecimalMaximumCollector;
 import org.huebert.iotfsdb.collectors.BigDecimalMedianCollector;
 import org.huebert.iotfsdb.collectors.BigDecimalMinimumCollector;
+import org.huebert.iotfsdb.collectors.BigDecimalMultiplyingCollector;
 import org.huebert.iotfsdb.collectors.BigDecimalSummingCollector;
 import org.huebert.iotfsdb.collectors.CountingCollector;
 import org.huebert.iotfsdb.collectors.CountingDistinctCollector;
@@ -18,6 +19,7 @@ import org.huebert.iotfsdb.collectors.MaximumCollector;
 import org.huebert.iotfsdb.collectors.MedianCollector;
 import org.huebert.iotfsdb.collectors.MinimumCollector;
 import org.huebert.iotfsdb.collectors.ModeCollector;
+import org.huebert.iotfsdb.collectors.MultiplyingCollector;
 import org.huebert.iotfsdb.collectors.SummingCollector;
 import org.huebert.iotfsdb.schema.FindDataRequest;
 import org.huebert.iotfsdb.schema.FindDataResponse;
@@ -32,6 +34,7 @@ import java.math.BigDecimal;
 import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -43,25 +46,49 @@ import java.util.stream.Collectors;
 @Service
 public class ReducerService {
 
+    private static final Map<Reducer, Collector<Number, ?, Number>> SELECTING_REDUCERS = new EnumMap<>(Map.of(
+        Reducer.COUNT, new CountingCollector(),
+        Reducer.COUNT_DISTINCT, new CountingDistinctCollector(),
+        Reducer.FIRST, new FirstCollector(),
+        Reducer.LAST, new LastCollector(),
+        Reducer.MODE, new ModeCollector()
+    ));
+
+    private static final Map<Reducer, Collector<Double, ?, Number>> DOUBLE_REDUCERS = new EnumMap<>(Map.of(
+        Reducer.AVERAGE, new AveragingCollector(),
+        Reducer.MAXIMUM, new MaximumCollector(),
+        Reducer.MEDIAN, new MedianCollector(),
+        Reducer.MINIMUM, new MinimumCollector(),
+        Reducer.MULTIPLY, new MultiplyingCollector(),
+        Reducer.SQUARE_SUM, Collectors.mapping(v -> v * v, new SummingCollector()),
+        Reducer.SUM, new SummingCollector()
+    ));
+
+    private static final Map<Reducer, Collector<BigDecimal, ?, Number>> BIG_DECIMAL_REDUCERS = new EnumMap<>(Map.of(
+        Reducer.AVERAGE, new BigDecimalAveragingCollector(),
+        Reducer.MAXIMUM, new BigDecimalMaximumCollector(),
+        Reducer.MEDIAN, new BigDecimalMedianCollector(),
+        Reducer.MINIMUM, new BigDecimalMinimumCollector(),
+        Reducer.MULTIPLY, new BigDecimalMultiplyingCollector(),
+        Reducer.SQUARE_SUM, Collectors.mapping(v -> v.pow(2), new BigDecimalSummingCollector()),
+        Reducer.SUM, new BigDecimalSummingCollector()
+    ));
+
     public Collector<Number, ?, Number> getCollector(@Valid @NotNull FindDataRequest request, @NotNull Reducer reducer) {
-        Collector<Number, ?, Number> collector;
-        if (reducer == Reducer.COUNT) {
-            collector = new CountingCollector();
-        } else if (reducer == Reducer.FIRST) {
-            collector = new FirstCollector();
-        } else if (reducer == Reducer.LAST) {
-            collector = new LastCollector();
-        } else if (reducer == Reducer.COUNT_DISTINCT) {
-            collector = new CountingDistinctCollector();
-        } else if (reducer == Reducer.MODE) {
-            collector = new ModeCollector();
-        } else if (request.isUseBigDecimal()) {
-            collector = getBigDecimalCollector(reducer);
-        } else {
-            collector = getDoubleCollector(reducer);
+        return getCollector(reducer, request.isUseBigDecimal(), request.getNullValue());
+    }
+
+    public Collector<Number, ?, Number> getCollector(@NotNull Reducer reducer, boolean useBigDecimal, Number nullValue) {
+        Collector<Number, ?, Number> collector = SELECTING_REDUCERS.get(reducer);
+        if (collector == null) {
+            if (useBigDecimal) {
+                collector = getBigDecimalCollector(reducer);
+            } else {
+                collector = getDoubleCollector(reducer);
+            }
         }
         return Collectors.mapping(
-            v -> v != null ? v : request.getNullValue(),
+            v -> v != null ? v : nullValue,
             Collectors.filtering(
                 Objects::nonNull,
                 collector
@@ -70,40 +97,16 @@ public class ReducerService {
     }
 
     private static Collector<Number, ?, Number> getDoubleCollector(Reducer reducer) {
-        Collector<Double, ?, Number> collector;
-        if (reducer == Reducer.AVERAGE) {
-            collector = new AveragingCollector();
-        } else if (reducer == Reducer.SUM) {
-            collector = new SummingCollector();
-        } else if (reducer == Reducer.MINIMUM) {
-            collector = new MinimumCollector();
-        } else if (reducer == Reducer.MAXIMUM) {
-            collector = new MaximumCollector();
-        } else if (reducer == Reducer.SQUARE_SUM) {
-            collector = Collectors.mapping(v -> v * v, new SummingCollector());
-        } else if (reducer == Reducer.MEDIAN) {
-            collector = new MedianCollector();
-        } else {
+        Collector<Double, ?, Number> collector = DOUBLE_REDUCERS.get(reducer);
+        if (collector == null) {
             throw new IllegalArgumentException(String.format("reducer %s not supported", reducer));
         }
         return Collectors.mapping(Number::doubleValue, collector);
     }
 
     private static Collector<Number, ?, Number> getBigDecimalCollector(Reducer reducer) {
-        Collector<BigDecimal, ?, Number> collector;
-        if (reducer == Reducer.AVERAGE) {
-            collector = new BigDecimalAveragingCollector();
-        } else if (reducer == Reducer.SUM) {
-            collector = new BigDecimalSummingCollector();
-        } else if (reducer == Reducer.MINIMUM) {
-            collector = new BigDecimalMinimumCollector();
-        } else if (reducer == Reducer.MAXIMUM) {
-            collector = new BigDecimalMaximumCollector();
-        } else if (reducer == Reducer.SQUARE_SUM) {
-            collector = Collectors.mapping(v -> v.pow(2), new BigDecimalSummingCollector());
-        } else if (reducer == Reducer.MEDIAN) {
-            collector = new BigDecimalMedianCollector();
-        } else {
+        Collector<BigDecimal, ?, Number> collector = BIG_DECIMAL_REDUCERS.get(reducer);
+        if (collector == null) {
             throw new IllegalArgumentException(String.format("reducer %s not supported", reducer));
         }
         return Collectors.mapping(ReducerService::toBigDecimal, collector);
