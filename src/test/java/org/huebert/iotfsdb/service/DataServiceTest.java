@@ -129,6 +129,22 @@ public class DataServiceTest {
     }
 
     @Test
+    public void testDeleteSeries_NoPartitions() {
+        PersistenceAdapter persistenceAdapter = mock(PersistenceAdapter.class);
+        when(persistenceAdapter.getSeries()).thenReturn(List.of());
+
+        DataService dataService = new DataService(new IotfsdbProperties(), persistenceAdapter);
+        verify(persistenceAdapter).getSeries();
+
+        dataService.deleteSeries("abc");
+        verify(persistenceAdapter).deleteSeries("abc");
+
+        assertThat(dataService.getSeries()).isEmpty();
+        assertThat(dataService.getSeries("abc")).isEqualTo(Optional.empty());
+        assertThat(dataService.getPartitions("abc")).isEmpty();
+    }
+
+    @Test
     public void testGetBuffer_NotExists() {
         PersistenceAdapter persistenceAdapter = mock(PersistenceAdapter.class);
         when(persistenceAdapter.getSeries()).thenReturn(List.of());

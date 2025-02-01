@@ -27,4 +27,7 @@ public class InsertRequest {
     @NotEmpty
     private List<SeriesData> values;
 
+    @Schema(description = "Reducer that handles situations where there is a non-null value that already exists. The default behavior is to overwrite any preexisting data.")
+    private Reducer reducer;
+
 }
