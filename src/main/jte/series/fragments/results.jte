@@ -14,7 +14,9 @@
                     <h6 class="user-select-all mb-3">${file.getId()}</h6>
                 </div>
                 <div class="col col-auto">
-                    @template.components.anchor(content = @`<i class="bi bi-download"></i>`, href = @`/ui/series/${file.getId()}/export`)
+                    <a class="btn btn-primary text-nowrap" href="/ui/series/${file.getId()}/export">
+                        <i class="bi bi-download"></i>
+                    </a>
                     @if(!basePage.isReadOnly())
                         @template.components.button(content = @`<i class="bi bi-trash"></i>`, secondary = true, hxDelete = @`/ui/series/${file.getId()}`, hxConfirm = @`Are you sure you want to delete '${file.getId()}'?`, hxSwap = "outerHTML", hxTarget = "closest .series-row")
                     @endif

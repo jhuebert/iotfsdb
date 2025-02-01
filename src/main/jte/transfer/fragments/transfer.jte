@@ -16,5 +16,7 @@
     </div>
 @endif
 <div class="row p-3">
-    @template.components.anchor(content = @`<i class="bi bi-download"></i> Export Database`, href = @`/ui/transfer/export`)
+    <a class="btn btn-primary text-nowrap" href="/ui/transfer/export">
+        <i class="bi bi-download"></i> Export Database
+    </a>
 </div>
