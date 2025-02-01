@@ -8,9 +8,9 @@ import org.huebert.iotfsdb.schema.PartitionPeriod;
 import org.huebert.iotfsdb.schema.SeriesDefinition;
 import org.huebert.iotfsdb.schema.SeriesFile;
 import org.huebert.iotfsdb.service.SeriesService;
+import org.huebert.iotfsdb.ui.service.BasePageService;
 import org.huebert.iotfsdb.ui.service.ObjectEncoder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -39,12 +39,12 @@ public class MutatingSeriesUiController {
 
     private final ObjectEncoder objectEncoder;
 
-    private final Environment environment;
+    private final BasePageService basePageService;
 
-    public MutatingSeriesUiController(SeriesService seriesService, ObjectEncoder objectEncoder, Environment environment) {
+    public MutatingSeriesUiController(SeriesService seriesService, ObjectEncoder objectEncoder, BasePageService basePageService) {
         this.seriesService = seriesService;
         this.objectEncoder = objectEncoder;
-        this.environment = environment;
+        this.basePageService = basePageService;
     }
 
     @DeleteMapping("{id}")
@@ -73,7 +73,7 @@ public class MutatingSeriesUiController {
         model.addAttribute("file", seriesFile);
         model.addAttribute("key", key);
         model.addAttribute("value", value);
-        model.addAttribute("environment", environment);
+        model.addAttribute("basePage", basePageService.getBasePage());
 
         return "series/fragments/metadata-row";
     }
@@ -89,7 +89,7 @@ public class MutatingSeriesUiController {
         model.addAttribute("file", seriesFile);
         model.addAttribute("key", key);
         model.addAttribute("value", value);
-        model.addAttribute("environment", environment);
+        model.addAttribute("basePage", basePageService.getBasePage());
 
         return "series/fragments/metadata-row";
     }
@@ -134,7 +134,7 @@ public class MutatingSeriesUiController {
             log.warn("could not serialize {}", request);
         }
 
-        model.addAttribute("environment", environment);
+        model.addAttribute("basePage", basePageService.getBasePage());
 
         return "series/fragments/search";
     }

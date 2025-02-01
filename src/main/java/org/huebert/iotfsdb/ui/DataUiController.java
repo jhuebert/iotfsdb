@@ -9,11 +9,11 @@ import org.huebert.iotfsdb.schema.Reducer;
 import org.huebert.iotfsdb.schema.SeriesData;
 import org.huebert.iotfsdb.service.QueryService;
 import org.huebert.iotfsdb.service.TimeConverter;
+import org.huebert.iotfsdb.ui.service.BasePageService;
 import org.huebert.iotfsdb.ui.service.ObjectEncoder;
 import org.huebert.iotfsdb.ui.service.PlotData;
 import org.huebert.iotfsdb.ui.service.SearchParser;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -37,12 +36,12 @@ public class DataUiController {
 
     private final ObjectEncoder objectEncoder;
 
-    private final Environment environment;
+    private final BasePageService basePageService;
 
-    public DataUiController(QueryService queryService, ObjectEncoder objectEncoder, Environment environment) {
+    public DataUiController(QueryService queryService, ObjectEncoder objectEncoder, BasePageService basePageService) {
         this.queryService = queryService;
         this.objectEncoder = objectEncoder;
-        this.environment = environment;
+        this.basePageService = basePageService;
     }
 
     @GetMapping
@@ -68,7 +67,7 @@ public class DataUiController {
         }
 
         model.addAttribute("plotData", plotData);
-        model.addAttribute("environment", environment);
+        model.addAttribute("basePage", basePageService.getBasePage());
 
         return "data/index";
     }
@@ -120,7 +119,7 @@ public class DataUiController {
             log.warn("could not serialize {}", request);
         }
 
-        model.addAttribute("environment", environment);
+        model.addAttribute("basePage", basePageService.getBasePage());
 
         return "data/fragments/script";
     }

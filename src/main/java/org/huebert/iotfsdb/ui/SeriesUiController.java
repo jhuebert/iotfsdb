@@ -5,11 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.schema.SeriesFile;
 import org.huebert.iotfsdb.service.SeriesService;
+import org.huebert.iotfsdb.ui.service.BasePageService;
 import org.huebert.iotfsdb.ui.service.ExportUiService;
 import org.huebert.iotfsdb.ui.service.ObjectEncoder;
 import org.huebert.iotfsdb.ui.service.SearchParser;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -37,13 +37,13 @@ public class SeriesUiController {
 
     private final ObjectEncoder objectEncoder;
 
-    private final Environment environment;
+    private final BasePageService basePageService;
 
-    public SeriesUiController(SeriesService seriesService, ExportUiService exportService, ObjectEncoder objectEncoder, Environment environment) {
+    public SeriesUiController(SeriesService seriesService, ExportUiService exportService, ObjectEncoder objectEncoder, BasePageService basePageService) {
         this.seriesService = seriesService;
         this.exportService = exportService;
         this.objectEncoder = objectEncoder;
-        this.environment = environment;
+        this.basePageService = basePageService;
     }
 
     @GetMapping
@@ -59,7 +59,7 @@ public class SeriesUiController {
             log.warn("could not parse request: {}", request);
         }
         model.addAttribute("series", series);
-        model.addAttribute("environment", environment);
+        model.addAttribute("basePage", basePageService.getBasePage());
         return "series/index";
     }
 
@@ -72,7 +72,7 @@ public class SeriesUiController {
         } catch (IOException e) {
             log.warn("could not serialize {}", request);
         }
-        model.addAttribute("environment", environment);
+        model.addAttribute("basePage", basePageService.getBasePage());
         return "series/fragments/results";
     }
 

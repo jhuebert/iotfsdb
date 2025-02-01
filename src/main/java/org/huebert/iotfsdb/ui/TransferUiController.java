@@ -1,9 +1,9 @@
 package org.huebert.iotfsdb.ui;
 
 import lombok.extern.slf4j.Slf4j;
+import org.huebert.iotfsdb.ui.service.BasePageService;
 import org.huebert.iotfsdb.ui.service.ExportUiService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,16 +19,16 @@ public class TransferUiController {
 
     private final ExportUiService exportService;
 
-    private final Environment environment;
+    private final BasePageService basePageService;
 
-    public TransferUiController(ExportUiService exportService, Environment environment) {
+    public TransferUiController(ExportUiService exportService, BasePageService basePageService) {
         this.exportService = exportService;
-        this.environment = environment;
+        this.basePageService = basePageService;
     }
 
     @GetMapping
     public String getIndex(Model model) {
-        model.addAttribute("environment", environment);
+        model.addAttribute("basePage", basePageService.getBasePage());
         return "transfer/index";
     }
 

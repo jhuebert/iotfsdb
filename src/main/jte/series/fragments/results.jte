@@ -1,9 +1,9 @@
 @import java.util.List
 @import java.util.Map.Entry
 @import org.huebert.iotfsdb.schema.SeriesFile
-@import org.springframework.core.env.Environment
+@import org.huebert.iotfsdb.ui.service.BasePageService
 
-@param Environment environment
+@param BasePageService.BasePage basePage
 @param List<SeriesFile> series
 
 @for(SeriesFile file : series)
@@ -15,7 +15,7 @@
                 </div>
                 <div class="col col-auto">
                     @template.components.anchor(content = @`<i class="bi bi-download"></i>`, href = @`/ui/series/${file.getId()}/export`)
-                    @if(!environment.getProperty("iotfsdb.read-only", Boolean.class, true))
+                    @if(!basePage.isReadOnly())
                         @template.components.button(content = @`<i class="bi bi-trash"></i>`, secondary = true, hxDelete = @`/ui/series/${file.getId()}`, hxConfirm = @`Are you sure you want to delete '${file.getId()}'?`, hxSwap = "outerHTML", hxTarget = "closest .series-row")
                     @endif
                 </div>
@@ -68,10 +68,10 @@
                 <summary>Metadata</summary>
                 <div class="row mt-3">
                     @for(Entry<String, String> entry : file.getMetadata().entrySet())
-                        @template.series.fragments.metadata-row(environment = environment, file = file, key = entry.getKey(), value = entry.getValue())
+                        @template.series.fragments.metadata-row(basePage = basePage, file = file, key = entry.getKey(), value = entry.getValue())
                     @endfor
-                    @if(!environment.getProperty("iotfsdb.read-only", Boolean.class, true))
-                        @template.series.fragments.metadata-row(environment = environment, file = file, key = null, value = null)
+                    @if(!basePage.isReadOnly())
+                        @template.series.fragments.metadata-row(basePage = basePage, file = file, key = null, value = null)
                     @endif
                 </div>
             </details>

@@ -1,11 +1,11 @@
-@import org.springframework.core.env.Environment
+@import org.huebert.iotfsdb.ui.service.BasePageService
 
-@param Environment environment
+@param BasePageService.BasePage basePage
 
 <div class="row mb-3">
     <h4>Transfer</h4>
 </div>
-@if(!environment.getProperty("iotfsdb.read-only", Boolean.class, true))
+@if(!basePage.isReadOnly())
     <div class="row mb-3">
         <form id='form' hx-encoding='multipart/form-data' hx-post='/ui/transfer/import'>
             <div class="input-group">

@@ -1,15 +1,15 @@
 @import org.huebert.iotfsdb.schema.FindDataRequest
+@import org.huebert.iotfsdb.ui.service.BasePageService
 @import org.huebert.iotfsdb.ui.service.PlotData
-@import org.springframework.core.env.Environment
 
-@param Environment environment
+@param BasePageService.BasePage basePage
 @param FindDataRequest request
 @param PlotData plotData
 
 @template.layout(
-environment = environment,
+basePage = basePage,
 title = "Transfer",
 content = @`
-    @template.transfer.fragments.transfer(environment = environment)
+    @template.transfer.fragments.transfer(basePage = basePage)
 `
 )

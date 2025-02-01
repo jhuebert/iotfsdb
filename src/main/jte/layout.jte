@@ -1,7 +1,7 @@
 @import gg.jte.Content
-@import org.springframework.core.env.Environment
+@import org.huebert.iotfsdb.ui.service.BasePageService
 
-@param Environment environment
+@param BasePageService.BasePage basePage
 @param String title
 @param Content content
 
@@ -27,8 +27,10 @@
     <script>
         function handleHtmxResponseError(event) {
           console.error(event);
-          document.getElementById('error-content').innerHTML = event.detail.error;
-          document.getElementById('error-dialog').showModal();
+          let alert = '<div class="alert alert-danger alert-dismissible fade show" role="alert"><strong>Error</strong> ';
+          alert += event.detail.error;
+          alert += '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+          document.getElementById('htmx-error').innerHTML = alert;
         }
     </script>
     <style>
@@ -42,7 +44,7 @@
 <body class="container-fluid h-100 p-0">
 <nav class="navbar navbar-expand-sm bg-body-tertiary">
     <div class="container-fluid">
-        <a class="navbar-brand" href="/ui"><img src="/icons/cpu.svg" /> iotfsdb</a>
+        <a class="navbar-brand" href="/ui"><img src="/icons/cpu.svg"/> iotfsdb <span class="badge rounded-pill text-bg-secondary">${basePage.getVersion()}</span></a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -53,28 +55,15 @@
                 <li class="nav-item"><a class="nav-link" href="/ui/data">Data</a></li>
                 <li class="nav-item"><a class="nav-link" href="/ui/transfer">Transfer</a></li>
             </ul>
-            @if(!environment.getProperty("iotfsdb.read-only", Boolean.class, true))
+            @if(!basePage.isReadOnly())
                 @template.components.button(content = @`<i class="bi bi-plus"></i> Create Series`, hxGet=@`/ui/series/create`, hxTarget="#main-body")
             @endif
         </div>
     </div>
 </nav>
 <div class="h-100 p-3" id="main-body">
+    <div id="htmx-error"></div>
     ${content}
-</div>
-<div id="error-div">
-    <dialog id="error-dialog">
-        <article>
-            <header>
-                <button class="btn btn-danger" aria-label="Close" rel="prev"
-                        onclick="document.getElementById('error-dialog').close()"></button>
-                <p>
-                    <strong id="error-title">Error</strong>
-                </p>
-            </header>
-            <p id="error-content"></p>
-        </article>
-    </dialog>
 </div>
 </body>
 </html>
