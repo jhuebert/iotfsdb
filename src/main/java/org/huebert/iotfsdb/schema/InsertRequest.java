@@ -23,7 +23,7 @@ public class InsertRequest {
     @NotBlank
     private String series;
 
-    @Schema(description = "Series ID that should be used to insert the values")
+    @Schema(description = "Series data that should be inserted")
     @NotEmpty
     private List<SeriesData> values;
 
