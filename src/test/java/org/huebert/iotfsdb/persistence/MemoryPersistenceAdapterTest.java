@@ -18,6 +18,7 @@ public class MemoryPersistenceAdapterTest {
         assertThat(adapter.getSeries()).containsExactly(seriesFile);
         adapter.deleteSeries(seriesFile.getId());
         assertThat(adapter.getSeries()).isEmpty();
+        adapter.close();
     }
 
     @Test
@@ -31,6 +32,7 @@ public class MemoryPersistenceAdapterTest {
         PartitionByteBuffer partitionByteBuffer = adapter.openPartition(key);
         assertThat(partitionByteBuffer.getByteBuffer().capacity()).isEqualTo(80);
         partitionByteBuffer.close();
+        adapter.close();
     }
 
 }

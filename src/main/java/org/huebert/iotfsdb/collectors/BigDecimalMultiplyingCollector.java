@@ -36,10 +36,14 @@ public class BigDecimalMultiplyingCollector implements NumberCollector<BigDecima
 
     public static class Result {
 
-        private BigDecimal result = BigDecimal.ZERO;
+        private BigDecimal result = null;
 
         public void accumulate(BigDecimal value) {
-            result = result.multiply(value);
+            if (result == null) {
+                result = value;
+            } else {
+                result = result.multiply(value);
+            }
         }
 
         public Result combine(Result other) {

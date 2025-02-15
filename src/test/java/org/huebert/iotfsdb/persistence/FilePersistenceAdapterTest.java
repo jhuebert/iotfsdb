@@ -50,6 +50,25 @@ public class FilePersistenceAdapterTest {
 
         assertThat(Files.exists(temp)).isTrue();
 
+        adapter.close();
+        if (!FileSystemUtils.deleteRecursively(temp)) {
+            throw new RuntimeException("unable to delete root");
+        }
+    }
+
+    @Test
+    void testCreate() throws Exception {
+
+        Path temp = Files.createTempDirectory("iotfsdb");
+        IotfsdbProperties properties = new IotfsdbProperties();
+        properties.setRoot(temp);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        FilePersistenceAdapter adapter = FilePersistenceAdapter.create(properties.getRoot(), objectMapper);
+
+        assertThat(adapter.getSeries()).isEqualTo(List.of());
+
+        adapter.close();
         if (!FileSystemUtils.deleteRecursively(temp)) {
             throw new RuntimeException("unable to delete root");
         }
@@ -91,6 +110,7 @@ public class FilePersistenceAdapterTest {
 
         assertThat(adapter.getSeries()).isEqualTo(List.of(seriesFile));
 
+        adapter.close();
         if (!FileSystemUtils.deleteRecursively(temp)) {
             throw new RuntimeException("unable to delete root");
         }
@@ -126,6 +146,7 @@ public class FilePersistenceAdapterTest {
 
         assertThat(adapter.getSeries()).isEqualTo(List.of());
 
+        adapter.close();
         if (!FileSystemUtils.deleteRecursively(temp)) {
             throw new RuntimeException("unable to delete root");
         }
@@ -181,6 +202,7 @@ public class FilePersistenceAdapterTest {
         assertThat(byteBuffer.capacity()).isEqualTo(80);
         partitionByteBuffer.close();
 
+        adapter.close();
         if (!FileSystemUtils.deleteRecursively(temp)) {
             throw new RuntimeException("unable to delete root");
         }
@@ -221,6 +243,7 @@ public class FilePersistenceAdapterTest {
         assertThat(byteBuffer.capacity()).isEqualTo(80);
         partitionByteBuffer.close();
 
+        adapter.close();
         if (!FileSystemUtils.deleteRecursively(temp)) {
             throw new RuntimeException("unable to delete root");
         }

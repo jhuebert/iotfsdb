@@ -35,10 +35,14 @@ public class MultiplyingCollector implements NumberCollector<Double, Multiplying
 
     public static class Result {
 
-        private double result = 0;
+        private Double result = null;
 
         public void accumulate(Double value) {
-            result *= value;
+            if (result == null) {
+                result = value;
+            } else {
+                result *= value;
+            }
         }
 
         public Result combine(Result other) {
