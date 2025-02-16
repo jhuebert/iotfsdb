@@ -48,8 +48,7 @@ public class QueryService {
 
         List<Range<ZonedDateTime>> ranges = intervalService.getIntervalRanges(request);
 
-        List<FindDataResponse> result = series.parallelStream()
-            .map(s -> findDataForSeries(request, ranges, s))
+        List<FindDataResponse> result = ParallelUtil.map(series, s -> findDataForSeries(request, ranges, s)).stream()
             .filter(r -> r.getData().stream().map(SeriesData::getValue).anyMatch(Objects::nonNull))
             .sorted(Comparator.comparing(r -> r.getSeries().getId()))
             .toList();

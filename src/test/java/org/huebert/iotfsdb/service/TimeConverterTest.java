@@ -18,6 +18,13 @@ public class TimeConverterTest {
     }
 
     @Test
+    public void testToUtc_ToZonedDateTime() {
+        ZonedDateTime expected = ZonedDateTime.parse(("2024-11-11T21:30:28-06:00"));
+        LocalDateTime test = LocalDateTime.parse(("2024-11-12T03:30:28"));
+        assertThat(TimeConverter.toUtc(test)).isEqualTo(expected);
+    }
+
+    @Test
     public void testToUtc_Range() {
         ZonedDateTime test1 = ZonedDateTime.parse(("2024-11-11T21:30:28-06:00"));
         ZonedDateTime test2 = ZonedDateTime.parse(("2024-11-11T22:30:28-06:00"));

@@ -25,6 +25,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Validated
 @Slf4j
@@ -36,6 +38,8 @@ public class DataService {
     private final Map<String, SeriesFile> seriesMap = new ConcurrentHashMap<>();
 
     private final ConcurrentMap<String, Set<PartitionKey>> seriesPartitions = new ConcurrentHashMap<>();
+
+    private final Lock lock = new ReentrantLock();
 
     private final LoadingCache<PartitionKey, PartitionByteBuffer> partitionCache;
 
@@ -65,15 +69,19 @@ public class DataService {
         return Optional.ofNullable(seriesMap.get(seriesId));
     }
 
-    public synchronized void saveSeries(@Valid @NotNull SeriesFile seriesFile) {
-        persistenceAdapter.saveSeries(seriesFile);
-        seriesMap.put(seriesFile.getId(), seriesFile);
+    public void saveSeries(@Valid @NotNull SeriesFile seriesFile) {
+        LockUtil.withLock(lock, () -> {
+            persistenceAdapter.saveSeries(seriesFile);
+            seriesMap.put(seriesFile.getId(), seriesFile);
+        });
     }
 
-    public synchronized void deleteSeries(@NotBlank String seriesId) {
-        seriesMap.remove(seriesId);
-        partitionCache.invalidateAll(seriesPartitions.remove(seriesId));
-        persistenceAdapter.deleteSeries(seriesId);
+    public void deleteSeries(@NotBlank String seriesId) {
+        LockUtil.withLock(lock, () -> {
+            seriesMap.remove(seriesId);
+            partitionCache.invalidateAll(Optional.ofNullable(seriesPartitions.remove(seriesId)).orElseGet(Set::of));
+            persistenceAdapter.deleteSeries(seriesId);
+        });
     }
 
     public Set<PartitionKey> getPartitions(@NotBlank String seriesId) {
@@ -89,7 +97,7 @@ public class DataService {
 
     public ByteBuffer getBuffer(@Valid @NotNull PartitionKey key, @NotNull @Positive Long size, @NotNull PartitionAdapter adapter) {
         if (partitionNotExists(key)) {
-            synchronized (this) {
+            LockUtil.withLock(lock, () -> {
                 if (partitionNotExists(key)) {
 
                     persistenceAdapter.createPartition(key, adapter.getTypeSize() * size);
@@ -103,7 +111,7 @@ public class DataService {
 
                     seriesPartitions.computeIfAbsent(key.seriesId(), k -> ConcurrentHashMap.newKeySet()).add(key);
                 }
-            }
+            });
         }
         return partitionCache.getUnchecked(key).getByteBuffer();
     }

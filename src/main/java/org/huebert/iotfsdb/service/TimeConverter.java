@@ -21,4 +21,8 @@ public class TimeConverter {
         return zonedDateTime.withZoneSameInstant(ZoneOffset.UTC).toLocalDateTime();
     }
 
+    public static ZonedDateTime toUtc(LocalDateTime localDateTime) {
+        return localDateTime.atZone(ZoneOffset.UTC);
+    }
+
 }

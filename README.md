@@ -234,3 +234,4 @@ services:
 | `iotfsdb.read-only`       | `IOTFSDB_READ_ONLY`       | Indicates whether any changes to the database are allowed                | `false`                                             | `false`                                             |
 | `iotfsdb.max-query-size`  | `IOTFSDB_MAX_QUERY_SIZE`  | Maximum number of values returned for any series query                   | `1000`                                              | `1000`                                              |
 | `iotfsdb.partition-cache` | `IOTFSDB_PARTITION_CACHE` | Maximum amount of time to keep a series partition file open after access | `expireAfterAccess=5m,maximumSize=10000,softValues` | `expireAfterAccess=5m,maximumSize=10000,softValues` |
+| `iotfsdb.ui`              | `IOTFSDB_UI`              | Indicates whether the web UI will be available                           | `true`                                              | `true`                                              |

@@ -25,7 +25,8 @@ public class IntervalService {
 
     public List<Range<ZonedDateTime>> getIntervalRanges(@Valid @NotNull FindDataRequest request) {
 
-        Duration rangeDuration = Duration.between(request.getFrom(), request.getTo());
+        Range<ZonedDateTime> dateTimeRange = request.getRange();
+        Duration rangeDuration = Duration.between(dateTimeRange.lowerEndpoint(), dateTimeRange.upperEndpoint());
 
         boolean hasSize = request.getSize() != null;
         boolean hasInterval = request.getInterval() != null;
@@ -51,7 +52,7 @@ public class IntervalService {
         }
 
         List<Range<ZonedDateTime>> ranges = new ArrayList<>(count);
-        ZonedDateTime start = request.getFrom();
+        ZonedDateTime start = dateTimeRange.lowerEndpoint();
         for (int i = 0; i < count; i++) {
             ZonedDateTime end = start.plus(duration);
             ranges.add(Range.closed(start, end.minusNanos(1)));

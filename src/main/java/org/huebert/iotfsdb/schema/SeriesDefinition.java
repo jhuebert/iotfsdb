@@ -29,11 +29,13 @@ import java.util.Set;
 @Schema(description = "Immutable definition of a series")
 public class SeriesDefinition {
 
+    public static final String ID_PATTERN = "[a-z0-9][a-z0-9._-]{0,127}";
+
     private static final Set<NumberType> TYPES_WITH_RANGE = EnumSet.of(NumberType.CURVED1, NumberType.CURVED2, NumberType.CURVED4, NumberType.MAPPED1, NumberType.MAPPED2, NumberType.MAPPED4);
 
     @Schema(description = "Series ID")
     @NotBlank
-    @Pattern(regexp = "[a-z0-9][a-z0-9._-]{0,127}")
+    @Pattern(regexp = ID_PATTERN)
     private String id;
 
     @Schema(description = "Data type of the numbers stored for this series.")

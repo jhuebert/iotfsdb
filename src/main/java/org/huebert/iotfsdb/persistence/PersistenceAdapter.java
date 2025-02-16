@@ -26,4 +26,6 @@ public interface PersistenceAdapter {
 
     PartitionByteBuffer openPartition(@NotNull @Valid PartitionKey key);
 
+    void close();
+
 }

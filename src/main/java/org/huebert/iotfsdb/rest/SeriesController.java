@@ -3,6 +3,7 @@ package org.huebert.iotfsdb.rest;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.schema.SeriesFile;
@@ -19,6 +20,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
+
+import static org.huebert.iotfsdb.schema.SeriesDefinition.ID_PATTERN;
 
 @Validated
 @Slf4j
@@ -40,13 +43,13 @@ public class SeriesController {
 
     @Operation(tags = "Series", summary = "Get series details")
     @GetMapping("{id}")
-    public SeriesFile get(@PathVariable("id") String id) {
+    public SeriesFile get(@PathVariable("id") @Pattern(regexp = ID_PATTERN) String id) {
         return getSeries(id);
     }
 
     @Operation(tags = "Series", summary = "Retrieves the metadata for a series")
     @GetMapping("{id}/metadata")
-    public Map<String, String> getMetadata(@PathVariable("id") String id) {
+    public Map<String, String> getMetadata(@PathVariable("id") @Pattern(regexp = ID_PATTERN) String id) {
         return getSeries(id).getMetadata();
     }
 
