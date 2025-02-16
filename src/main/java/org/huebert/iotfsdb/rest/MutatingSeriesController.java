@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import org.huebert.iotfsdb.schema.SeriesDefinition;
 import org.huebert.iotfsdb.schema.SeriesFile;
 import org.huebert.iotfsdb.service.SeriesService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -38,6 +39,7 @@ public class MutatingSeriesController {
     @PostMapping
     @ResponseStatus(NO_CONTENT)
     public void create(@NotNull @Valid @RequestBody SeriesFile seriesFile) {
+        checkId(seriesFile.getId());
         seriesService.createSeries(seriesFile);
     }
 
@@ -45,6 +47,7 @@ public class MutatingSeriesController {
     @DeleteMapping("{id}")
     @ResponseStatus(NO_CONTENT)
     public void delete(@PathVariable("id") String id) {
+        checkId(id);
         seriesService.deleteSeries(id);
     }
 
@@ -52,7 +55,14 @@ public class MutatingSeriesController {
     @PutMapping("{id}/metadata")
     @ResponseStatus(NO_CONTENT)
     public void updateMetadata(@PathVariable("id") String id, @NotNull @Valid @RequestBody Map<String, String> metadata) {
+        checkId(id);
         seriesService.updateMetadata(id, metadata);
+    }
+
+    private static void checkId(String id) {
+        if (!id.matches(SeriesDefinition.ID_PATTERN)) {
+            throw new IllegalArgumentException("id is malformed");
+        }
     }
 
 }
