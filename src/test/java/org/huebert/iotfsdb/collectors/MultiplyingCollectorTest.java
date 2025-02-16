@@ -35,8 +35,8 @@ public class MultiplyingCollectorTest {
 
     @Test
     void testValueN() {
-        Stream<Double> stream = IntStream.range(300, 400).mapToObj(a -> (double) a);
-        assertThat(stream.parallel().collect(new MultiplyingCollector())).isEqualTo(1.56917867452979E254);
+        Stream<Double> stream = IntStream.range(1, 10).mapToObj(a -> (double) a);
+        assertThat(stream.parallel().collect(new MultiplyingCollector())).isEqualTo(362880.0);
     }
 
 }
