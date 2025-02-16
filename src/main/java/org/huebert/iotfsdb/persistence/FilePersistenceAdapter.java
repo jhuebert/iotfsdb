@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.IotfsdbProperties;
 import org.huebert.iotfsdb.schema.PartitionPeriod;
+import org.huebert.iotfsdb.schema.SeriesDefinition;
 import org.huebert.iotfsdb.schema.SeriesFile;
 import org.huebert.iotfsdb.service.PartitionKey;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -218,6 +219,9 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
     }
 
     private Path getSeriesRoot(String seriesId) {
+        if (!seriesId.matches(SeriesDefinition.ID_PATTERN)) {
+            throw new IllegalArgumentException("series ID is malformed");
+        }
         return rootPath.resolve(seriesId);
     }
 
