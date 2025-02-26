@@ -6,5 +6,11 @@
   ],
   "mode": "full",
   "addLabels": ["renovate"],
-  "timezone": "America/Chicago"
+  "timezone": "America/Chicago",
+  "html": {
+    "fileMatch": [
+      "\\.html?$",
+      "\\.jte?$"
+    ]
+  }
 }
