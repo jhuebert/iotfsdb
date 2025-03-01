@@ -20,7 +20,7 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT }}
       - name: Update version.txt
-        run: echo "${{ inputs.version }}" >! version.txt
+        run: echo "${{ inputs.version }}" > version.txt
       - name: Commit Changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
