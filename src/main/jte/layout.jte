@@ -49,6 +49,9 @@
                 <li class="nav-item"><a class="nav-link" href="/ui/series">Series</a></li>
                 <li class="nav-item"><a class="nav-link" href="/ui/data">Data</a></li>
                 <li class="nav-item"><a class="nav-link" href="/ui/transfer">Transfer</a></li>
+                @if(basePage.isSpringdocEnabled())
+                    <li class="nav-item"><a class="nav-link" href="/swagger-ui/index.html">API</a></li>
+                @endif
             </ul>
             @if(!basePage.isReadOnly())
                 @template.components.button(content = @`<i class="bi bi-plus"></i> Create Series`, hxGet=@`/ui/series/create`, hxTarget="#main-body")

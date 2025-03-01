@@ -28,3 +28,9 @@ gg:
   jte:
     developmentMode: false
     usePrecompiledTemplates: true
+
+springdoc:
+  swagger-ui:
+    enabled: true
+  api-docs:
+    enabled: true
