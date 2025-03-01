@@ -58,4 +58,6 @@ jobs:
         with:
           files: ./build/libs/iotfsdb-*.jar
           fail_on_unmatched_files: true
+          generate_release_notes: true
+          name: ${{ env.IOTFSDB_PATCH }}
           tag_name: ${{ env.IOTFSDB_PATCH }}
