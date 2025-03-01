@@ -1,19 +1,25 @@
-name: Release
+name: Create Release
 
 permissions:
   contents: write
 
 on:
-  push:
-    tags:
-      - "2.*.*"
+  workflow_dispatch:
 
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Sources
         uses: actions/checkout@v4
+      - name: Set variables
+        run: |
+          PATCH=$(cat version.txt)
+          MINOR=$(echo $PATCH | cut -d '.' -f 1,2)
+          MAJOR=$(echo $PATCH | cut -d '.' -f 1)
+          echo "IOTFSDB_PATCH=$PATCH" >> $GITHUB_ENV
+          echo "IOTFSDB_MINOR=$MINOR" >> $GITHUB_ENV
+          echo "IOTFSDB_MAJOR=$MAJOR" >> $GITHUB_ENV
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -39,15 +45,17 @@ jobs:
           context: ./docker
           push: true
           tags: |
-            jhuebert/iotfsdb:2
-            jhuebert/iotfsdb:${{ github.ref_name }}
+            jhuebert/iotfsdb:${{ env.IOTFSDB_PATCH }}
+            jhuebert/iotfsdb:${{ env.IOTFSDB_MINOR }}
+            jhuebert/iotfsdb:${{ env.IOTFSDB_MAJOR }}
           pull: true
           no-cache: true
           provenance: true
           sbom: true
           platforms: linux/amd64, linux/arm64
-      - name: Release
+      - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           files: ./build/libs/iotfsdb-*.jar
           fail_on_unmatched_files: true
+          tag_name: ${{ env.IOTFSDB_PATCH }}
