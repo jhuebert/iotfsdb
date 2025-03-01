@@ -18,6 +18,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -25,6 +26,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.TimeZone;
 
 @Slf4j
 @Controller
@@ -52,6 +54,10 @@ public class DataUiController {
             .data(List.of())
             .build();
 
+        FindDataRequest defaultRequest = new FindDataRequest();
+        defaultRequest.setDateTimePreset(DateTimePreset.LAST_24_HOURS);
+        model.addAttribute("request", defaultRequest);
+
         try {
             if (request != null) {
                 FindDataRequest findDataRequest = objectEncoder.decode(request, FindDataRequest.class);
@@ -76,6 +82,7 @@ public class DataUiController {
     public String search(
         Model model,
         HttpServletResponse response,
+        @RequestHeader("Iotfsdb-Tz") String timezone,
         @RequestParam("search") String search,
         @RequestParam("dateTimePreset") DateTimePreset dateTimePreset,
         @RequestParam(value = "from", required = false) LocalDateTime from,
@@ -93,6 +100,7 @@ public class DataUiController {
         FindDataRequest request = new FindDataRequest();
         request.setSeries(SearchParser.fromSearch(search));
         request.setDateTimePreset(dateTimePreset);
+        request.setTimezone(TimeZone.getTimeZone(timezone));
         request.setFrom(from != null ? TimeConverter.toUtc(from) : null);
         request.setTo(to != null ? TimeConverter.toUtc(to) : null);
         request.setInterval(interval);

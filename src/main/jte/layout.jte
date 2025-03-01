@@ -36,7 +36,7 @@
         }
     </style>
 </head>
-<body class="container-fluid h-100 p-0">
+<body class="container-fluid h-100 p-0" hx-headers='js:{"Iotfsdb-Tz": Intl.DateTimeFormat().resolvedOptions().timeZone}'>
 <nav class="navbar navbar-expand-sm bg-body-tertiary">
     <div class="container-fluid">
         <a class="navbar-brand" href="/ui"><img src="/icons/cpu.svg"/> iotfsdb <span class="badge rounded-pill text-bg-secondary">${basePage.getVersion()}</span></a>
