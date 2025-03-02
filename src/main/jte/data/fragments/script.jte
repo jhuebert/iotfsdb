@@ -14,7 +14,8 @@
             label:'${series.getId()}',
             data:[$unsafe{series.getValues().stream().map(a -> a == null ? "null" : String.valueOf(a)).collect(Collectors.joining(","))}],
             borderWidth: 1,
-            pointRadius: 0
+            pointRadius: 0,
+            pointHitRadius: 10
         },
     @endfor];
     chart.update();

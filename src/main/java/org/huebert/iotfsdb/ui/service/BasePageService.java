@@ -14,6 +14,9 @@ public class BasePageService {
     @Value("${iotfsdb.read-only:true}")
     private boolean readOnly;
 
+    @Value("${springdoc.swagger-ui.enabled:false}")
+    private boolean springdocEnabled;
+
     public BasePageService(BuildProperties buildProperties) {
         this.buildProperties = buildProperties;
     }
@@ -22,6 +25,7 @@ public class BasePageService {
         return BasePage.builder()
             .readOnly(readOnly)
             .version(buildProperties.getVersion())
+            .springdocEnabled(springdocEnabled)
             .build();
     }
 
@@ -30,5 +34,6 @@ public class BasePageService {
     public static class BasePage {
         private String version;
         private boolean readOnly;
+        private boolean springdocEnabled;
     }
 }
