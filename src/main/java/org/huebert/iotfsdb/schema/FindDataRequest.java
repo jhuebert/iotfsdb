@@ -12,7 +12,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -27,6 +30,9 @@ public class FindDataRequest {
 
     @Schema(description = "Relative time range to use in place of an explicitly provided from and to time. This takes priority over from and to if they are also specified.")
     private DateTimePreset dateTimePreset;
+
+    @Schema(description = "Timezone that the output data should use. The timezone of from will be used if not specified. UTC will be used in the event that the timezone is not specified with a time preset.")
+    private TimeZone timezone;
 
     @Schema(description = "Earliest date and time that values should be have")
     private ZonedDateTime from;
@@ -82,10 +88,12 @@ public class FindDataRequest {
 
     public Range<ZonedDateTime> getRange() {
         if ((dateTimePreset != null) && (dateTimePreset != DateTimePreset.NONE)) {
-            ZonedDateTime now = ZonedDateTime.now();
+            ZoneId zoneId = timezone == null ? ZoneOffset.UTC : timezone.toZoneId();
+            ZonedDateTime now = ZonedDateTime.now().withZoneSameInstant(zoneId);
             return Range.closed(now.minus(dateTimePreset.getDuration()), now);
         }
-        return Range.closed(from, to);
+        ZoneId zoneId = timezone == null ? from.getZone() : timezone.toZoneId();
+        return Range.closed(from.withZoneSameInstant(zoneId), to.withZoneSameInstant(zoneId));
     }
 
     public Predicate<SeriesData> getNullPredicate() {

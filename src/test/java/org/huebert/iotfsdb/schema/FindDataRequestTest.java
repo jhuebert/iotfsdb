@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.util.TimeZone;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -90,6 +91,28 @@ public class FindDataRequestTest {
         FindDataRequest request = new FindDataRequest();
         request.setFrom(from);
         request.setTo(to);
+
+        request.setDateTimePreset(null);
+        assertThat(request.getRange()).isEqualTo(Range.closed(from, to));
+
+        request.setDateTimePreset(DateTimePreset.NONE);
+        assertThat(request.getRange()).isEqualTo(Range.closed(from, to));
+
+        request.setDateTimePreset(DateTimePreset.LAST_1_HOUR);
+        Range<ZonedDateTime> result = request.getRange();
+        assertThat(Duration.between(result.lowerEndpoint(), result.upperEndpoint())).isEqualTo(Duration.ofHours(1));
+    }
+
+    @Test
+    public void testGetRange_WithTimezone() {
+        TimeZone timezone1 = TimeZone.getTimeZone("Pacific/Honolulu");
+        TimeZone timezone2 = TimeZone.getTimeZone("America/Chicago");
+        ZonedDateTime to = ZonedDateTime.now().withZoneSameInstant(timezone1.toZoneId());
+        ZonedDateTime from = to.minusDays(1).withZoneSameInstant(timezone1.toZoneId());
+        FindDataRequest request = new FindDataRequest();
+        request.setTimezone(timezone1);
+        request.setFrom(from.withZoneSameInstant(timezone2.toZoneId()));
+        request.setTo(to.withZoneSameInstant(timezone2.toZoneId()));
 
         request.setDateTimePreset(null);
         assertThat(request.getRange()).isEqualTo(Range.closed(from, to));
