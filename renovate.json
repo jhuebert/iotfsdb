@@ -2,7 +2,8 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "configMigration": true,
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    "group:all"
   ],
   "mode": "full",
   "addLabels": ["renovate"],
@@ -12,15 +13,5 @@
       "\\.html?$",
       "\\.jte?$"
     ]
-  },
-  "packageRules": [
-    {
-      "groupName": "jte",
-      "matchPackageNames": [
-        "gg.jte:jte-spring-boot-starter-3",
-        "gg.jte:jte",
-        "gg.jte.gradle"
-      ]
-    }
-  ]
+  }
 }
