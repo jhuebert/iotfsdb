@@ -1,8 +1,8 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '3.4.4'
+    id 'org.springframework.boot' version '3.4.5'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'gg.jte.gradle' version '3.2.0'
+    id 'gg.jte.gradle' version '3.2.1'
 }
 
 group = 'org.huebert'
@@ -39,10 +39,10 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'com.google.guava:guava:33.4.6-jre'
+    implementation 'com.google.guava:guava:33.4.8-jre'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.6'
-    implementation 'gg.jte:jte:3.2.0'
-    implementation 'gg.jte:jte-spring-boot-starter-3:3.2.0'
+    implementation 'gg.jte:jte:3.2.1'
+    implementation 'gg.jte:jte-spring-boot-starter-3:3.2.1'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
