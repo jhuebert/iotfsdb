@@ -1,6 +1,6 @@
 package org.huebert.iotfsdb.service;
 
-import org.huebert.iotfsdb.IotfsdbProperties;
+import org.huebert.iotfsdb.properties.IotfsdbProperties;
 import org.huebert.iotfsdb.partition.PartitionAdapter;
 import org.huebert.iotfsdb.persistence.PartitionByteBuffer;
 import org.huebert.iotfsdb.persistence.PersistenceAdapter;

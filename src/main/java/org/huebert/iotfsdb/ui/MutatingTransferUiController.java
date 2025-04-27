@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.service.ImportService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +25,7 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 @Controller
 @RequestMapping("/ui/transfer")
 @ConditionalOnExpression("${iotfsdb.ui:true} and not ${iotfsdb.read-only:false}")
+@PreAuthorize("hasRole('UI_WRITE')")
 public class MutatingTransferUiController {
 
     private final ImportService importService;

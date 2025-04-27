@@ -12,6 +12,7 @@ import org.huebert.iotfsdb.ui.service.BasePageService;
 import org.huebert.iotfsdb.ui.service.ObjectEncoder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -33,6 +34,7 @@ import java.util.regex.Pattern;
 @Controller
 @RequestMapping("/ui/series")
 @ConditionalOnExpression("${iotfsdb.ui:true} and not ${iotfsdb.read-only:false}")
+@PreAuthorize("hasRole('UI_WRITE')")
 public class MutatingSeriesUiController {
 
     private final SeriesService seriesService;
