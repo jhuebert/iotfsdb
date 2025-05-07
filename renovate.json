@@ -6,12 +6,14 @@
     "group:all"
   ],
   "mode": "full",
-  "addLabels": ["renovate"],
+  "addLabels": [
+    "renovate"
+  ],
   "timezone": "America/Chicago",
   "html": {
-    "fileMatch": [
-      "\\.html?$",
-      "\\.jte?$"
+    "managerFilePatterns": [
+      "/\\.html?$/",
+      "/\\.jte?$/"
     ]
   }
 }
