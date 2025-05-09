@@ -24,19 +24,16 @@ public class IntervalService {
     }
 
     public List<Range<ZonedDateTime>> getIntervalRanges(@Valid @NotNull FindDataRequest request) {
-
         Range<ZonedDateTime> dateTimeRange = request.getRange();
         Duration rangeDuration = Duration.between(dateTimeRange.lowerEndpoint(), dateTimeRange.upperEndpoint());
 
-        boolean hasSize = request.getSize() != null;
-        boolean hasInterval = request.getInterval() != null;
+        int count = properties.getMaxQuerySize();
+        if (request.getSize() != null) {
+            count = Math.min(count, request.getSize());
+        }
 
         Duration duration;
-        int count = properties.getMaxQuerySize();
-        if (hasInterval) {
-            if (hasSize) {
-                count = Math.min(count, request.getSize());
-            }
+        if (request.getInterval() != null) {
             duration = Duration.ofMillis(request.getInterval());
             int intervalCount = (int) rangeDuration.dividedBy(duration);
             if (intervalCount < count) {
@@ -45,9 +42,6 @@ public class IntervalService {
                 duration = rangeDuration.dividedBy(count);
             }
         } else {
-            if (hasSize) {
-                count = Math.min(count, request.getSize());
-            }
             duration = rangeDuration.dividedBy(count);
         }
 
@@ -60,5 +54,6 @@ public class IntervalService {
         }
         return ranges;
     }
+
 
 }
