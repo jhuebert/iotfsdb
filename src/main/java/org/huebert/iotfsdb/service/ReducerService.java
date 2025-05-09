@@ -117,18 +117,25 @@ public class ReducerService {
     }
 
     public FindDataResponse reduce(@NotNull List<FindDataResponse> responses, @Valid @NotNull FindDataRequest request) {
+        Map<ZonedDateTime, List<SeriesData>> grouped = groupSeriesDataByTime(responses);
+        Collector<Number, ?, Number> collector = getCollector(request, request.getSeriesReducer());
+        List<SeriesData> data = processDataEntries(grouped, collector, request);
+        Map<String, String> metadata = extractCommonMetadata(responses);
+        return buildFindDataResponse(data, metadata);
+    }
 
-        Map<ZonedDateTime, List<SeriesData>> grouped = responses.parallelStream()
+    private Map<ZonedDateTime, List<SeriesData>> groupSeriesDataByTime(List<FindDataResponse> responses) {
+        return responses.parallelStream()
             .map(FindDataResponse::getData)
             .flatMap(Collection::stream)
             .collect(Collectors.groupingByConcurrent(SeriesData::getTime));
+    }
 
-        Collector<Number, ?, Number> collector = getCollector(request, request.getSeriesReducer());
-
-        List<SeriesData> data = grouped.entrySet().stream()
-            .map(e -> new SeriesData(
-                e.getKey(),
-                e.getValue().stream()
+    private List<SeriesData> processDataEntries(Map<ZonedDateTime, List<SeriesData>> grouped, Collector<Number, ?, Number> collector, FindDataRequest request) {
+        return grouped.entrySet().stream()
+            .map(entry -> new SeriesData(
+                entry.getKey(),
+                entry.getValue().stream()
                     .map(SeriesData::getValue)
                     .collect(collector)
             ))
@@ -136,13 +143,17 @@ public class ReducerService {
             .peek(request.getPreviousConsumer())
             .filter(request.getNullPredicate())
             .toList();
+    }
 
-        Map<String, String> metadata = responses.stream()
+    private Map<String, String> extractCommonMetadata(List<FindDataResponse> responses) {
+        return responses.stream()
             .map(FindDataResponse::getSeries)
             .map(SeriesFile::getMetadata)
             .reduce((a, b) -> Maps.difference(a, b).entriesInCommon())
             .orElse(Map.of());
+    }
 
+    private FindDataResponse buildFindDataResponse(List<SeriesData> data, Map<String, String> metadata) {
         return FindDataResponse.builder()
             .series(SeriesFile.builder()
                 .definition(SeriesDefinition.builder()
