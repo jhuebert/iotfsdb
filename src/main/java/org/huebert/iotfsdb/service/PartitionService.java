@@ -28,8 +28,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
+import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -43,14 +43,13 @@ public class PartitionService {
 
     private static final Set<NumberType> MAPPED = EnumSet.of(NumberType.MAPPED1, NumberType.MAPPED2, NumberType.MAPPED4);
 
-    private static final Map<NumberType, PartitionAdapter> ADAPTER_MAP;
+    private static final Map<NumberType, PartitionAdapter> ADAPTER_MAP = new EnumMap<>(NumberType.class);
 
     private final DataService dataService;
 
     private final LoadingCache<PartitionKey, PartitionRange> partitionCache;
 
     static {
-        ADAPTER_MAP = new HashMap<>();
         ADAPTER_MAP.put(NumberType.CURVED1, new BytePartition());
         ADAPTER_MAP.put(NumberType.CURVED2, new ShortPartition());
         ADAPTER_MAP.put(NumberType.CURVED4, new IntegerPartition());
@@ -85,7 +84,9 @@ public class PartitionService {
     }
 
     private PartitionRange calculateRange(PartitionKey key) {
-        SeriesFile series = dataService.getSeries(key.seriesId()).orElseThrow();
+        SeriesFile series = dataService.getSeries(key.seriesId()).orElseThrow(() ->
+            new IllegalArgumentException("Series not found for id: " + key.seriesId())
+        );
         return calculateRange(series.getDefinition(), key);
     }
 
@@ -107,7 +108,7 @@ public class PartitionService {
         NumberType type = definition.getType();
         PartitionAdapter adapter = ADAPTER_MAP.get(type);
         if (adapter == null) {
-            throw new IllegalArgumentException(String.format("series type %s not supported", type));
+            throw new IllegalArgumentException(String.format("Series type %s is not supported", type));
         }
 
         if (MAPPED.contains(type)) {
