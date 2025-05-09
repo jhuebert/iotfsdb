@@ -1,9 +1,10 @@
 package org.huebert.iotfsdb.service;
 
+import static org.huebert.iotfsdb.persistence.FilePersistenceAdapter.SERIES_JSON;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import org.huebert.iotfsdb.persistence.FilePersistenceAdapter;
 import org.huebert.iotfsdb.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.schema.SeriesFile;
 import org.springframework.stereotype.Service;
@@ -11,8 +12,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.channels.Channels;
-import java.nio.channels.WritableByteChannel;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.zip.Deflater;
@@ -41,27 +41,31 @@ public class ExportService {
     public void export(@NotNull @Valid FindSeriesRequest request, @NotNull OutputStream outputStream) {
         try (ZipOutputStream zos = new ZipOutputStream(outputStream)) {
             zos.setLevel(Deflater.BEST_COMPRESSION);
-            WritableByteChannel channel = Channels.newChannel(zos);
             for (SeriesFile seriesFile : seriesService.findSeries(request)) {
-                zos.putNextEntry(createEntry(seriesFile.getId(), FilePersistenceAdapter.SERIES_JSON));
-                zos.write(objectMapper.writeValueAsString(seriesFile).getBytes(StandardCharsets.UTF_8));
-                zos.closeEntry();
-                for (PartitionKey key : dataService.getPartitions(seriesFile.getId())) {
-                    partitionService.getRange(key).withRead(() -> {
-                        zos.putNextEntry(createEntry(key.seriesId(), key.partitionId()));
-                        channel.write(dataService.getBuffer(key).orElseThrow());
-                        zos.closeEntry();
-                    });
-                }
+                writeSeriesFileToZip(zos, seriesFile);
+                writePartitionsToZip(zos, seriesFile.getId());
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Failed to export data", e);
         }
     }
 
-    private static ZipEntry createEntry(String seriesId, String filename) {
+    private void writeSeriesFileToZip(ZipOutputStream zos, SeriesFile seriesFile) throws IOException {
+        addToZip(zos, seriesFile.getId(), SERIES_JSON, objectMapper.writeValueAsString(seriesFile).getBytes(StandardCharsets.UTF_8));
+    }
+
+    private void writePartitionsToZip(ZipOutputStream zos, String seriesId) throws IOException {
+        for (PartitionKey key : dataService.getPartitions(seriesId)) {
+            partitionService.getRange(key).withRead(() -> addToZip(zos, key.seriesId(), key.partitionId(), dataService.getBuffer(key).map(ByteBuffer::array).orElseThrow()));
+        }
+    }
+
+    private void addToZip(ZipOutputStream zos, String seriesId, String filename, byte[] content) throws IOException {
         Path path = Path.of(seriesId, filename);
-        return new ZipEntry(path.toString());
+        ZipEntry entry = new ZipEntry(path.toString());
+        zos.putNextEntry(entry);
+        zos.write(content);
+        zos.closeEntry();
     }
 
 }
