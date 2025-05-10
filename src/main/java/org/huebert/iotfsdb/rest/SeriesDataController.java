@@ -30,6 +30,8 @@ import java.util.List;
 @RequestMapping("/v2/data")
 public class SeriesDataController {
 
+    private static final MediaType ZIP_MEDIA_TYPE = MediaType.parseMediaType("application/zip");
+
     private final ExportService exportService;
 
     private final QueryService queryService;
@@ -52,12 +54,8 @@ public class SeriesDataController {
         return ResponseEntity.ok()
             .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=iotfsdb-" + formattedTime + ".zip")
-            .contentType(MediaType.parseMediaType("application/zip"))
-            .body(out -> {
-                try (out) {
-                    exportService.export(request, out);
-                }
-            });
+            .contentType(ZIP_MEDIA_TYPE)
+            .body(out -> exportService.export(request, out));
     }
 
 }
