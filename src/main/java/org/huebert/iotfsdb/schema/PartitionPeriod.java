@@ -35,19 +35,9 @@ public enum PartitionPeriod {
     }
 
     public LocalDateTime getStart(LocalDateTime dateTime) {
-
         int year = dateTime.getYear();
-
-        int month = 1;
-        if (this != YEAR) {
-            month = dateTime.getMonthValue();
-        }
-
-        int day = 1;
-        if (this == DAY) {
-            day = dateTime.getDayOfMonth();
-        }
-
+        int month = this == YEAR ? 1 : dateTime.getMonthValue();
+        int day = this == DAY ? dateTime.getDayOfMonth() : 1;
         return LocalDateTime.of(year, month, day, 0, 0, 0);
     }
 
@@ -56,21 +46,10 @@ public enum PartitionPeriod {
     }
 
     public LocalDateTime parseStart(String filename) {
-
         TemporalAccessor parsed = formatter.parse(filename);
-
         int year = parsed.get(ChronoField.YEAR);
-
-        int month = 1;
-        if (parsed.isSupported(ChronoField.MONTH_OF_YEAR)) {
-            month = parsed.get(ChronoField.MONTH_OF_YEAR);
-        }
-
-        int day = 1;
-        if (parsed.isSupported(ChronoField.DAY_OF_MONTH)) {
-            day = parsed.get(ChronoField.DAY_OF_MONTH);
-        }
-
+        int month = this == YEAR ? 1 : parsed.get(ChronoField.MONTH_OF_YEAR);
+        int day = this == DAY ? parsed.get(ChronoField.DAY_OF_MONTH) : 1;
         return LocalDateTime.of(year, month, day, 0, 0, 0);
     }
 
