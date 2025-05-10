@@ -14,6 +14,7 @@ import org.huebert.iotfsdb.ui.service.ObjectEncoder;
 import org.huebert.iotfsdb.ui.service.PlotData;
 import org.huebert.iotfsdb.ui.service.SearchParser;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,6 +33,7 @@ import java.util.TimeZone;
 @Controller
 @RequestMapping("/ui/data")
 @ConditionalOnProperty(prefix = "iotfsdb", value = "ui", havingValue = "true")
+@PreAuthorize("hasRole('UI_READ') or hasRole('UI_WRITE')")
 public class DataUiController {
 
     private final QueryService queryService;

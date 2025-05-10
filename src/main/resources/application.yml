@@ -23,6 +23,17 @@ iotfsdb:
   max-query-size: 1000
   partition-cache: "expireAfterAccess=5m,maximumSize=10000,softValues"
   ui: true
+  security:
+    enabled: true
+    users:
+      - username: "iotfsdb"
+        password: "{noop}iotfsdb"
+#        password: "$2a$10$7nSkpsLWbxNtFEZ8JA9wX.t7TMFjATurl36cufGp6PkiMEj33Vxsi"
+        roles:
+          - API_READ
+          - API_WRITE
+          - UI_READ
+          - UI_WRITE
 
 gg:
   jte:

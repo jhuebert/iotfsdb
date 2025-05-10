@@ -9,6 +9,7 @@ import org.huebert.iotfsdb.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.schema.SeriesFile;
 import org.huebert.iotfsdb.service.SeriesService;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -27,6 +28,7 @@ import static org.huebert.iotfsdb.schema.SeriesDefinition.ID_PATTERN;
 @Slf4j
 @RestController
 @RequestMapping("/v2/series")
+@PreAuthorize("hasRole('API_READ') or hasRole('API_WRITE')")
 public class SeriesController {
 
     private final SeriesService seriesService;

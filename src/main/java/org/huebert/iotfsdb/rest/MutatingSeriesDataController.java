@@ -10,6 +10,7 @@ import org.huebert.iotfsdb.service.InsertService;
 import org.huebert.iotfsdb.service.ParallelUtil;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,6 +33,7 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 @RestController
 @RequestMapping("/v2/data")
 @ConditionalOnProperty(prefix = "iotfsdb", value = "read-only", havingValue = "false")
+@PreAuthorize("hasRole('API_WRITE')")
 public class MutatingSeriesDataController {
 
     private final InsertService insertService;

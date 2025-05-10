@@ -9,7 +9,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
-import org.huebert.iotfsdb.IotfsdbProperties;
+import org.huebert.iotfsdb.properties.IotfsdbProperties;
 import org.huebert.iotfsdb.partition.BytePartition;
 import org.huebert.iotfsdb.partition.CurvedMappedPartition;
 import org.huebert.iotfsdb.partition.DoublePartition;

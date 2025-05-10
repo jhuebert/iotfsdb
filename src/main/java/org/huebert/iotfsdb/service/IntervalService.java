@@ -3,7 +3,7 @@ package org.huebert.iotfsdb.service;
 import com.google.common.collect.Range;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import org.huebert.iotfsdb.IotfsdbProperties;
+import org.huebert.iotfsdb.properties.IotfsdbProperties;
 import org.huebert.iotfsdb.schema.FindDataRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;

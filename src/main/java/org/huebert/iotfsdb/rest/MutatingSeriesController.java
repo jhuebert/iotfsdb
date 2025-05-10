@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.schema.SeriesFile;
 import org.huebert.iotfsdb.service.SeriesService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,6 +29,7 @@ import static org.springframework.http.HttpStatus.NO_CONTENT;
 @RestController
 @RequestMapping("/v2/series")
 @ConditionalOnProperty(prefix = "iotfsdb", value = "read-only", havingValue = "false")
+@PreAuthorize("hasRole('API_WRITE')") //Remove ConditionalOnProperty and just add property check here
 public class MutatingSeriesController {
 
     private final SeriesService seriesService;

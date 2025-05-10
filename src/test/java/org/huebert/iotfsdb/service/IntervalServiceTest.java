@@ -1,7 +1,7 @@
 package org.huebert.iotfsdb.service;
 
 import com.google.common.collect.Range;
-import org.huebert.iotfsdb.IotfsdbProperties;
+import org.huebert.iotfsdb.properties.IotfsdbProperties;
 import org.huebert.iotfsdb.schema.FindDataRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
