@@ -74,16 +74,10 @@ public class FindDataRequest {
     @JsonIgnore
     @AssertTrue
     public boolean isRangeValid() {
-
         if ((dateTimePreset != null) && (dateTimePreset != DateTimePreset.NONE)) {
             return true;
         }
-
-        if ((from == null) || (to == null)) {
-            return false;
-        }
-
-        return to.compareTo(from) > 0;
+        return from != null && to != null && to.isAfter(from);
     }
 
     public Range<ZonedDateTime> getRange() {
@@ -97,27 +91,23 @@ public class FindDataRequest {
     }
 
     public Predicate<SeriesData> getNullPredicate() {
-        Predicate<SeriesData> includeNull = seriesData -> true;
-        if (!isIncludeNull()) {
-            includeNull = seriesData -> seriesData.getValue() != null;
-        }
-        return includeNull;
+        return isIncludeNull() ? _ -> true : seriesData -> seriesData.getValue() != null;
     }
 
     public Consumer<SeriesData> getPreviousConsumer() {
-        Consumer<SeriesData> usePrevious = seriesData -> {
-        };
-        if (isUsePrevious()) {
-            AtomicReference<Number> previous = new AtomicReference<>(null);
-            usePrevious = seriesData -> {
-                if (seriesData.getValue() != null) {
-                    previous.set(seriesData.getValue());
-                } else {
-                    seriesData.setValue(previous.get());
-                }
+        if (!isUsePrevious()) {
+            return _ -> {
             };
         }
-        return usePrevious;
+        AtomicReference<Number> previous = new AtomicReference<>(null);
+        return seriesData -> {
+            Number value = seriesData.getValue();
+            if (value != null) {
+                previous.set(value);
+            } else {
+                seriesData.setValue(previous.get());
+            }
+        };
     }
 
 }
