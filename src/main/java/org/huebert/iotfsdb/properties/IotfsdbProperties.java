@@ -21,6 +21,6 @@ public class IotfsdbProperties {
 
     private boolean ui = true;
 
-    private SecurityProperties security;
+    private SecurityProperties security = new SecurityProperties();
 
 }

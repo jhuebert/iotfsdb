@@ -27,7 +27,8 @@ iotfsdb:
     enabled: true
     users:
       - username: "iotfsdb"
-        password: "$2a$10$7nSkpsLWbxNtFEZ8JA9wX.t7TMFjATurl36cufGp6PkiMEj33Vxsi"
+        password: "{noop}iotfsdb"
+#        password: "$2a$10$7nSkpsLWbxNtFEZ8JA9wX.t7TMFjATurl36cufGp6PkiMEj33Vxsi"
         roles:
           - API_READ
           - API_WRITE

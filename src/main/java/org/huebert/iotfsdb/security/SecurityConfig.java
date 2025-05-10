@@ -1,7 +1,6 @@
 package org.huebert.iotfsdb.security;
 
 import org.huebert.iotfsdb.properties.IotfsdbProperties;
-import org.huebert.iotfsdb.properties.UserProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
@@ -14,8 +13,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-
-import java.util.List;
 
 @Configuration
 @EnableMethodSecurity
@@ -44,10 +41,6 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        List<UserProperties> users = properties.getSecurity().getUsers();
-        if (users == null) {
-            return new InMemoryUserDetailsManager();
-        }
         UserDetails[] userDetails = properties.getSecurity().getUsers().stream()
                 .map(up -> User.builder()
                         .username(up.getUsername())
