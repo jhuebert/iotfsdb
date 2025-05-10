@@ -4,26 +4,59 @@ package org.huebert.iotfsdb.service;
 import com.google.common.collect.Range;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
 import org.huebert.iotfsdb.partition.PartitionAdapter;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.concurrent.locks.ReadWriteLock;
 
-public record PartitionRange(
-    @Valid @NotNull PartitionKey key,
-    @NotNull Range<LocalDateTime> range,
-    @NotNull Duration interval,
-    @NotNull PartitionAdapter adapter,
-    @NotNull ReadWriteLock rwLock
-) {
+public class PartitionRange {
 
-    public int getIndex(LocalDateTime dateTime) {
-        return (int) Duration.between(range.lowerEndpoint(), dateTime).dividedBy(interval);
+    @Getter
+    @Valid
+    @NotNull
+    private final PartitionKey key;
+
+    @Getter
+    @NotNull
+    private final Range<LocalDateTime> range;
+
+    @Getter
+    @NotNull
+    private final Duration interval;
+
+    @Getter
+    @NotNull
+    private final PartitionAdapter adapter;
+
+    @Getter
+    @NotNull
+    private final ReadWriteLock rwLock;
+
+    private final long intervalMillis;
+
+    private final LocalDateTime lowerEndpoint;
+
+    @Getter
+    private final long size;
+
+    public PartitionRange(PartitionKey key, Range<LocalDateTime> range, Duration interval, PartitionAdapter adapter, ReadWriteLock rwLock) {
+        this.key = key;
+        this.range = range;
+        this.interval = interval;
+        this.adapter = adapter;
+        this.rwLock = rwLock;
+
+        intervalMillis = interval.toMillis();
+        lowerEndpoint = range.lowerEndpoint();
+
+        size = getIndex(range.upperEndpoint()) + 1;
     }
 
-    public long getSize() {
-        return getIndex(range.upperEndpoint()) + 1;
+    public int getIndex(LocalDateTime dateTime) {
+        long between = Duration.between(lowerEndpoint, dateTime).toMillis();
+        return (int) (between / intervalMillis);
     }
 
     public void withRead(LockUtil.RunnableWithException runnable) {

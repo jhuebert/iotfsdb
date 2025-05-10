@@ -54,7 +54,7 @@ public class InsertService {
 
     private void insertIntoPartition(PartitionKey key, List<SeriesData> data, Collector<Number, ?, Number> collector) {
         PartitionRange details = partitionService.getRange(key);
-        PartitionAdapter adapter = details.adapter();
+        PartitionAdapter adapter = details.getAdapter();
         details.withWrite(() -> {
             ByteBuffer buffer = dataService.getBuffer(key, details.getSize(), adapter);
             for (SeriesData value : data) {

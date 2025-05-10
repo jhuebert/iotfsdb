@@ -54,15 +54,15 @@ public class PartitionServiceTest {
         LocalDateTime local = LocalDateTime.parse("2024-11-11T00:00:00");
         PartitionRange expected = new PartitionRange(key, Range.closed(local, local.plusDays(1).minusNanos(1)), Duration.ofHours(1), new BytePartition(), new ReentrantReadWriteLock());
         PartitionRange range = partitionService.getRange(key);
-        assertThat(range.key()).isEqualTo(expected.key());
-        assertThat(range.range()).isEqualTo(expected.range());
-        assertThat(range.interval()).isEqualTo(expected.interval());
-        assertThat(range.adapter()).isOfAnyClassIn(BytePartition.class);
+        assertThat(range.getKey()).isEqualTo(expected.getKey());
+        assertThat(range.getRange()).isEqualTo(expected.getRange());
+        assertThat(range.getInterval()).isEqualTo(expected.getInterval());
+        assertThat(range.getAdapter()).isOfAnyClassIn(BytePartition.class);
 
-        when(dataService.getPartitions("123")).thenReturn(Set.of(range.key()));
+        when(dataService.getPartitions("123")).thenReturn(Set.of(range.getKey()));
 
         RangeMap<LocalDateTime, PartitionRange> rangeMap = partitionService.getRangeMap("123");
-        assertThat(rangeMap.asMapOfRanges()).isEqualTo(Map.of(range.range(), range));
+        assertThat(rangeMap.asMapOfRanges()).isEqualTo(Map.of(range.getRange(), range));
     }
 
     @Test
@@ -79,60 +79,60 @@ public class PartitionServiceTest {
             .build()));
 
         definition.setType(NumberType.FLOAT2);
-        assertThat(new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).adapter()).isOfAnyClassIn(HalfFloatPartition.class);
+        assertThat(new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).getAdapter()).isOfAnyClassIn(HalfFloatPartition.class);
         definition.setType(NumberType.FLOAT4);
-        assertThat(new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).adapter()).isOfAnyClassIn(FloatPartition.class);
+        assertThat(new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).getAdapter()).isOfAnyClassIn(FloatPartition.class);
         definition.setType(NumberType.FLOAT8);
-        assertThat(new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).adapter()).isOfAnyClassIn(DoublePartition.class);
+        assertThat(new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).getAdapter()).isOfAnyClassIn(DoublePartition.class);
         definition.setType(NumberType.INTEGER1);
-        assertThat(new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).adapter()).isOfAnyClassIn(BytePartition.class);
+        assertThat(new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).getAdapter()).isOfAnyClassIn(BytePartition.class);
         definition.setType(NumberType.INTEGER2);
-        assertThat(new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).adapter()).isOfAnyClassIn(ShortPartition.class);
+        assertThat(new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).getAdapter()).isOfAnyClassIn(ShortPartition.class);
         definition.setType(NumberType.INTEGER4);
-        assertThat(new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).adapter()).isOfAnyClassIn(IntegerPartition.class);
+        assertThat(new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).getAdapter()).isOfAnyClassIn(IntegerPartition.class);
         definition.setType(NumberType.INTEGER8);
-        assertThat(new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).adapter()).isOfAnyClassIn(LongPartition.class);
+        assertThat(new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).getAdapter()).isOfAnyClassIn(LongPartition.class);
 
         definition.setMin(1.0);
         definition.setMax(2.0);
 
         definition.setType(NumberType.CURVED1);
-        PartitionAdapter adapter = new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).adapter();
+        PartitionAdapter adapter = new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).getAdapter();
         assertThat(adapter).isOfAnyClassIn(CurvedMappedPartition.class);
         assertThat(((CurvedMappedPartition) adapter).getInnerAdapter()).isOfAnyClassIn(BytePartition.class);
         assertThat(((CurvedMappedPartition) adapter).getMapper().getDecodedMin()).isEqualTo(1.0);
         assertThat(((CurvedMappedPartition) adapter).getMapper().getDecodedMax()).isEqualTo(2.0);
 
         definition.setType(NumberType.CURVED2);
-        adapter = new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).adapter();
+        adapter = new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).getAdapter();
         assertThat(adapter).isOfAnyClassIn(CurvedMappedPartition.class);
         assertThat(((CurvedMappedPartition) adapter).getInnerAdapter()).isOfAnyClassIn(ShortPartition.class);
         assertThat(((CurvedMappedPartition) adapter).getMapper().getDecodedMin()).isEqualTo(1.0);
         assertThat(((CurvedMappedPartition) adapter).getMapper().getDecodedMax()).isEqualTo(2.0);
 
         definition.setType(NumberType.CURVED4);
-        adapter = new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).adapter();
+        adapter = new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).getAdapter();
         assertThat(adapter).isOfAnyClassIn(CurvedMappedPartition.class);
         assertThat(((CurvedMappedPartition) adapter).getInnerAdapter()).isOfAnyClassIn(IntegerPartition.class);
         assertThat(((CurvedMappedPartition) adapter).getMapper().getDecodedMin()).isEqualTo(1.0);
         assertThat(((CurvedMappedPartition) adapter).getMapper().getDecodedMax()).isEqualTo(2.0);
 
         definition.setType(NumberType.MAPPED1);
-        adapter = new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).adapter();
+        adapter = new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).getAdapter();
         assertThat(adapter).isOfAnyClassIn(MappedPartition.class);
         assertThat(((MappedPartition) adapter).getInnerAdapter()).isOfAnyClassIn(BytePartition.class);
         assertThat(((MappedPartition) adapter).getMapper().getDecodedMin()).isEqualTo(1.0);
         assertThat(((MappedPartition) adapter).getMapper().getDecodedMax()).isEqualTo(2.0);
 
         definition.setType(NumberType.MAPPED2);
-        adapter = new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).adapter();
+        adapter = new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).getAdapter();
         assertThat(adapter).isOfAnyClassIn(MappedPartition.class);
         assertThat(((MappedPartition) adapter).getInnerAdapter()).isOfAnyClassIn(ShortPartition.class);
         assertThat(((MappedPartition) adapter).getMapper().getDecodedMin()).isEqualTo(1.0);
         assertThat(((MappedPartition) adapter).getMapper().getDecodedMax()).isEqualTo(2.0);
 
         definition.setType(NumberType.MAPPED4);
-        adapter = new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).adapter();
+        adapter = new PartitionService(new IotfsdbProperties(), dataService).getRange(new PartitionKey("abc", "20241110")).getAdapter();
         assertThat(adapter).isOfAnyClassIn(MappedPartition.class);
         assertThat(((MappedPartition) adapter).getInnerAdapter()).isOfAnyClassIn(IntegerPartition.class);
         assertThat(((MappedPartition) adapter).getMapper().getDecodedMin()).isEqualTo(1.0);

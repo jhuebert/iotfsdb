@@ -79,7 +79,7 @@ public class PartitionService {
         RangeMap<LocalDateTime, PartitionRange> rangeMap = TreeRangeMap.create();
         dataService.getPartitions(seriesId).stream()
             .map(this::getRange)
-            .forEach(pr -> rangeMap.put(pr.range(), pr));
+            .forEach(pr -> rangeMap.put(pr.getRange(), pr));
         return rangeMap;
     }
 
