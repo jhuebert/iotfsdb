@@ -45,8 +45,11 @@ public class IntervalService {
             duration = rangeDuration.dividedBy(count);
         }
 
+        return createRanges(dateTimeRange.lowerEndpoint(), duration, count);
+    }
+
+    private List<Range<ZonedDateTime>> createRanges(ZonedDateTime start, Duration duration, int count) {
         List<Range<ZonedDateTime>> ranges = new ArrayList<>(count);
-        ZonedDateTime start = dateTimeRange.lowerEndpoint();
         for (int i = 0; i < count; i++) {
             ZonedDateTime end = start.plus(duration);
             ranges.add(Range.closed(start, end.minusNanos(1)));
@@ -54,6 +57,5 @@ public class IntervalService {
         }
         return ranges;
     }
-
 
 }

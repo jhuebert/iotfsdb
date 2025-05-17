@@ -26,7 +26,7 @@ public class ParallelUtil {
                 .map(CompletableFuture::join)
                 .toList();
         } catch (Exception e) {
-            throw new RuntimeException("An error occurred during parallel processing", e);
+            throw new RuntimeException("Error during parallel processing", e);
         }
     }
 

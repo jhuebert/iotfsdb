@@ -16,7 +16,6 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
@@ -49,15 +48,13 @@ public class QueryService {
         List<Range<ZonedDateTime>> ranges = intervalService.getIntervalRanges(request);
 
         List<FindDataResponse> result = ParallelUtil.map(series, s -> findDataForSeries(request, ranges, s)).stream()
-            .filter(r -> r.getData().stream().map(SeriesData::getValue).anyMatch(Objects::nonNull))
+            .filter(r -> r.getData().stream().anyMatch(data -> data.getValue() != null))
             .sorted(Comparator.comparing(r -> r.getSeries().getId()))
             .toList();
 
-        if (request.getSeriesReducer() != null) {
-            return List.of(reducerService.reduce(result, request));
-        }
-
-        return result;
+        return request.getSeriesReducer() != null
+            ? List.of(reducerService.reduce(result, request))
+            : result;
     }
 
     private FindDataResponse findDataForSeries(@Valid @NotNull FindDataRequest request, @NotNull List<Range<ZonedDateTime>> ranges, SeriesFile series) {

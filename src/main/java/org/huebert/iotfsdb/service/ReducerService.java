@@ -32,7 +32,6 @@ import org.springframework.validation.annotation.Validated;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
@@ -126,8 +125,7 @@ public class ReducerService {
 
     private Map<ZonedDateTime, List<SeriesData>> groupSeriesDataByTime(List<FindDataResponse> responses) {
         return responses.parallelStream()
-            .map(FindDataResponse::getData)
-            .flatMap(Collection::stream)
+            .flatMap(response -> response.getData().stream())
             .collect(Collectors.groupingByConcurrent(SeriesData::getTime));
     }
 

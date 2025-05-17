@@ -43,13 +43,14 @@ public class PartitionService {
 
     private static final Set<NumberType> MAPPED = EnumSet.of(NumberType.MAPPED1, NumberType.MAPPED2, NumberType.MAPPED4);
 
-    private static final Map<NumberType, PartitionAdapter> ADAPTER_MAP = new EnumMap<>(NumberType.class);
+    private static final Map<NumberType, PartitionAdapter> ADAPTER_MAP;
 
     private final DataService dataService;
 
     private final LoadingCache<PartitionKey, PartitionRange> partitionCache;
 
     static {
+        ADAPTER_MAP = new EnumMap<>(NumberType.class);
         ADAPTER_MAP.put(NumberType.CURVED1, new BytePartition());
         ADAPTER_MAP.put(NumberType.CURVED2, new ShortPartition());
         ADAPTER_MAP.put(NumberType.CURVED4, new IntegerPartition());
@@ -84,9 +85,8 @@ public class PartitionService {
     }
 
     private PartitionRange calculateRange(PartitionKey key) {
-        SeriesFile series = dataService.getSeries(key.seriesId()).orElseThrow(() ->
-            new IllegalArgumentException("Series not found for id: " + key.seriesId())
-        );
+        SeriesFile series = dataService.getSeries(key.seriesId())
+            .orElseThrow(() -> new IllegalArgumentException("Series not found for id: " + key.seriesId()));
         return calculateRange(series.getDefinition(), key);
     }
 
@@ -108,13 +108,13 @@ public class PartitionService {
         NumberType type = definition.getType();
         PartitionAdapter adapter = ADAPTER_MAP.get(type);
         if (adapter == null) {
-            throw new IllegalArgumentException(String.format("Series type %s is not supported", type));
+            throw new IllegalArgumentException("Series type " + definition.getType() + " is not supported");
         }
 
         if (MAPPED.contains(type)) {
-            adapter = new MappedPartition(adapter, definition.getMin(), definition.getMax());
+            return new MappedPartition(adapter, definition.getMin(), definition.getMax());
         } else if (CURVED.contains(type)) {
-            adapter = new CurvedMappedPartition(adapter, definition.getMin(), definition.getMax());
+            return new CurvedMappedPartition(adapter, definition.getMin(), definition.getMax());
         }
 
         return adapter;

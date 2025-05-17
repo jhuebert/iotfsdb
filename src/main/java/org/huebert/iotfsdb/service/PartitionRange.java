@@ -55,8 +55,7 @@ public class PartitionRange {
     }
 
     public int getIndex(LocalDateTime dateTime) {
-        long between = Duration.between(lowerEndpoint, dateTime).toMillis();
-        return (int) (between / intervalMillis);
+        return (int) (Duration.between(lowerEndpoint, dateTime).toMillis() / intervalMillis);
     }
 
     public void withRead(LockUtil.RunnableWithException runnable) {
