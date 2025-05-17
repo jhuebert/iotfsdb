@@ -3,23 +3,16 @@
 @import org.huebert.iotfsdb.schema.Reducer
 @import org.huebert.iotfsdb.ui.service.PlotData
 @import org.huebert.iotfsdb.ui.service.SearchParser
-@import java.time.ZonedDateTime
 
 @param FindDataRequest request
 @param PlotData plotData
 
 <script>
-    function dateTimePresetChanged(self) {
-      const fromDateTime = document.getElementById('from');
-      const toDateTime = document.getElementById('to');
-      if (self.value === 'NONE') {
-        fromDateTime.disabled = false;
-        toDateTime.disabled = false;
-      } else {
-        fromDateTime.disabled = true;
-        toDateTime.disabled = true;
-      }
-    }
+  function dateTimePresetChanged(self) {
+      const isNone = self.value === 'NONE';
+      document.getElementById('from').disabled = !isNone;
+      document.getElementById('to').disabled = !isNone;
+  }
 </script>
 <form>
     <div class="row mb-2">

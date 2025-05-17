@@ -48,12 +48,7 @@ public class DataUiController {
 
     @GetMapping
     public String getIndex(Model model, @RequestParam(value = "request", required = false) String request) {
-
-        PlotData plotData = PlotData.builder()
-            .labels(List.of())
-            .data(List.of())
-            .build();
-
+        PlotData plotData = PlotData.builder().labels(List.of()).data(List.of()).build();
         FindDataRequest defaultRequest = new FindDataRequest();
         defaultRequest.setDateTimePreset(DateTimePreset.LAST_24_HOURS);
         model.addAttribute("request", defaultRequest);
@@ -69,7 +64,7 @@ public class DataUiController {
                 model.addAttribute("request", findDataRequest);
             }
         } catch (IOException e) {
-            log.warn("could not parse request: {}", request);
+            log.warn("Could not parse request: {}", request);
         }
 
         model.addAttribute("plotData", plotData);
@@ -124,7 +119,7 @@ public class DataUiController {
         try {
             response.addHeader("HX-Push-Url", "/ui/data?request=" + objectEncoder.encode(request));
         } catch (IOException e) {
-            log.warn("could not serialize {}", request);
+            log.warn("Could not serialize request: {}", request);
         }
 
         model.addAttribute("basePage", basePageService.getBasePage());

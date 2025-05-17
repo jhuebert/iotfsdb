@@ -62,17 +62,17 @@ public class ImportService {
     }
 
     private static List<SeriesData> convertPartition(PersistenceAdapter adapter, PartitionRange partitionRange) {
-        PartitionByteBuffer pbb = adapter.openPartition(partitionRange.key());
+        PartitionByteBuffer pbb = adapter.openPartition(partitionRange.getKey());
         try {
             List<SeriesData> result = new ArrayList<>();
-            ZonedDateTime current = TimeConverter.toUtc(partitionRange.range().lowerEndpoint());
-            Iterator<Number> iterator = partitionRange.adapter().getStream(pbb.getByteBuffer(), 0, (int) partitionRange.getSize()).iterator();
+            ZonedDateTime current = TimeConverter.toUtc(partitionRange.getRange().lowerEndpoint());
+            Iterator<Number> iterator = partitionRange.getAdapter().getStream(pbb.getByteBuffer(), 0, (int) partitionRange.getSize()).iterator();
             while (iterator.hasNext()) {
                 Number value = iterator.next();
                 if (value != null) {
                     result.add(new SeriesData(current, value));
                 }
-                current = current.plus(partitionRange.interval());
+                current = current.plus(partitionRange.getInterval());
             }
             return result;
         } finally {

@@ -27,9 +27,10 @@ public class SeriesService {
     }
 
     public void createSeries(@Valid @NotNull SeriesFile seriesFile) {
-        if (dataService.getSeries(seriesFile.getId()).isPresent()) {
-            throw new IllegalArgumentException(String.format("series (%s) already exists", seriesFile.getId()));
-        }
+        dataService.getSeries(seriesFile.getId())
+            .ifPresent(_ -> {
+                throw new IllegalArgumentException(String.format("series (%s) already exists", seriesFile.getId()));
+            });
         dataService.saveSeries(seriesFile);
     }
 
@@ -55,21 +56,17 @@ public class SeriesService {
     }
 
     private boolean matchesMetadata(@Valid @NotNull SeriesFile series, @NotNull Map<String, Pattern> metadata) {
-        Map<String, String> seriesMetadata = series.getMetadata();
-
         if (metadata.isEmpty()) {
             return true;
-        } else if (metadata.size() > seriesMetadata.size()) {
+        }
+        Map<String, String> seriesMetadata = series.getMetadata();
+        if (metadata.size() > seriesMetadata.size()) {
             return false;
         }
-
-        for (Map.Entry<String, Pattern> entry : metadata.entrySet()) {
-            String seriesValue = seriesMetadata.get(entry.getKey());
-            if ((seriesValue == null) || !entry.getValue().matcher(seriesValue).matches()) {
-                return false;
-            }
-        }
-        return true;
+        return metadata.entrySet().stream()
+            .allMatch(entry -> {
+                String seriesValue = seriesMetadata.get(entry.getKey());
+                return seriesValue != null && entry.getValue().matcher(seriesValue).matches();
+            });
     }
-
 }

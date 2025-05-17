@@ -42,7 +42,7 @@ public class MedianCollector implements NumberCollector<Double, List<Double>> {
                 return (a.get(0) + a.get(1)) * 0.5;
             }
 
-            a.sort(Comparator.comparing(b -> b));
+            a.sort(Comparator.naturalOrder());
             int index = a.size() / 2;
             double median = a.get(index);
             if (a.size() % 2 == 0) {
