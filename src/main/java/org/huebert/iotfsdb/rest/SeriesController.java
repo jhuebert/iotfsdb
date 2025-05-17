@@ -1,5 +1,7 @@
 package org.huebert.iotfsdb.rest;
 
+import static org.huebert.iotfsdb.schema.SeriesDefinition.ID_PATTERN;
+
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -21,8 +23,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Map;
 
-import static org.huebert.iotfsdb.schema.SeriesDefinition.ID_PATTERN;
-
 @Validated
 @Slf4j
 @RestController
@@ -37,24 +37,25 @@ public class SeriesController {
 
     @Operation(tags = "Series", summary = "Finds series that match search parameters")
     @PostMapping("find")
-    public List<SeriesFile> find(@NotNull @Valid @RequestBody FindSeriesRequest request) {
+    public List<SeriesFile> find(@Valid @RequestBody FindSeriesRequest request) {
         return seriesService.findSeries(request);
     }
 
     @Operation(tags = "Series", summary = "Get series details")
     @GetMapping("{id}")
-    public SeriesFile get(@PathVariable("id") @Pattern(regexp = ID_PATTERN) String id) {
+    public SeriesFile get(@PathVariable @Pattern(regexp = ID_PATTERN) String id) {
         return getSeries(id);
     }
 
     @Operation(tags = "Series", summary = "Retrieves the metadata for a series")
     @GetMapping("{id}/metadata")
-    public Map<String, String> getMetadata(@PathVariable("id") @Pattern(regexp = ID_PATTERN) String id) {
+    public Map<String, String> getMetadata(@PathVariable @Pattern(regexp = ID_PATTERN) String id) {
         return getSeries(id).getMetadata();
     }
 
     private SeriesFile getSeries(String seriesId) {
-        return seriesService.findSeries(seriesId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("series (%s) does not exist", seriesId)));
+        return seriesService.findSeries(seriesId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "series (%s) does not exist".formatted(seriesId)));
     }
 
 }

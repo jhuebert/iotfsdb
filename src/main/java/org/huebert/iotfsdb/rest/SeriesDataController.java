@@ -3,7 +3,6 @@ package org.huebert.iotfsdb.rest;
 import com.google.common.net.HttpHeaders;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.schema.FindDataRequest;
 import org.huebert.iotfsdb.schema.FindDataResponse;
@@ -36,20 +35,20 @@ public class SeriesDataController {
 
     private final QueryService queryService;
 
-    public SeriesDataController(@NotNull ExportService exportService, @NotNull QueryService queryService) {
+    public SeriesDataController(ExportService exportService, QueryService queryService) {
         this.exportService = exportService;
         this.queryService = queryService;
     }
 
     @Operation(tags = "Data", summary = "Finds data matching the input request")
     @PostMapping("find")
-    public List<FindDataResponse> find(@NotNull @Valid @RequestBody FindDataRequest request) {
+    public List<FindDataResponse> find(@Valid @RequestBody FindDataRequest request) {
         return queryService.findData(request);
     }
 
     @Operation(tags = "Data", summary = "Exports a database archive of matching series")
     @PostMapping(value = "export", produces = "application/zip")
-    public ResponseEntity<StreamingResponseBody> export(@NotNull @Valid @RequestBody FindSeriesRequest request) {
+    public ResponseEntity<StreamingResponseBody> export(@Valid @RequestBody FindSeriesRequest request) {
         String formattedTime = TimeConverter.toUtc(ZonedDateTime.now()).format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
         return ResponseEntity.ok()
             .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)

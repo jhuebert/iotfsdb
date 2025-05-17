@@ -34,7 +34,7 @@ public class ModeCollector implements NumberCollector<Number, Multiset<Number>> 
     @Override
     public Function<Multiset<Number>, Number> finisher() {
         return a -> a.entrySet().stream()
-            .max(Comparator.comparing(Multiset.Entry::getCount))
+            .max(Comparator.comparingInt(Multiset.Entry::getCount))
             .map(Multiset.Entry::getElement)
             .orElse(null);
     }

@@ -32,7 +32,7 @@ public class TransferUiController {
         return "transfer/index";
     }
 
-    @GetMapping(value = "export", produces = "application/zip")
+    @GetMapping("export")
     public ResponseEntity<StreamingResponseBody> export() {
         return exportService.export(null);
     }

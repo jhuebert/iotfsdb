@@ -6,17 +6,16 @@ import org.huebert.iotfsdb.schema.FindSeriesRequest;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 public class SearchParser {
 
     public static FindSeriesRequest fromSearch(String search) {
         FindSeriesRequest request = new FindSeriesRequest();
-        if (!Strings.isBlank(search)) {
+        if (Strings.isNotBlank(search)) {
             for (String part : search.split("&&")) {
-                if (part.contains("~~")) {
-                    String[] metadataParts = part.split("~~");
+                String[] metadataParts = part.split("~~", 2);
+                if (metadataParts.length == 2) {
                     request.getMetadata().put(metadataParts[0].trim(), Pattern.compile(metadataParts[1].trim()));
                 } else {
                     request.setPattern(Pattern.compile(part.trim()));
@@ -27,10 +26,7 @@ public class SearchParser {
     }
 
     public static String toSearch(FindDataRequest request) {
-        if (request == null) {
-            return null;
-        }
-        return toSearch(request.getSeries());
+        return (request == null) ? null : toSearch(request.getSeries());
     }
 
     public static String toSearch(FindSeriesRequest request) {
@@ -39,9 +35,7 @@ public class SearchParser {
         }
         List<String> parts = new ArrayList<>();
         parts.add(request.getPattern().toString());
-        for (Map.Entry<String, Pattern> entry : request.getMetadata().entrySet()) {
-            parts.add(entry.getKey() + " ~~ " + entry.getValue());
-        }
+        request.getMetadata().forEach((key, value) -> parts.add(key + " ~~ " + value));
         return String.join(" && ", parts);
     }
 

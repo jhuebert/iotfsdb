@@ -35,14 +35,14 @@ public class SummingCollector implements NumberCollector<Double, SummingCollecto
 
     public static class Sum {
 
-        private double result = 0;
+        private double result;
 
         public void accumulate(Double value) {
             result += value;
         }
 
         public Sum combine(Sum other) {
-            accumulate(other.result);
+            result += other.result;
             return this;
         }
 

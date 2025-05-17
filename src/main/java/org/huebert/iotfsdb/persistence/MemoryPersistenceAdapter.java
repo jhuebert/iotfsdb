@@ -35,7 +35,7 @@ public class MemoryPersistenceAdapter implements PersistenceAdapter {
 
     @PostConstruct
     public void postConstruct() {
-        log.info("Using {}", MemoryPersistenceAdapter.class.getSimpleName());
+        log.info("Using {}", getClass().getSimpleName());
     }
 
     @Override
@@ -81,7 +81,7 @@ public class MemoryPersistenceAdapter implements PersistenceAdapter {
 
         @Override
         public ByteBuffer getByteBuffer() {
-            return byteBuffer.slice(0, byteBuffer.capacity());
+            return byteBuffer.slice();
         }
 
         @Override

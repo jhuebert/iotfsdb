@@ -23,7 +23,8 @@ public class ExportUiService {
     }
 
     public ResponseEntity<StreamingResponseBody> export(String id) {
-        String formattedTime = TimeConverter.toUtc(ZonedDateTime.now()).format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
+        String formattedTime = TimeConverter.toUtc(ZonedDateTime.now())
+            .format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
         FindSeriesRequest request = new FindSeriesRequest();
         String filename = "iotfsdb-" + formattedTime + ".zip";
         if (id != null) {
@@ -33,11 +34,7 @@ public class ExportUiService {
         return ResponseEntity.ok()
             .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + filename)
-            .contentType(MediaType.parseMediaType("application/zip"))
-            .body(out -> {
-                try (out) {
-                    exportService.export(request, out);
-                }
-            });
+            .contentType(MediaType.APPLICATION_OCTET_STREAM)
+            .body(out -> exportService.export(request, out));
     }
 }

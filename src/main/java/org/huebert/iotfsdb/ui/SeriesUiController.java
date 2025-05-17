@@ -56,7 +56,7 @@ public class SeriesUiController {
                 model.addAttribute("request", findSeriesRequest);
             }
         } catch (IOException e) {
-            log.warn("could not parse request: {}", request);
+            log.warn("Could not parse request: {}", request);
         }
         model.addAttribute("series", series);
         model.addAttribute("basePage", basePageService.getBasePage());
@@ -70,19 +70,21 @@ public class SeriesUiController {
         try {
             response.addHeader("HX-Push-Url", "/ui/series?request=" + objectEncoder.encode(request));
         } catch (IOException e) {
-            log.warn("could not serialize {}", request);
+            log.warn("Could not serialize request: {}", request);
         }
         model.addAttribute("basePage", basePageService.getBasePage());
         return "series/fragments/results";
     }
 
-    @GetMapping(value = "{id}/export", produces = "application/zip")
-    public ResponseEntity<StreamingResponseBody> exportSeries(@PathVariable("id") String id) {
+    @GetMapping("{id}/export")
+    public ResponseEntity<StreamingResponseBody> exportSeries(@PathVariable String id) {
         return exportService.export(id);
     }
 
     private SeriesFile getSeries(String seriesId) {
-        return seriesService.findSeries(seriesId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("series (%s) does not exist", seriesId)));
+        return seriesService.findSeries(seriesId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                String.format("Series (%s) does not exist", seriesId)));
     }
 
 }

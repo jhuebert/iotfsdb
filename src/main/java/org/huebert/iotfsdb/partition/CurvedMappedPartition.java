@@ -59,8 +59,7 @@ public class CurvedMappedPartition implements PartitionAdapter {
     }
 
     private static double decurve(double value) {
-        double a = (1.0 + value) / (1.0 - value);
-        return 0.5 * Math.log(a);
+        return 0.5 * Math.log((1.0 + value) / (1.0 - value));
     }
 
 }
