@@ -22,15 +22,16 @@
     <script>
         function handleHtmxResponseError(event) {
           console.error(event);
-          let alert = '<div class="alert alert-danger alert-dismissible fade show" role="alert"><strong>Error</strong> ';
-          alert += event.detail.error;
-          alert += '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+          const alert = `
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+              <strong>Error</strong> ${event.detail.error}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>`;
           document.getElementById('htmx-error').innerHTML = alert;
         }
     </script>
     <style>
-        html,
-        body {
+        html, body {
           height: 100%;
           margin: 0;
         }
@@ -39,7 +40,10 @@
 <body class="container-fluid h-100 p-0" hx-headers='js:{"Iotfsdb-Tz": Intl.DateTimeFormat().resolvedOptions().timeZone}'>
 <nav class="navbar navbar-expand-sm bg-body-tertiary">
     <div class="container-fluid">
-        <a class="navbar-brand" href="/ui"><img src="/icons/cpu.svg"/> iotfsdb <span class="badge rounded-pill text-bg-secondary">${basePage.getVersion()}</span></a>
+        <a class="navbar-brand" href="/ui">
+            <img src="/icons/cpu.svg" alt="iotfsdb logo"/> iotfsdb
+            <span class="badge rounded-pill text-bg-secondary">${basePage.getVersion()}</span>
+        </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>

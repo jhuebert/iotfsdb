@@ -7,17 +7,15 @@
 @param boolean disabled = false
 @param boolean small = false
 
-!{DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");}
-
 <div class="col">
-    @if(label != null)
-        <label class="text-nowrap" for="${id}">${label}</label>
-    @endif
-    <input class="form-control ${small ? "form-control-sm" : ""}"
-           id="${id}"
-           disabled="${disabled}"
-           type="datetime-local"
-           name="${id}"
-           aria-label="${label}"
-           value="${value != null ? value.toLocalDateTime().format(formatter) : null}">
+   @if(label != null)
+       <label for="${id}" class="text-nowrap">${label}</label>
+   @endif
+   <input type="datetime-local"
+          id="${id}"
+          name="${id}"
+          class="form-control ${small ? "form-control-sm" : ""}"
+          aria-label="${label}"
+          value="${value != null ? value.toLocalDateTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")) : null}"
+          ${disabled ? "disabled" : ""}>
 </div>

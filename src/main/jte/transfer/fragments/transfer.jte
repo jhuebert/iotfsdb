@@ -7,9 +7,9 @@
 </div>
 @if(!basePage.isReadOnly())
     <div class="row mb-3">
-        <form id='form' hx-encoding='multipart/form-data' hx-post='/ui/transfer/import'>
+        <form id="form" hx-encoding="multipart/form-data" hx-post="/ui/transfer/import">
             <div class="input-group">
-                <input class="form-control" type='file' name='file'>
+                <input class="form-control" type="file" name="file">
                 @template.components.button(content = @`<i class="bi bi-download"></i> Import Data`)
             </div>
         </form>
