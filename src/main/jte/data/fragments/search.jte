@@ -15,35 +15,63 @@
   }
 </script>
 <form>
-    <div class="row mb-2">
-        @template.components.search(hxPost = @`/ui/data/search`, hxTarget = "#chart-data", value = SearchParser.toSearch(request), small = true)
-    </div>
-    <div class="row mb-2">
-        @template.components.select(id = "dateTimePreset", small = true, onchange = "dateTimePresetChanged(this)", values = DateTimePreset.values(), selected = request.getDateTimePreset())
-        @template.components.datetime(id = "from", small = true, disabled = request.getDateTimePreset() != null && request.getDateTimePreset() != DateTimePreset.NONE, value = request.getRange().lowerEndpoint())
-        @template.components.datetime(id = "to", small = true, disabled = request.getDateTimePreset() != null && request.getDateTimePreset() != DateTimePreset.NONE, value = request.getRange().upperEndpoint())
-    </div>
-    <div class="row mb-2">
-        <details>
-            <summary><small>Advanced</small></summary>
-            <div class="row mt-1 mb-2">
-                @template.components.number(id = "size", label = "Size", min = 1, value = request.getSize(), small = true)
-                @template.components.number(id = "interval", label = "Interval (ms)", min = 1L, step = 60000L, value = request.getInterval(), small = true)
-                @template.components.number(id = "nullValue", label = "Null Value", value = request.getNullValue() != null ? request.getNullValue().doubleValue() : null, small = true)
+    <div class="row mb-3">
+        <div class="col">
+            <input class="form-control form-control-sm"
+                   name="search"
+                   type="search"
+                   placeholder="Search"
+                   value="${SearchParser.toSearch(request)}"/>
+        </div>
+        <div class="col-auto ps-0">
+            <button class="btn btn-sm btn-primary"
+                    hx-post="/ui/data/search"
+                    hx-target="#chart-data"
+                    hx-on::response-error="handleHtmxResponseError(event)">
+                <i class="bi bi-search"></i>
+            </button>
+            <button class="btn btn-sm btn-secondary"
+                    data-bs-toggle="modal"
+                    data-bs-target="#advancedModal">
+                <i class="bi bi-gear"></i>
+            </button>
+            <div class="modal fade" id="advancedModal" tabindex="-1"
+                 aria-labelledby="advancedModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="advancedModalLabel">Advanced Options</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row mb-3">
+                                @template.components.select(id = "dateTimePreset", label = "Preset", onchange = "dateTimePresetChanged(this)", values = DateTimePreset.values(), selected = request.getDateTimePreset())
+                                @template.components.datetime(id = "from", label = "From", disabled = request.getDateTimePreset() != null && request.getDateTimePreset() != DateTimePreset.NONE, value = request.getRange().lowerEndpoint())
+                                @template.components.datetime(id = "to", label = "To", disabled = request.getDateTimePreset() != null && request.getDateTimePreset() != DateTimePreset.NONE, value = request.getRange().upperEndpoint())
+                            </div>
+                            <div class="row mb-3">
+                                @template.components.number(id = "size", label = "Size", min = 1, value = request.getSize())
+                                @template.components.number(id = "interval", label = "Interval (ms)", min = 1L, step = 60000L, value = request.getInterval())
+                                @template.components.number(id = "nullValue", label = "Null Value", value = request.getNullValue() != null ? request.getNullValue().doubleValue() : null)
+                            </div>
+                            <div class="row mb-3">
+                                @template.components.select(id = "timeReducer", label = "Time Reducer", values = Reducer.values(), selected = request.getTimeReducer())
+                                @template.components.select(id = "seriesReducer", label = "Series Reducer", emptyOption = true, values = Reducer.values(), selected = request.getSeriesReducer())
+                            </div>
+                            <div class="row mb-3">
+                                @template.components.switch(id = "includeNull", label = "Include Null", checked = request.isIncludeNull())
+                                @template.components.switch(id = "useBigDecimal", label = "Use Big Decimal", checked = request.isUseBigDecimal())
+                                @template.components.switch(id = "usePrevious", label = "Use Previous", checked = request.isUsePrevious())
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="row mb-2">
-                @template.components.select(id = "timeReducer", small = true, label = "Time Reducer", values = Reducer.values(), selected = request.getTimeReducer())
-                @template.components.select(id = "seriesReducer", small = true, label = "Series Reducer", emptyOption = true, values = Reducer.values(), selected = request.getSeriesReducer())
-            </div>
-            <div class="row mb-2">
-                @template.components.switch(id = "includeNull", label = "Include Null", checked = request.isIncludeNull(), small = true)
-                @template.components.switch(id = "useBigDecimal", label = "Use Big Decimal", checked = request.isUseBigDecimal(), small = true)
-                @template.components.switch(id = "usePrevious", label = "Use Previous", checked = request.isUsePrevious(), small = true)
-            </div>
-        </details>
+        </div>
     </div>
 </form>
-<div class="h-100">
+<div style="height: calc(100vh - 150px);">
     <canvas id="plot" style="width: 100%; height: 100%;"></canvas>
     <script>
         const chart = new Chart(document.getElementById('plot'), {
@@ -55,11 +83,18 @@
           options: {
             animation: false,
             cubicInterpolationMode: 'monotone',
-            maintainAspectRatio: true,
+            maintainAspectRatio: false,
             responsive: true,
             elements: {
               line: {
                 spanGaps: true
+              }
+            },
+            plugins: {
+              tooltip: {
+                enabled: true,
+                mode: 'index',
+                intersect: false,
               }
             },
             scales: {
