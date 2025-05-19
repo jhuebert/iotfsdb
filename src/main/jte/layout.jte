@@ -38,10 +38,8 @@
 <body class="container-fluid h-100 p-0" hx-headers='js:{"Iotfsdb-Tz": Intl.DateTimeFormat().resolvedOptions().timeZone}'>
 <nav class="navbar navbar-expand-sm bg-body-tertiary">
     <div class="container-fluid">
-        <a class="navbar-brand d-flex align-items-center" href="/ui">
-            <img src="/icons/cpu.svg" alt="iotfsdb logo" class="me-2" style="height: 24px;"/>
-            <span class="me-2">iotfsdb</span>
-            <span class="badge rounded-pill text-bg-secondary">${basePage.getVersion()}</span>
+        <a class="navbar-brand" href="/ui">
+            <span class="me-2" title="iotfsdb ${basePage.getVersion()}"><i class="bi bi-cpu"></i> iotfsdb</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
