@@ -47,9 +47,9 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a class="nav-link" href="/ui/series">Series</a></li>
-                <li class="nav-item"><a class="nav-link" href="/ui/data">Data</a></li>
-                <li class="nav-item"><a class="nav-link" href="/ui/transfer">Transfer</a></li>
+                <li class="nav-item"><a class="nav-link ${"Series".equals(title) ? "active bg-secondary rounded" : ""}" href="/ui/series">Series</a></li>
+                <li class="nav-item"><a class="nav-link ${"Data".equals(title) ? "active bg-secondary rounded" : ""}" href="/ui/data">Data</a></li>
+                <li class="nav-item"><a class="nav-link ${"Transfer".equals(title) ? "active bg-secondary rounded" : ""}" href="/ui/transfer">Transfer</a></li>
                 @if(basePage.isSpringdocEnabled())
                     <li class="nav-item"><a class="nav-link" href="/swagger-ui/index.html">API</a></li>
                 @endif
