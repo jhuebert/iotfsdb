@@ -3,6 +3,7 @@ package org.huebert.iotfsdb.service;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
+import com.google.common.util.concurrent.Striped;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -18,7 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.nio.ByteBuffer;
-import java.util.List;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -26,7 +28,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 @Validated
 @Slf4j
@@ -39,7 +40,7 @@ public class DataService {
 
     private final ConcurrentMap<String, Set<PartitionKey>> seriesPartitions = new ConcurrentHashMap<>();
 
-    private final Lock lock = new ReentrantLock();
+    private final Striped<Lock> stripedLocks = Striped.lock(32);
 
     private final LoadingCache<PartitionKey, PartitionByteBuffer> partitionCache;
 
@@ -61,8 +62,8 @@ public class DataService {
         }
     }
 
-    public List<SeriesFile> getSeries() {
-        return List.copyOf(seriesMap.values());
+    public Collection<SeriesFile> getSeries() {
+        return Collections.unmodifiableCollection(seriesMap.values());
     }
 
     public Optional<SeriesFile> getSeries(@NotBlank String seriesId) {
@@ -70,16 +71,19 @@ public class DataService {
     }
 
     public void saveSeries(@Valid @NotNull SeriesFile seriesFile) {
-        LockUtil.withLock(lock, () -> {
+        LockUtil.withLock(stripedLocks.get(seriesFile.getId()), () -> {
             persistenceAdapter.saveSeries(seriesFile);
             seriesMap.put(seriesFile.getId(), seriesFile);
         });
     }
 
     public void deleteSeries(@NotBlank String seriesId) {
-        LockUtil.withLock(lock, () -> {
+        LockUtil.withLock(stripedLocks.get(seriesId), () -> {
             seriesMap.remove(seriesId);
-            partitionCache.invalidateAll(Optional.ofNullable(seriesPartitions.remove(seriesId)).orElseGet(Set::of));
+            Set<PartitionKey> partitions = seriesPartitions.remove(seriesId);
+            if (partitions != null) {
+                partitionCache.invalidateAll(partitions);
+            }
             persistenceAdapter.deleteSeries(seriesId);
         });
     }
@@ -97,7 +101,7 @@ public class DataService {
 
     public ByteBuffer getBuffer(@Valid @NotNull PartitionKey key, @NotNull @Positive Long size, @NotNull PartitionAdapter adapter) {
         if (partitionNotExists(key)) {
-            LockUtil.withLock(lock, () -> {
+            LockUtil.withLock(stripedLocks.get(key.seriesId()), () -> {
                 if (partitionNotExists(key)) {
 
                     persistenceAdapter.createPartition(key, adapter.getTypeSize() * size);
@@ -107,7 +111,7 @@ public class DataService {
                     for (int i = 0; i < size; i++) {
                         adapter.put(byteBuffer, i, null);
                     }
-                    partitionByteBuffer.close();
+                    partitionCache.put(key, partitionByteBuffer);
 
                     seriesPartitions.computeIfAbsent(key.seriesId(), k -> ConcurrentHashMap.newKeySet()).add(key);
                 }

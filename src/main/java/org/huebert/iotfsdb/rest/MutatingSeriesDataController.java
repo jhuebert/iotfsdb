@@ -1,8 +1,9 @@
 package org.huebert.iotfsdb.rest;
 
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.schema.InsertRequest;
 import org.huebert.iotfsdb.service.ImportService;
@@ -25,8 +26,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-
 @Validated
 @Slf4j
 @RestController
@@ -38,7 +37,7 @@ public class MutatingSeriesDataController {
 
     private final ImportService importService;
 
-    public MutatingSeriesDataController(@NotNull InsertService insertService, @NotNull ImportService importService) {
+    public MutatingSeriesDataController(InsertService insertService, ImportService importService) {
         this.insertService = insertService;
         this.importService = importService;
     }
@@ -46,14 +45,14 @@ public class MutatingSeriesDataController {
     @Operation(tags = "Data", summary = "Bulk insert of data")
     @PostMapping
     @ResponseStatus(NO_CONTENT)
-    public void insert(@NotNull @Valid @RequestBody List<InsertRequest> request) {
+    public void insert(@Valid @RequestBody List<InsertRequest> request) {
         ParallelUtil.forEach(request, insertService::insert);
     }
 
     @Operation(tags = "Data", summary = "Imports a database archive")
     @PostMapping("import")
     @ResponseStatus(NO_CONTENT)
-    public void importSeries(@NotNull @Valid @RequestParam("file") MultipartFile file) throws IOException {
+    public void importSeries(@RequestParam("file") MultipartFile file) throws IOException {
 
         if ((file.getOriginalFilename() != null) && !file.getOriginalFilename().endsWith(".zip")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File is not a zip");

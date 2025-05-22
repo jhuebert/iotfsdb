@@ -49,37 +49,25 @@ public class MutatingSeriesUiController {
 
     @DeleteMapping("{id}")
     @ResponseStatus(HttpStatus.OK)
-    public void deleteSeries(@PathVariable("id") String id) {
+    public void deleteSeries(@PathVariable String id) {
         seriesService.deleteSeries(id);
     }
 
     @DeleteMapping("{id}/metadata/{key}")
     @ResponseStatus(HttpStatus.OK)
-    public void deleteMetadata(@PathVariable("id") String id, @PathVariable("key") String key) {
-        SeriesFile seriesFile = getSeries(id);
-        Map<String, String> updatedMetadata = new HashMap<>(seriesFile.getMetadata());
+    public void deleteMetadata(@PathVariable String id, @PathVariable String key) {
+        Map<String, String> updatedMetadata = new HashMap<>(getSeries(id).getMetadata());
         updatedMetadata.remove(key);
         seriesService.updateMetadata(id, updatedMetadata);
     }
 
     @PostMapping("{id}/metadata")
-    public String addMetadata(Model model, @PathVariable("id") String id, @RequestParam("key") String key, @RequestParam("value") String value) {
-        SeriesFile seriesFile = getSeries(id);
-
-        Map<String, String> updatedMetadata = new HashMap<>(seriesFile.getMetadata());
-        updatedMetadata.put(key, value);
-        seriesService.updateMetadata(id, updatedMetadata);
-
-        model.addAttribute("file", seriesFile);
-        model.addAttribute("key", key);
-        model.addAttribute("value", value);
-        model.addAttribute("basePage", basePageService.getBasePage());
-
-        return "series/fragments/metadata-row";
+    public String addMetadata(Model model, @PathVariable String id, @RequestParam String key, @RequestParam String value) {
+        return updateMetadata(model, id, key, value);
     }
 
     @PostMapping("{id}/metadata/{key}")
-    public String updateMetadata(Model model, @PathVariable("id") String id, @PathVariable("key") String key, @RequestParam("value") String value) {
+    public String updateMetadata(Model model, @PathVariable String id, @PathVariable String key, @RequestParam String value) {
         SeriesFile seriesFile = getSeries(id);
 
         Map<String, String> updatedMetadata = new HashMap<>(seriesFile.getMetadata());
@@ -103,12 +91,12 @@ public class MutatingSeriesUiController {
     public String createSeries(
         Model model,
         HttpServletResponse response,
-        @RequestParam("id") String id,
-        @RequestParam("type") NumberType type,
-        @RequestParam("interval") Long interval,
-        @RequestParam("partition") PartitionPeriod partition,
-        @RequestParam(value = "min", required = false) Double min,
-        @RequestParam(value = "max", required = false) Double max
+        @RequestParam String id,
+        @RequestParam NumberType type,
+        @RequestParam Long interval,
+        @RequestParam PartitionPeriod partition,
+        @RequestParam(required = false) Double min,
+        @RequestParam(required = false) Double max
     ) {
 
         SeriesFile seriesFile = SeriesFile.builder()
@@ -131,7 +119,7 @@ public class MutatingSeriesUiController {
         try {
             response.addHeader("HX-Push-Url", "/ui/series?request=" + objectEncoder.encode(request));
         } catch (IOException e) {
-            log.warn("could not serialize {}", request);
+            log.warn("Could not serialize request: {}", request);
         }
 
         model.addAttribute("basePage", basePageService.getBasePage());
@@ -140,7 +128,8 @@ public class MutatingSeriesUiController {
     }
 
     private SeriesFile getSeries(String seriesId) {
-        return seriesService.findSeries(seriesId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, String.format("series (%s) does not exist", seriesId)));
+        return seriesService.findSeries(seriesId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Series (" + seriesId + ") does not exist"));
     }
 
 }
