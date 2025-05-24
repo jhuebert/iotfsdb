@@ -1,6 +1,7 @@
 package org.huebert.iotfsdb.ui;
 
 import lombok.extern.slf4j.Slf4j;
+import org.huebert.iotfsdb.stats.CaptureStats;
 import org.huebert.iotfsdb.ui.service.BasePageService;
 import org.huebert.iotfsdb.ui.service.ExportUiService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -26,14 +27,32 @@ public class TransferUiController {
         this.basePageService = basePageService;
     }
 
+    @CaptureStats(
+        id = "ui-transfer-index",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "ui"),
+            @CaptureStats.Metadata(key = "type", value = "transfer"),
+            @CaptureStats.Metadata(key = "operation", value = "index"),
+            @CaptureStats.Metadata(key = "method", value = "get"),
+        }
+    )
     @GetMapping
     public String getIndex(Model model) {
         model.addAttribute("basePage", basePageService.getBasePage());
         return "transfer/index";
     }
 
+    @CaptureStats(
+        id = "ui-transfer-export",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "ui"),
+            @CaptureStats.Metadata(key = "type", value = "transfer"),
+            @CaptureStats.Metadata(key = "operation", value = "export"),
+            @CaptureStats.Metadata(key = "method", value = "get"),
+        }
+    )
     @GetMapping("export")
-    public ResponseEntity<StreamingResponseBody> export() {
+    public ResponseEntity<StreamingResponseBody> exportData() {
         return exportService.export(null);
     }
 

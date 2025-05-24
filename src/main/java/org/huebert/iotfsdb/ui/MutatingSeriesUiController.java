@@ -8,6 +8,7 @@ import org.huebert.iotfsdb.schema.PartitionPeriod;
 import org.huebert.iotfsdb.schema.SeriesDefinition;
 import org.huebert.iotfsdb.schema.SeriesFile;
 import org.huebert.iotfsdb.service.SeriesService;
+import org.huebert.iotfsdb.stats.CaptureStats;
 import org.huebert.iotfsdb.ui.service.BasePageService;
 import org.huebert.iotfsdb.ui.service.ObjectEncoder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -47,12 +48,30 @@ public class MutatingSeriesUiController {
         this.basePageService = basePageService;
     }
 
+    @CaptureStats(
+        id = "ui-series-delete",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "ui"),
+            @CaptureStats.Metadata(key = "type", value = "series"),
+            @CaptureStats.Metadata(key = "operation", value = "delete"),
+            @CaptureStats.Metadata(key = "method", value = "delete"),
+        }
+    )
     @DeleteMapping("{id}")
     @ResponseStatus(HttpStatus.OK)
     public void deleteSeries(@PathVariable String id) {
         seriesService.deleteSeries(id);
     }
 
+    @CaptureStats(
+        id = "ui-series-metadata-delete",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "ui"),
+            @CaptureStats.Metadata(key = "type", value = "metadata"),
+            @CaptureStats.Metadata(key = "operation", value = "delete"),
+            @CaptureStats.Metadata(key = "method", value = "delete"),
+        }
+    )
     @DeleteMapping("{id}/metadata/{key}")
     @ResponseStatus(HttpStatus.OK)
     public void deleteMetadata(@PathVariable String id, @PathVariable String key) {
@@ -61,11 +80,29 @@ public class MutatingSeriesUiController {
         seriesService.updateMetadata(id, updatedMetadata);
     }
 
+    @CaptureStats(
+        id = "ui-series-metadata-add",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "ui"),
+            @CaptureStats.Metadata(key = "type", value = "metadata"),
+            @CaptureStats.Metadata(key = "operation", value = "add"),
+            @CaptureStats.Metadata(key = "method", value = "post"),
+        }
+    )
     @PostMapping("{id}/metadata")
     public String addMetadata(Model model, @PathVariable String id, @RequestParam String key, @RequestParam String value) {
         return updateMetadata(model, id, key, value);
     }
 
+    @CaptureStats(
+        id = "ui-series-metadata-update",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "ui"),
+            @CaptureStats.Metadata(key = "type", value = "metadata"),
+            @CaptureStats.Metadata(key = "operation", value = "update"),
+            @CaptureStats.Metadata(key = "method", value = "post"),
+        }
+    )
     @PostMapping("{id}/metadata/{key}")
     public String updateMetadata(Model model, @PathVariable String id, @PathVariable String key, @RequestParam String value) {
         SeriesFile seriesFile = getSeries(id);
@@ -82,11 +119,29 @@ public class MutatingSeriesUiController {
         return "series/fragments/metadata-row";
     }
 
+    @CaptureStats(
+        id = "ui-series-create-form",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "ui"),
+            @CaptureStats.Metadata(key = "type", value = "series"),
+            @CaptureStats.Metadata(key = "operation", value = "create-form"),
+            @CaptureStats.Metadata(key = "method", value = "get"),
+        }
+    )
     @GetMapping("create")
     public String getCreateSeriesForm(Model model) {
         return "series/fragments/create";
     }
 
+    @CaptureStats(
+        id = "ui-series-create",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "ui"),
+            @CaptureStats.Metadata(key = "type", value = "series"),
+            @CaptureStats.Metadata(key = "operation", value = "create"),
+            @CaptureStats.Metadata(key = "method", value = "post"),
+        }
+    )
     @PostMapping
     public String createSeries(
         Model model,

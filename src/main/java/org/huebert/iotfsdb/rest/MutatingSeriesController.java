@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.schema.SeriesFile;
 import org.huebert.iotfsdb.service.SeriesService;
+import org.huebert.iotfsdb.stats.CaptureStats;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -35,20 +36,47 @@ public class MutatingSeriesController {
         this.seriesService = seriesService;
     }
 
+    @CaptureStats(
+        id = "api-series-post",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "api"),
+            @CaptureStats.Metadata(key = "type", value = "series"),
+            @CaptureStats.Metadata(key = "operation", value = "create"),
+            @CaptureStats.Metadata(key = "method", value = "post"),
+        }
+    )
     @Operation(tags = "Series", summary = "Create new series")
     @PostMapping
     @ResponseStatus(NO_CONTENT)
-    public void create(@Valid @RequestBody SeriesFile seriesFile) {
+    public void createSeries(@Valid @RequestBody SeriesFile seriesFile) {
         seriesService.createSeries(seriesFile);
     }
 
+    @CaptureStats(
+        id = "api-series-delete",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "api"),
+            @CaptureStats.Metadata(key = "type", value = "series"),
+            @CaptureStats.Metadata(key = "operation", value = "delete"),
+            @CaptureStats.Metadata(key = "method", value = "delete"),
+        }
+    )
     @Operation(tags = "Series", summary = "Delete a series")
     @DeleteMapping("{id}")
     @ResponseStatus(NO_CONTENT)
-    public void delete(@PathVariable @Pattern(regexp = ID_PATTERN) String id) {
+    public void deleteSeries(@PathVariable @Pattern(regexp = ID_PATTERN) String id) {
         seriesService.deleteSeries(id);
     }
 
+    @CaptureStats(
+        id = "api-series-metadata-update",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "api"),
+            @CaptureStats.Metadata(key = "type", value = "metadata"),
+            @CaptureStats.Metadata(key = "operation", value = "update"),
+            @CaptureStats.Metadata(key = "method", value = "put"),
+        }
+    )
     @Operation(tags = "Series", summary = "Updates metadata for a series")
     @PutMapping("{id}/metadata")
     @ResponseStatus(NO_CONTENT)

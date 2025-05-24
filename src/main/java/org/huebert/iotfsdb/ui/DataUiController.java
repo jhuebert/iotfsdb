@@ -9,6 +9,7 @@ import org.huebert.iotfsdb.schema.Reducer;
 import org.huebert.iotfsdb.schema.SeriesData;
 import org.huebert.iotfsdb.service.QueryService;
 import org.huebert.iotfsdb.service.TimeConverter;
+import org.huebert.iotfsdb.stats.CaptureStats;
 import org.huebert.iotfsdb.ui.service.BasePageService;
 import org.huebert.iotfsdb.ui.service.ObjectEncoder;
 import org.huebert.iotfsdb.ui.service.PlotData;
@@ -46,6 +47,15 @@ public class DataUiController {
         this.basePageService = basePageService;
     }
 
+    @CaptureStats(
+        id = "ui-data-import",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "ui"),
+            @CaptureStats.Metadata(key = "type", value = "data"),
+            @CaptureStats.Metadata(key = "operation", value = "index"),
+            @CaptureStats.Metadata(key = "method", value = "get"),
+        }
+    )
     @GetMapping
     public String getIndex(Model model, @RequestParam(value = "request", required = false) String request) {
         PlotData plotData = PlotData.builder().labels(List.of()).data(List.of()).build();
@@ -73,8 +83,17 @@ public class DataUiController {
         return "data/index";
     }
 
+    @CaptureStats(
+        id = "ui-data-search",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "ui"),
+            @CaptureStats.Metadata(key = "type", value = "data"),
+            @CaptureStats.Metadata(key = "operation", value = "search"),
+            @CaptureStats.Metadata(key = "method", value = "post"),
+        }
+    )
     @PostMapping("search")
-    public String search(
+    public String searchData(
         Model model,
         HttpServletResponse response,
         @RequestHeader("Iotfsdb-Tz") String timezone,

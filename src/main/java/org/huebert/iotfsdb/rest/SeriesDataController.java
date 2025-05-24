@@ -10,6 +10,7 @@ import org.huebert.iotfsdb.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.service.ExportService;
 import org.huebert.iotfsdb.service.QueryService;
 import org.huebert.iotfsdb.service.TimeConverter;
+import org.huebert.iotfsdb.stats.CaptureStats;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -40,15 +41,33 @@ public class SeriesDataController {
         this.queryService = queryService;
     }
 
+    @CaptureStats(
+        id = "api-data-find",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "api"),
+            @CaptureStats.Metadata(key = "type", value = "data"),
+            @CaptureStats.Metadata(key = "operation", value = "find"),
+            @CaptureStats.Metadata(key = "method", value = "post"),
+        }
+    )
     @Operation(tags = "Data", summary = "Finds data matching the input request")
     @PostMapping("find")
-    public List<FindDataResponse> find(@Valid @RequestBody FindDataRequest request) {
+    public List<FindDataResponse> findData(@Valid @RequestBody FindDataRequest request) {
         return queryService.findData(request);
     }
 
+    @CaptureStats(
+        id = "api-data-export",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "api"),
+            @CaptureStats.Metadata(key = "type", value = "data"),
+            @CaptureStats.Metadata(key = "operation", value = "export"),
+            @CaptureStats.Metadata(key = "method", value = "post"),
+        }
+    )
     @Operation(tags = "Data", summary = "Exports a database archive of matching series")
     @PostMapping(value = "export", produces = "application/zip")
-    public ResponseEntity<StreamingResponseBody> export(@Valid @RequestBody FindSeriesRequest request) {
+    public ResponseEntity<StreamingResponseBody> exportData(@Valid @RequestBody FindSeriesRequest request) {
         String formattedTime = TimeConverter.toUtc(ZonedDateTime.now()).format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
         return ResponseEntity.ok()
             .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
