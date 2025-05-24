@@ -23,6 +23,7 @@ iotfsdb:
   max-query-size: 1000
   partition-cache: "expireAfterAccess=5m,maximumSize=10000,softValues"
   ui: true
+  capture-stats: false
 
 gg:
   jte:

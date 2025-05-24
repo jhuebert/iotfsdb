@@ -39,7 +39,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 //TODO Need to be able to turn this on/off by config
 public class StatsCollector {
 
-
     private static final long MEASUREMENT_INTERVAL = 60000L;
 
     private static final ReadWriteLock RW_LOCK = new ReentrantReadWriteLock();
@@ -64,7 +63,7 @@ public class StatsCollector {
 
     @Around("@annotation(captureAnnotation)")
     public Object captureExecutionTime(ProceedingJoinPoint joinPoint, CaptureStats captureAnnotation) throws Throwable {
-        if (properties.isReadOnly()) {
+        if (properties.isReadOnly() || !properties.isCaptureStats()) {
             return joinPoint.proceed();
         }
         long startTime = System.nanoTime();
@@ -89,6 +88,7 @@ public class StatsCollector {
             STATS_MAP.clear();
         });
 
+        // Make sure all the series exist
         localStats.keySet().stream()
             .filter(SERIES_MAP::add)
             .map(StatsCollector::createSeries)
