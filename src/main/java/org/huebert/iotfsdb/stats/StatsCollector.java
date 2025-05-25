@@ -36,7 +36,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 @Slf4j
 @Aspect
 @Component
-//TODO Need to be able to turn this on/off by config
 public class StatsCollector {
 
     private static final long MEASUREMENT_INTERVAL = 60000L;
@@ -47,7 +46,7 @@ public class StatsCollector {
 
     private static final Set<CaptureStats> SERIES_MAP = Sets.newConcurrentHashSet();
 
-    private static final double NS_PER_MS = 1000000.0;
+    private static final double NS_PER_S = 1000000000.0;
 
     private final InsertService insertService;
 
@@ -109,9 +108,9 @@ public class StatsCollector {
 
     private static List<InsertRequest> create(ZonedDateTime time, Accumulator stats) {
         return List.of(
-            createRequest(getSeriesId(stats.getAnnotation(), Stat.MIN), time, stats.getMin() / NS_PER_MS),
-            createRequest(getSeriesId(stats.getAnnotation(), Stat.MAX), time, stats.getMax() / NS_PER_MS),
-            createRequest(getSeriesId(stats.getAnnotation(), Stat.MEAN), time, stats.getMean() / NS_PER_MS),
+            createRequest(getSeriesId(stats.getAnnotation(), Stat.MIN), time, stats.getMin() / NS_PER_S),
+            createRequest(getSeriesId(stats.getAnnotation(), Stat.MAX), time, stats.getMax() / NS_PER_S),
+            createRequest(getSeriesId(stats.getAnnotation(), Stat.MEAN), time, stats.getMean() / NS_PER_S),
             createRequest(getSeriesId(stats.getAnnotation(), Stat.COUNT), time, stats.getCount())
         );
     }
@@ -196,9 +195,9 @@ public class StatsCollector {
     @Getter
     @AllArgsConstructor
     private enum Stat {
-        MIN("min", "ms", NumberType.FLOAT2),
-        MAX("max", "ms", NumberType.FLOAT2),
-        MEAN("mean", "ms", NumberType.FLOAT2),
+        MIN("min", "second", NumberType.FLOAT2),
+        MAX("max", "second", NumberType.FLOAT2),
+        MEAN("mean", "second", NumberType.FLOAT2),
         COUNT("count", "count", NumberType.INTEGER4);
         private final String key;
         private final String unit;
