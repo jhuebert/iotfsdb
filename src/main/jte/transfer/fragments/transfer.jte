@@ -2,11 +2,8 @@
 
 @param BasePageService.BasePage basePage
 
-<div class="row mb-3">
-    <h4>Transfer</h4>
-</div>
 @if(!basePage.isReadOnly())
-    <div class="row mb-3">
+    <div class="row mt-3 mb-3">
         <form id="form" hx-encoding="multipart/form-data" hx-post="/ui/transfer/import">
             <div class="input-group">
                 <input class="form-control" type="file" name="file">
