@@ -32,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Stream;
 
 @Slf4j
 @Aspect
@@ -39,19 +40,13 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 public class StatsCollector {
 
     private static final long MEASUREMENT_INTERVAL = 60000L;
-
     private static final ReadWriteLock RW_LOCK = new ReentrantReadWriteLock();
-
     private static final Map<CaptureStats, Accumulator> STATS_MAP = new ConcurrentHashMap<>();
-
     private static final Set<CaptureStats> SERIES_MAP = Sets.newConcurrentHashSet();
-
-    private static final double NS_PER_S = 1000000000.0;
+    private static final double NS_PER_S = 1e9;
 
     private final InsertService insertService;
-
     private final IotfsdbProperties properties;
-
     private final DataService dataService;
 
     public StatsCollector(InsertService insertService, IotfsdbProperties properties, DataService dataService) {
@@ -76,7 +71,6 @@ public class StatsCollector {
 
     @Scheduled(fixedRate = MEASUREMENT_INTERVAL, timeUnit = TimeUnit.MILLISECONDS)
     public void calculateMeasurements() {
-
         if (STATS_MAP.isEmpty()) {
             return;
         }
@@ -124,19 +118,17 @@ public class StatsCollector {
     }
 
     private static List<SeriesFile> createSeries(CaptureStats annotation) {
-        return List.of(
-            createSeries(annotation, Stat.MIN),
-            createSeries(annotation, Stat.MAX),
-            createSeries(annotation, Stat.MEAN),
-            createSeries(annotation, Stat.COUNT)
-        );
+        return Stream.of(Stat.values())
+            .map(stat -> createSeries(annotation, stat))
+            .toList();
     }
 
     private static SeriesFile createSeries(CaptureStats annotation, Stat stat) {
-        Map<String, String> metadata = new HashMap<>();
-        metadata.put("source", "iotfsdb");
-        metadata.put("stat", stat.getKey());
-        metadata.put("unit", stat.getUnit());
+        Map<String, String> metadata = new HashMap<>(Map.of(
+            "source", "iotfsdb",
+            "stat", stat.getKey(),
+            "unit", stat.getUnit()
+        ));
         for (CaptureStats.Metadata m : annotation.metadata()) {
             metadata.put(m.key(), m.value());
         }
@@ -199,9 +191,9 @@ public class StatsCollector {
         MAX("max", "second", NumberType.FLOAT2),
         MEAN("mean", "second", NumberType.FLOAT2),
         COUNT("count", "count", NumberType.INTEGER4);
+
         private final String key;
         private final String unit;
         private final NumberType type;
     }
-
 }
