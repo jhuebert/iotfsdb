@@ -54,15 +54,15 @@ public class McpTools {
         ZonedDateTime startDateTime,
         @ToolParam(description = "Latest date and time for returned values in ISO-8601 format.")
         ZonedDateTime endDateTime,
-        @ToolParam(description = "Definition ID of series data to return")
-        String seriesDefinitionId
+        @ToolParam(description = "List of definition IDs of series data to return")
+        List<String> seriesDefinitionIds
     ) {
         FindDataRequest request = new FindDataRequest();
         request.setFrom(startDateTime);
         request.setTo(endDateTime);
         request.setTimezone(TimeZone.getTimeZone(startDateTime.getZone()));
         FindSeriesRequest seriesRequest = new FindSeriesRequest();
-        seriesRequest.setPattern(seriesDefinitionId != null ? Pattern.compile(seriesDefinitionId) : Pattern.compile(".*"));
+        seriesRequest.setPattern(Pattern.compile(String.join("|", seriesDefinitionIds)));
         request.setSeries(seriesRequest);
         return queryService.findData(request);
     }

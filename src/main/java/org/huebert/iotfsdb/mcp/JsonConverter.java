@@ -28,32 +28,30 @@ public class JsonConverter implements ToolCallResultConverter {
     public String convert(@Nullable Object result, @Nullable Type returnType) {
         if (returnType == Void.TYPE) {
             log.debug("The tool has no return type. Converting to conventional response.");
-            try {
-                return objectMapper.writeValueAsString("Done");
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
+            return writeValueAsString("Done");
         }
         if (result instanceof RenderedImage) {
-            final var buf = new ByteArrayOutputStream(1024 * 4);
-            try {
-                ImageIO.write((RenderedImage) result, "PNG", buf);
-            } catch (IOException e) {
-                return "Failed to convert tool result to a base64 image: " + e.getMessage();
-            }
-            final var imgB64 = Base64.getEncoder().encodeToString(buf.toByteArray());
-            try {
-                return objectMapper.writeValueAsString(Map.of("mimeType", "image/png", "data", imgB64));
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            log.debug("Converting tool result to JSON.");
-            try {
-                return objectMapper.writeValueAsString(result);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException(e);
-            }
+            return convertRenderedImage((RenderedImage) result);
+        }
+        log.debug("Converting tool result to JSON.");
+        return writeValueAsString(result);
+    }
+
+    private String writeValueAsString(Object value) {
+        try {
+            return objectMapper.writeValueAsString(value);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String convertRenderedImage(RenderedImage image) {
+        try (var buf = new ByteArrayOutputStream(1024 * 4)) {
+            ImageIO.write(image, "PNG", buf);
+            String imgB64 = Base64.getEncoder().encodeToString(buf.toByteArray());
+            return writeValueAsString(Map.of("mimeType", "image/png", "data", imgB64));
+        } catch (IOException e) {
+            return "Failed to convert tool result to a base64 image: " + e.getMessage();
         }
     }
 
