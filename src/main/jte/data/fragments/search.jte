@@ -13,6 +13,43 @@
       document.getElementById('from').disabled = !isNone;
       document.getElementById('to').disabled = !isNone;
   }
+
+  let periodicSearchEnabled = false;
+  let periodicSearchInterval = null;
+
+  function getPeriodicInterval() {
+      const val = parseInt(document.getElementById('interval')?.value || NaN, 10);
+      return val > 0 ? val : 60000;
+  }
+
+  function togglePeriodicSearch(enabled) {
+      periodicSearchEnabled = enabled;
+      const toggleButton = document.getElementById('toggle-periodic-search');
+      toggleButton.classList.toggle('active', enabled);
+
+      clearInterval(periodicSearchInterval);
+      if (enabled) {
+          periodicSearchInterval = setInterval(triggerSearch, getPeriodicInterval());
+      }
+  }
+
+  function triggerSearch() {
+      document.querySelector('button.btn-primary i.bi-search')?.parentElement?.click();
+  }
+
+  function handleIntervalChange() {
+      if (periodicSearchEnabled) {
+          togglePeriodicSearch(true);
+      }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+      const toggleButton = document.getElementById('toggle-periodic-search');
+      const intervalInput = document.getElementById('interval');
+
+      toggleButton.addEventListener('click', () => togglePeriodicSearch(!periodicSearchEnabled));
+      intervalInput?.addEventListener('input', handleIntervalChange);
+  });
 </script>
 <form>
     <div class="row mb-3">
@@ -29,6 +66,12 @@
                     hx-target="#chart-data"
                     hx-on::response-error="handleHtmxResponseError(event)">
                 <i class="bi bi-search"></i>
+            </button>
+            <button class="btn btn-sm btn-secondary"
+                    id="toggle-periodic-search"
+                    type="button"
+                    title="Toggle periodic search">
+                <i class="bi bi-clock"></i>
             </button>
             <button class="btn btn-sm btn-secondary"
                     data-bs-toggle="modal"
