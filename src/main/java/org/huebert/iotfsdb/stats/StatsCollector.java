@@ -82,12 +82,18 @@ public class StatsCollector {
             return;
         }
 
-        // Make sure all the series exist
         localStats.keySet().stream()
             .filter(SERIES_MAP::add)
             .map(StatsCollector::createSeries)
             .flatMap(List::stream)
-            .forEach(dataService::saveSeries);
+            .forEach(ns -> dataService.getSeries(ns.getId()).ifPresentOrElse(sf -> {
+                log.debug("Updating existing series: {}", ns.getId());
+                sf.getMetadata().putAll(ns.getMetadata());
+                dataService.saveSeries(sf);
+            }, () -> {
+                log.debug("Creating new series: {}", ns.getId());
+                dataService.saveSeries(ns);
+            }));
 
         ZonedDateTime now = ZonedDateTime.now();
         List<InsertRequest> requests = localStats.values().stream()
