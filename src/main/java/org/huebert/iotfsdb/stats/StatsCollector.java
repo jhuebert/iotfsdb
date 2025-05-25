@@ -71,15 +71,16 @@ public class StatsCollector {
 
     @Scheduled(fixedRate = MEASUREMENT_INTERVAL, timeUnit = TimeUnit.MILLISECONDS)
     public void calculateMeasurements() {
-        if (STATS_MAP.isEmpty()) {
-            return;
-        }
 
         Map<CaptureStats, Accumulator> localStats = new HashMap<>();
         LockUtil.withWrite(RW_LOCK, () -> {
             localStats.putAll(STATS_MAP);
             STATS_MAP.clear();
         });
+
+        if (localStats.isEmpty()) {
+            return;
+        }
 
         // Make sure all the series exist
         localStats.keySet().stream()
