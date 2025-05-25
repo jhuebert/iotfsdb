@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.schema.FindDataRequest;
 import org.huebert.iotfsdb.schema.FindDataResponse;
 import org.huebert.iotfsdb.schema.FindSeriesRequest;
+import org.huebert.iotfsdb.schema.SeriesData;
 import org.huebert.iotfsdb.schema.SeriesFile;
 import org.huebert.iotfsdb.service.QueryService;
 import org.huebert.iotfsdb.service.SeriesService;
@@ -32,29 +33,42 @@ public class McpTools {
         this.queryService = queryService;
     }
 
-    @Tool(name = "series-search", description = "Search for series that match the given parameters", resultConverter = JsonConverter.class)
-    public List<SeriesFile> findSeries(
-        @ToolParam(description = "Definition ID of series to return", required = false)
-        String seriesDefinitionId,
-        @ToolParam(description = "Metadata key and values that matching series metadata must contain", required = false)
+    @Tool(name = "search-series", description = "Search for series that match the given parameters", resultConverter = JsonConverter.class)
+    public List<String> searchSeries(
+        @ToolParam(description = "Metadata key and value pairs that each matching series metadata must contain", required = false)
         Map<String, String> seriesMetadata
     ) {
         FindSeriesRequest request = new FindSeriesRequest();
-        request.setPattern(seriesDefinitionId != null ? Pattern.compile(seriesDefinitionId) : Pattern.compile(".*"));
         request.setMetadata(seriesMetadata != null
             ? seriesMetadata.entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, e -> Pattern.compile(e.getValue())))
             : Map.of());
-        return seriesService.findSeries(request);
+        return seriesService.findSeries(request).stream()
+            .map(SeriesFile::getId)
+            .collect(Collectors.toList());
     }
 
-    @Tool(name = "data-search", description = "Finds series data matching the input request", resultConverter = JsonConverter.class)
-    public List<FindDataResponse> findData(
-        @ToolParam(description = "Earliest date and time for returned values in ISO-8601 format.")
+    @Tool(name = "get-series-metadata", description = "Get metadata for each of the input series definition IDs", resultConverter = JsonConverter.class)
+    public Map<String, Map<String, String>> getSeriesMetadata(
+        @ToolParam(description = "List of series definition IDs of metadata to return")
+        List<String> seriesDefinitionIds
+    ) {
+        FindSeriesRequest request = new FindSeriesRequest();
+        request.setPattern(Pattern.compile(seriesDefinitionIds.stream().map(Pattern::quote).collect(Collectors.joining("|"))));
+        return seriesService.findSeries(request).stream()
+            .collect(Collectors.toMap(
+                SeriesFile::getId,
+                SeriesFile::getMetadata
+            ));
+    }
+
+    @Tool(name = "data-search", description = "Search for data for each of the series definition IDs in the specified time range", resultConverter = JsonConverter.class)
+    public Map<String, List<SeriesData>> searchData(
+        @ToolParam(description = "Earliest date and time in ISO-8601 format for returned values.")
         ZonedDateTime startDateTime,
-        @ToolParam(description = "Latest date and time for returned values in ISO-8601 format.")
+        @ToolParam(description = "Latest date and time in ISO-8601 format for returned values.")
         ZonedDateTime endDateTime,
-        @ToolParam(description = "List of definition IDs of series data to return")
+        @ToolParam(description = "List of series definition IDs of data to return")
         List<String> seriesDefinitionIds
     ) {
         FindDataRequest request = new FindDataRequest();
@@ -62,9 +76,13 @@ public class McpTools {
         request.setTo(endDateTime);
         request.setTimezone(TimeZone.getTimeZone(startDateTime.getZone()));
         FindSeriesRequest seriesRequest = new FindSeriesRequest();
-        seriesRequest.setPattern(Pattern.compile(String.join("|", seriesDefinitionIds)));
+        seriesRequest.setPattern(Pattern.compile(seriesDefinitionIds.stream().map(Pattern::quote).collect(Collectors.joining("|"))));
         request.setSeries(seriesRequest);
-        return queryService.findData(request);
+        return queryService.findData(request).stream()
+            .collect(Collectors.toMap(
+                sd -> sd.getSeries().getId(),
+                FindDataResponse::getData
+            ));
     }
 
     @Tool(name = "get-current-date-time", description = "Retrieves the current date and time in the server's time zone in ISO-8601 format", resultConverter = JsonConverter.class)
