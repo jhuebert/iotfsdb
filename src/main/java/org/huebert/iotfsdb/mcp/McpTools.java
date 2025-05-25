@@ -33,9 +33,9 @@ public class McpTools {
         this.queryService = queryService;
     }
 
-    @Tool(name = "search-series", description = "Search for series that match the given parameters", resultConverter = JsonConverter.class)
+    @Tool(name = "find-time-series", description = "Find time series definitions by filtering on metadata attributes. Use this to discover available time series before fetching data.", resultConverter = JsonConverter.class)
     public List<String> searchSeries(
-        @ToolParam(description = "Metadata key and value pairs that each matching series metadata must contain", required = false)
+        @ToolParam(description = "Key-value pairs of metadata attributes to filter series by (e.g., {\"location\": \"sensor1\", \"type\": \"temperature\"}). Values support regex patterns.", required = false)
         Map<String, String> seriesMetadata
     ) {
         FindSeriesRequest request = new FindSeriesRequest();
@@ -48,9 +48,9 @@ public class McpTools {
             .collect(Collectors.toList());
     }
 
-    @Tool(name = "get-series-metadata", description = "Get metadata for each of the input series definition IDs", resultConverter = JsonConverter.class)
+    @Tool(name = "get-time-series-metadata", description = "Retrieve the full metadata for specific time series by their IDs. Use this to learn about units, collection frequency, and other attributes of time series.", resultConverter = JsonConverter.class)
     public Map<String, Map<String, String>> getSeriesMetadata(
-        @ToolParam(description = "List of series definition IDs of metadata to return")
+        @ToolParam(description = "List of time series IDs to retrieve metadata for (obtained from find-time-series)")
         List<String> seriesDefinitionIds
     ) {
         FindSeriesRequest request = new FindSeriesRequest();
@@ -62,13 +62,13 @@ public class McpTools {
             ));
     }
 
-    @Tool(name = "data-search", description = "Search for data for each of the series definition IDs in the specified time range", resultConverter = JsonConverter.class)
+    @Tool(name = "fetch-time-series-data", description = "Retrieve actual time series data points for specified series IDs within a time range. Returns timestamps and values for analysis.", resultConverter = JsonConverter.class)
     public Map<String, List<SeriesData>> searchData(
-        @ToolParam(description = "Earliest date and time in ISO-8601 format for returned values.")
+        @ToolParam(description = "Start of time range in ISO-8601 format (e.g., '2023-01-01T00:00:00Z')")
         ZonedDateTime startDateTime,
-        @ToolParam(description = "Latest date and time in ISO-8601 format for returned values.")
+        @ToolParam(description = "End of time range in ISO-8601 format (e.g., '2023-01-02T00:00:00Z')")
         ZonedDateTime endDateTime,
-        @ToolParam(description = "List of series definition IDs of data to return")
+        @ToolParam(description = "List of time series IDs to fetch data for (obtained from find-time-series)")
         List<String> seriesDefinitionIds
     ) {
         FindDataRequest request = new FindDataRequest();
@@ -85,7 +85,7 @@ public class McpTools {
             ));
     }
 
-    @Tool(name = "get-current-date-time", description = "Retrieves the current date and time in the server's time zone in ISO-8601 format", resultConverter = JsonConverter.class)
+    @Tool(name = "get-current-time", description = "Get the current server time in ISO-8601 format. Useful for creating relative time ranges for data queries or setting default time boundaries.", resultConverter = JsonConverter.class)
     public ZonedDateTime getCurrentDateTime() {
         return ZonedDateTime.now();
     }
