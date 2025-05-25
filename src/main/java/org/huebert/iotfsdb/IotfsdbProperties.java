@@ -23,4 +23,6 @@ public class IotfsdbProperties {
 
     private boolean ui = true;
 
+    private boolean mcp = false;
+
 }

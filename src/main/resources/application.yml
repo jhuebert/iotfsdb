@@ -24,6 +24,7 @@ iotfsdb:
   partition-cache: "expireAfterAccess=5m,maximumSize=10000,softValues"
   ui: true
   capture-stats: false
+  mcp: false
 
 gg:
   jte:
