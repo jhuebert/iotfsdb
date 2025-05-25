@@ -48,7 +48,7 @@ public class DataUiController {
     }
 
     @CaptureStats(
-        id = "ui-data-import",
+        id = "ui-data-index",
         metadata = {
             @CaptureStats.Metadata(key = "group", value = "ui"),
             @CaptureStats.Metadata(key = "type", value = "data"),
