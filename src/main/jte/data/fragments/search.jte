@@ -90,13 +90,6 @@
                 spanGaps: true
               }
             },
-            plugins: {
-              tooltip: {
-                enabled: true,
-                mode: 'index',
-                intersect: false,
-              }
-            },
             scales: {
                 x: {
                     type: 'time'
