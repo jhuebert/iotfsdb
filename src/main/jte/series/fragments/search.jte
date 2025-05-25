@@ -9,7 +9,7 @@
 @param List<SeriesFile> series
 
 <form class="mb-3">
-    @template.components.search(hxPost = @`/ui/series/search`, hxTarget = "#results", value = SearchParser.toSearch(request))
+    @template.components.search(hxPost = @`/ui/series/search`, hxTarget = "#results", value = SearchParser.toSearch(request), small = true)
 </form>
 <div id="results">
     @template.series.fragments.results(basePage = basePage, series = series)
