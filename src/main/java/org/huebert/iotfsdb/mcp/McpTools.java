@@ -247,7 +247,7 @@ public class McpTools {
             - Use as endDateTime for "up to current time" queries
             
             USAGE EXAMPLES:
-            1. For last 24 hours: 
+            1. For last 24 hours:
                - endDateTime = get-current-time()
                - startDateTime = endDateTime minus 24 hours
             2. For last week:
