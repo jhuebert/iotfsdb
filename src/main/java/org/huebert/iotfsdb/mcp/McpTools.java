@@ -110,7 +110,7 @@ public class McpTools {
             
             LIMITATIONS:
             Each series is limited to return a maximum of 10 data points to ensure efficient performance and prevent excessive memory usage.
-            If the requested time range would result in more than this limit based on the series data point interval, the system will automatically downsample the data points to fit within the limit using averaging.
+            If the requested time range would result in more than this limit based on the series data point interval, the system will automatically downsample the data points to fit within the limit using the supplied time reducer.
             If you require precise, unaltered values for a series, consider narrowing the time range so that the limit is not exceeded and downsampling does not occur.
             
             WHAT IT RETURNS:
