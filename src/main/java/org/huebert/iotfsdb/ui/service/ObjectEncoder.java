@@ -22,16 +22,16 @@ public class ObjectEncoder {
     }
 
     public String encode(Object object) throws IOException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try (CompressedStream zos = new CompressedStream(baos)) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            CompressedStream zos = new CompressedStream(baos)) {
             objectMapper.writeValue(zos, object);
+            return Base64.getUrlEncoder().encodeToString(baos.toByteArray());
         }
-        return Base64.getUrlEncoder().encodeToString(baos.toByteArray());
     }
 
     public <T> T decode(String payload, Class<T> type) throws IOException {
-        ByteArrayInputStream bais = new ByteArrayInputStream(Base64.getUrlDecoder().decode(payload));
-        try (GZIPInputStream zis = new GZIPInputStream(bais)) {
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(Base64.getUrlDecoder().decode(payload));
+            GZIPInputStream zis = new GZIPInputStream(bais)) {
             return objectMapper.readValue(zis, type);
         }
     }

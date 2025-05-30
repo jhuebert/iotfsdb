@@ -16,7 +16,6 @@ import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
@@ -49,15 +48,13 @@ public class QueryService {
         List<Range<ZonedDateTime>> ranges = intervalService.getIntervalRanges(request);
 
         List<FindDataResponse> result = ParallelUtil.map(series, s -> findDataForSeries(request, ranges, s)).stream()
-            .filter(r -> r.getData().stream().map(SeriesData::getValue).anyMatch(Objects::nonNull))
+            .filter(r -> r.getData().stream().anyMatch(data -> data.getValue() != null))
             .sorted(Comparator.comparing(r -> r.getSeries().getId()))
             .toList();
 
-        if (request.getSeriesReducer() != null) {
-            return List.of(reducerService.reduce(result, request));
-        }
-
-        return result;
+        return request.getSeriesReducer() != null
+            ? List.of(reducerService.reduce(result, request))
+            : result;
     }
 
     private FindDataResponse findDataForSeries(@Valid @NotNull FindDataRequest request, @NotNull List<Range<ZonedDateTime>> ranges, SeriesFile series) {
@@ -76,23 +73,23 @@ public class QueryService {
     private SeriesData findDataOverPartitions(Collector<Number, ?, Number> collector, RangeMap<LocalDateTime, PartitionRange> rangeMap, Range<ZonedDateTime> current) {
         Range<LocalDateTime> local = TimeConverter.toUtc(current);
         Collection<PartitionRange> covered = rangeMap.subRangeMap(local).asMapOfRanges().values();
-        covered.forEach(c -> c.rwLock().readLock().lock());
+        covered.forEach(c -> c.getRwLock().readLock().lock());
         try {
             Number value = covered.stream()
                 .flatMap(pr -> findDataFromPartition(pr, local))
                 .collect(collector);
             return new SeriesData(current.lowerEndpoint(), value);
         } finally {
-            covered.forEach(c -> c.rwLock().readLock().unlock());
+            covered.forEach(c -> c.getRwLock().readLock().unlock());
         }
     }
 
     private Stream<Number> findDataFromPartition(PartitionRange partitionRange, Range<LocalDateTime> current) {
-        Range<LocalDateTime> intersection = partitionRange.range().intersection(current);
+        Range<LocalDateTime> intersection = partitionRange.getRange().intersection(current);
         int fromIndex = partitionRange.getIndex(intersection.lowerEndpoint());
         int toIndex = partitionRange.getIndex(intersection.upperEndpoint());
-        return dataService.getBuffer(partitionRange.key())
-            .map(b -> partitionRange.adapter().getStream(b, fromIndex, toIndex - fromIndex + 1))
+        return dataService.getBuffer(partitionRange.getKey())
+            .map(b -> partitionRange.getAdapter().getStream(b, fromIndex, toIndex - fromIndex + 1))
             .orElse(Stream.empty());
     }
 

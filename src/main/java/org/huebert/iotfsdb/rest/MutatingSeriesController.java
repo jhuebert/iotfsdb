@@ -1,12 +1,15 @@
 package org.huebert.iotfsdb.rest;
 
+import static org.huebert.iotfsdb.schema.SeriesDefinition.ID_PATTERN;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.schema.SeriesFile;
 import org.huebert.iotfsdb.service.SeriesService;
+import org.huebert.iotfsdb.stats.CaptureStats;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,9 +23,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
-import static org.huebert.iotfsdb.schema.SeriesDefinition.ID_PATTERN;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-
 @Validated
 @Slf4j
 @RestController
@@ -32,28 +32,55 @@ public class MutatingSeriesController {
 
     private final SeriesService seriesService;
 
-    public MutatingSeriesController(@NotNull SeriesService seriesService) {
+    public MutatingSeriesController(SeriesService seriesService) {
         this.seriesService = seriesService;
     }
 
+    @CaptureStats(
+        id = "api-series-post",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "api"),
+            @CaptureStats.Metadata(key = "type", value = "series"),
+            @CaptureStats.Metadata(key = "operation", value = "create"),
+            @CaptureStats.Metadata(key = "method", value = "post"),
+        }
+    )
     @Operation(tags = "Series", summary = "Create new series")
     @PostMapping
     @ResponseStatus(NO_CONTENT)
-    public void create(@NotNull @Valid @RequestBody SeriesFile seriesFile) {
+    public void createSeries(@Valid @RequestBody SeriesFile seriesFile) {
         seriesService.createSeries(seriesFile);
     }
 
+    @CaptureStats(
+        id = "api-series-delete",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "api"),
+            @CaptureStats.Metadata(key = "type", value = "series"),
+            @CaptureStats.Metadata(key = "operation", value = "delete"),
+            @CaptureStats.Metadata(key = "method", value = "delete"),
+        }
+    )
     @Operation(tags = "Series", summary = "Delete a series")
     @DeleteMapping("{id}")
     @ResponseStatus(NO_CONTENT)
-    public void delete(@PathVariable("id") @Pattern(regexp = ID_PATTERN) String id) {
+    public void deleteSeries(@PathVariable @Pattern(regexp = ID_PATTERN) String id) {
         seriesService.deleteSeries(id);
     }
 
+    @CaptureStats(
+        id = "api-series-metadata-update",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "api"),
+            @CaptureStats.Metadata(key = "type", value = "metadata"),
+            @CaptureStats.Metadata(key = "operation", value = "update"),
+            @CaptureStats.Metadata(key = "method", value = "put"),
+        }
+    )
     @Operation(tags = "Series", summary = "Updates metadata for a series")
     @PutMapping("{id}/metadata")
     @ResponseStatus(NO_CONTENT)
-    public void updateMetadata(@PathVariable("id") @Pattern(regexp = ID_PATTERN) String id, @NotNull @Valid @RequestBody Map<String, String> metadata) {
+    public void updateMetadata(@PathVariable @Pattern(regexp = ID_PATTERN) String id, @Valid @RequestBody Map<String, String> metadata) {
         seriesService.updateMetadata(id, metadata);
     }
 
