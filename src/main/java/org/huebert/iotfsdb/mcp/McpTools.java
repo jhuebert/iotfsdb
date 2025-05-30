@@ -1,10 +1,13 @@
 package org.huebert.iotfsdb.mcp;
 
-import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.schema.FindDataRequest;
+import org.huebert.iotfsdb.schema.FindDataResponse;
 import org.huebert.iotfsdb.schema.FindSeriesRequest;
+import org.huebert.iotfsdb.schema.Reducer;
+import org.huebert.iotfsdb.schema.SeriesData;
+import org.huebert.iotfsdb.schema.SeriesFile;
 import org.huebert.iotfsdb.service.DataService;
 import org.huebert.iotfsdb.service.QueryService;
 import org.huebert.iotfsdb.stats.CaptureStats;
@@ -12,11 +15,14 @@ import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.TimeZone;
+import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -24,6 +30,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class McpTools {
+
+    private static final int MAX_DATA_POINTS = 10;
 
     private final DataService dataService;
 
@@ -52,13 +60,7 @@ public class McpTools {
             WHAT IT RETURNS:
             - List of series objects containing seriesId and seriesMetadata
             - Each seriesId is unique and used as input for fetch-time-series-data
-            - Metadata provides context about what each series measures (e.g., measurement type, location)
-            
-            COMMON USES:
-            - Find temperature series: ['temp']
-            - Find series tied to specific locations: ['bedroom', 'kitchen']
-            - Find specific measurement types: ['humidity', 'pressure', 'power']
-            - List all available series: [] (empty array)
+            - Metadata provides context about what each series measures (e.g., measurement type, location, units)
             
             WORKFLOW: First use this tool to find relevant seriesIds, then use those IDs with fetch-time-series-data.
             """,
@@ -67,38 +69,27 @@ public class McpTools {
     public List<SeriesMcpResponse> searchSeries(
         @ToolParam(
             description = """
-                Optional search terms to filter time series.
+                Search terms to filter time series.
                 - A series matches if any term appears in the series ID or metadata (OR logic)
-                - Leave empty ([] or null) to return ALL available series
                 - Case-insensitive matching (e.g., 'Temp' will match 'temperature')
                 - Partial word matching is supported (e.g., 'temp' will match 'temperature')
-                - No regex support, just simple substring matching
-                
-                EXAMPLES:
-                - ['temperature'] - finds temperature series
-                - ['living', 'room'] - finds any series in living room or any room
-                - ['humidity', 'bedroom'] - finds humidity series OR bedroom series
-                """,
-            required = false
+                """
         )
         Set<String> searchTerms
     ) {
+        if (searchTerms == null || searchTerms.isEmpty()) {
+            return List.of();
+        }
+        Set<String> terms = searchTerms.stream()
+            .filter(a -> !a.isBlank())
+            .map(String::toLowerCase)
+            .collect(Collectors.toUnmodifiableSet());
+        Predicate<String> matchesPattern = test ->
+            test != null && terms.stream().anyMatch(test.toLowerCase()::contains);
         return dataService.getSeries().stream()
-            .filter(seriesFile -> {
-                if (searchTerms == null || searchTerms.isEmpty()) {
-                    return true;
-                }
-                String pattern = searchTerms.stream()
-                    .map(term -> ".*" + term + ".*")
-                    .collect(Collectors.joining("|"));
-                Predicate<String> matchesPattern = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE).asMatchPredicate();
-                return matchesPattern.test(seriesFile.getId()) ||
-                    seriesFile.getMetadata().values().stream().anyMatch(matchesPattern);
-            })
-            .map(seriesFile -> SeriesMcpResponse.builder()
-                .seriesId(seriesFile.getId())
-                .seriesMetadata(seriesFile.getMetadata())
-                .build())
+            .filter(seriesFile -> matchesPattern.test(seriesFile.getId()) ||
+                seriesFile.getMetadata().values().stream().anyMatch(matchesPattern))
+            .map(SeriesMcpResponse::new)
             .collect(Collectors.toList());
     }
 
@@ -117,6 +108,11 @@ public class McpTools {
             Retrieves actual time series data points within a specified time range.
             PREREQUISITE: You should first call find-time-series to identify relevant seriesIds.
             
+            LIMITATIONS:
+            Each series is limited to return a maximum of 10 data points to ensure efficient performance and prevent excessive memory usage.
+            If the requested time range would result in more than this limit based on the series data point interval, the system will automatically downsample the data points to fit within the limit using averaging.
+            If you require precise, unaltered values for a series, consider narrowing the time range so that the limit is not exceeded and downsampling does not occur.
+            
             WHAT IT RETURNS:
             - List of data objects, each containing:
               - seriesId: The identifier of the time series
@@ -124,19 +120,16 @@ public class McpTools {
             
             TIME RANGE GUIDANCE:
             - Start with smaller time ranges (hours to days) and expand if needed
-            - For high-frequency data, request minutes to hours to avoid overloading
-            - For sparse data, you may need to request days to weeks
             - Always ensure startDateTime is chronologically before endDateTime
             
             COMMON ERRORS:
             - Invalid seriesIds: Verify IDs using find-time-series first
-            - Time range too large: Consider narrowing the time range
             - No data in range: Try expanding the time range or check different series
             
             WORKFLOW EXAMPLE:
             1. Use get-current-time to find current time
             2. Calculate a start time (e.g., 24 hours earlier)
-            3. Fetch data with appropriate seriesIds from find-time-series
+            3. Fetch data with appropriate seriesIds obtained from find-time-series
             """,
         resultConverter = JsonConverter.class
     )
@@ -180,7 +173,7 @@ public class McpTools {
         ZonedDateTime endDateTime,
         @ToolParam(
             description = """
-                List of series IDs to fetch data for.
+                Set of series IDs to fetch data for.
                 - Each ID must be a string matching a seriesId from find-time-series
                 - Invalid IDs will be ignored (no error, but no data returned)
                 - Order of IDs doesn't matter
@@ -189,37 +182,40 @@ public class McpTools {
                 - Request only the series you need for analysis
                 - Limit to 1-5 series per request for best performance
                 - For comparing many series, consider multiple focused requests
-                
-                EXAMPLES:
-                - Single series: ['kitchen_temperature']
-                - Multiple series: ['kitchen_temperature', 'living_room_temperature']
-                - Complex analysis: ['power_consumption', 'outside_temperature']
                 """
         )
-        List<String> seriesIds
+        Set<String> seriesIds,
+        @ToolParam(
+            description = """
+                Time reducer to apply to the data points.
+                - Determines how data points are aggregated (e.g., AVERAGE, MAXIMUM, etc.)
+                - If not specified, defaults to no AVERAGE
+                - Valid values: AVERAGE, COUNT, COUNT_DISTINCT, FIRST, LAST, MAXIMUM, MEDIAN, MINIMUM, MODE, MULTIPLY, SQUARE_SUM, SUM
+                NOTE: If a series has more data points in the specified time range than the limit, it will be downsampled using this reducer.
+                """
+        )
+        Reducer timeReducer
     ) {
         FindDataRequest request = new FindDataRequest();
         request.setFrom(startDateTime);
         request.setTo(endDateTime);
         request.setTimezone(TimeZone.getTimeZone(startDateTime.getZone()));
+        request.setTimeReducer(timeReducer);
+        request.setSize(MAX_DATA_POINTS);
 
         String seriesPattern = seriesIds.stream()
+            .filter(id -> id != null && !id.isBlank())
             .map(Pattern::quote)
             .collect(Collectors.joining("|"));
+        if (seriesPattern.isBlank()) {
+            return List.of();
+        }
         FindSeriesRequest seriesRequest = new FindSeriesRequest();
         seriesRequest.setPattern(Pattern.compile(seriesPattern));
         request.setSeries(seriesRequest);
 
         return queryService.findData(request).stream()
-            .map(fdr -> DataMcpResponse.builder()
-                .seriesId(fdr.getSeries().getId())
-                .seriesData(fdr.getData().stream()
-                    .map(sd -> DataValueMcpResponse.builder()
-                        .dateTime(sd.getTime())
-                        .dataValue(sd.getValue())
-                        .build())
-                    .collect(Collectors.toList()))
-                .build())
+            .map(DataMcpResponse::new)
             .collect(Collectors.toList());
     }
 
@@ -265,24 +261,33 @@ public class McpTools {
     }
 
     @Data
-    @Builder
     public static class SeriesMcpResponse {
         private final String seriesId;
+        private final Duration dataPointInterval;
         private final Map<String, String> seriesMetadata;
+
+        public SeriesMcpResponse(SeriesFile seriesFile) {
+            this.seriesId = seriesFile.getId();
+            this.dataPointInterval = seriesFile.getDefinition().getIntervalDuration();
+            this.seriesMetadata = seriesFile.getMetadata();
+        }
     }
 
     @Data
-    @Builder
     public static class DataMcpResponse {
         private final String seriesId;
-        private final List<DataValueMcpResponse> seriesData;
-    }
+        private final SortedMap<ZonedDateTime, Number> seriesData;
 
-    @Data
-    @Builder
-    public static class DataValueMcpResponse {
-        private final ZonedDateTime dateTime;
-        private final Number dataValue;
+        public DataMcpResponse(FindDataResponse findDataResponse) {
+            this.seriesId = findDataResponse.getSeries().getId();
+            this.seriesData = findDataResponse.getData().stream()
+                .collect(Collectors.toMap(
+                    SeriesData::getTime,
+                    SeriesData::getValue,
+                    (a, b) -> b,
+                    TreeMap::new
+                ));
+        }
     }
 
 }
