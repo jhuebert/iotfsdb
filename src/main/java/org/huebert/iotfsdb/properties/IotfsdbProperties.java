@@ -1,4 +1,4 @@
-package org.huebert.iotfsdb;
+package org.huebert.iotfsdb.properties;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -20,5 +20,7 @@ public class IotfsdbProperties {
     private String partitionCache = "expireAfterAccess=5m,maximumSize=10000,softValues";
 
     private boolean ui = true;
+
+    private SecurityProperties security = new SecurityProperties();
 
 }

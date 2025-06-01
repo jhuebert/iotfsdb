@@ -1,7 +1,7 @@
 package org.huebert.iotfsdb.persistence;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.huebert.iotfsdb.IotfsdbProperties;
+import org.huebert.iotfsdb.properties.IotfsdbProperties;
 import org.huebert.iotfsdb.schema.NumberType;
 import org.huebert.iotfsdb.schema.PartitionPeriod;
 import org.huebert.iotfsdb.schema.SeriesDefinition;

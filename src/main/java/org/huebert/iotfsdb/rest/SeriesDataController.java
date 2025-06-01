@@ -13,6 +13,7 @@ import org.huebert.iotfsdb.service.QueryService;
 import org.huebert.iotfsdb.service.TimeConverter;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,6 +29,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/v2/data")
+@PreAuthorize("hasRole('API_READ') or hasRole('API_WRITE')")
 public class SeriesDataController {
 
     private final ExportService exportService;
