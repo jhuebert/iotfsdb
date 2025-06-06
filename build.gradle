@@ -41,6 +41,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation 'org.springframework.ai:spring-ai-starter-mcp-server-webmvc:1.0.0'
+    implementation 'org.springframework.ai:spring-ai-starter-model-ollama:1.0.0'
     implementation 'com.google.guava:guava:33.4.8-jre'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8'
     implementation 'gg.jte:jte:3.2.1'
