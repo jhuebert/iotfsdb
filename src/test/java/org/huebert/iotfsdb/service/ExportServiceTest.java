@@ -15,6 +15,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -52,7 +53,7 @@ public class ExportServiceTest {
 
         PartitionKey key = new PartitionKey("abc", "123");
         PartitionAdapter adapter = mock(PartitionAdapter.class);
-        when(partitionService.getRange(key)).thenReturn(new PartitionRange(key, Range.all(), Duration.ZERO, adapter, new ReentrantReadWriteLock()));
+        when(partitionService.getRange(key)).thenReturn(new PartitionRange(key, Range.closed(LocalDateTime.parse("2024-11-10T00:00:00"), LocalDateTime.parse("2024-11-10T23:59:59")), Duration.ofMinutes(1), adapter, new ReentrantReadWriteLock()));
 
         when(dataService.getPartitions(seriesFile.getId())).thenReturn(Set.of(key));
 

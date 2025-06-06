@@ -1,9 +1,12 @@
 package org.huebert.iotfsdb.ui;
 
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.service.ImportService;
+import org.huebert.iotfsdb.stats.CaptureStats;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -18,8 +21,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-
 @Slf4j
 @Controller
 @RequestMapping("/ui/transfer")
@@ -32,10 +33,18 @@ public class MutatingTransferUiController {
         this.importService = importService;
     }
 
-
+    @CaptureStats(
+        id = "ui-transfer-import",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "ui"),
+            @CaptureStats.Metadata(key = "type", value = "transfer"),
+            @CaptureStats.Metadata(key = "operation", value = "import"),
+            @CaptureStats.Metadata(key = "method", value = "post"),
+        }
+    )
     @PostMapping("import")
     @ResponseStatus(NO_CONTENT)
-    public void importSeries(@NotNull @Valid @RequestParam("file") MultipartFile file) throws IOException {
+    public void importData(@NotNull @Valid @RequestParam("file") MultipartFile file) throws IOException {
 
         if ((file.getOriginalFilename() != null) && !file.getOriginalFilename().endsWith(".zip")) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "File is not a zip");

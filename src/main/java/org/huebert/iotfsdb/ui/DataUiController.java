@@ -9,6 +9,7 @@ import org.huebert.iotfsdb.schema.Reducer;
 import org.huebert.iotfsdb.schema.SeriesData;
 import org.huebert.iotfsdb.service.QueryService;
 import org.huebert.iotfsdb.service.TimeConverter;
+import org.huebert.iotfsdb.stats.CaptureStats;
 import org.huebert.iotfsdb.ui.service.BasePageService;
 import org.huebert.iotfsdb.ui.service.ObjectEncoder;
 import org.huebert.iotfsdb.ui.service.PlotData;
@@ -46,14 +47,18 @@ public class DataUiController {
         this.basePageService = basePageService;
     }
 
+    @CaptureStats(
+        id = "ui-data-index",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "ui"),
+            @CaptureStats.Metadata(key = "type", value = "data"),
+            @CaptureStats.Metadata(key = "operation", value = "index"),
+            @CaptureStats.Metadata(key = "method", value = "get"),
+        }
+    )
     @GetMapping
     public String getIndex(Model model, @RequestParam(value = "request", required = false) String request) {
-
-        PlotData plotData = PlotData.builder()
-            .labels(List.of())
-            .data(List.of())
-            .build();
-
+        PlotData plotData = PlotData.builder().labels(List.of()).data(List.of()).build();
         FindDataRequest defaultRequest = new FindDataRequest();
         defaultRequest.setDateTimePreset(DateTimePreset.LAST_24_HOURS);
         model.addAttribute("request", defaultRequest);
@@ -69,7 +74,7 @@ public class DataUiController {
                 model.addAttribute("request", findDataRequest);
             }
         } catch (IOException e) {
-            log.warn("could not parse request: {}", request);
+            log.warn("Could not parse request: {}", request);
         }
 
         model.addAttribute("plotData", plotData);
@@ -78,8 +83,17 @@ public class DataUiController {
         return "data/index";
     }
 
+    @CaptureStats(
+        id = "ui-data-search",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "ui"),
+            @CaptureStats.Metadata(key = "type", value = "data"),
+            @CaptureStats.Metadata(key = "operation", value = "search"),
+            @CaptureStats.Metadata(key = "method", value = "post"),
+        }
+    )
     @PostMapping("search")
-    public String search(
+    public String searchData(
         Model model,
         HttpServletResponse response,
         @RequestHeader("Iotfsdb-Tz") String timezone,
@@ -124,7 +138,7 @@ public class DataUiController {
         try {
             response.addHeader("HX-Push-Url", "/ui/data?request=" + objectEncoder.encode(request));
         } catch (IOException e) {
-            log.warn("could not serialize {}", request);
+            log.warn("Could not serialize request: {}", request);
         }
 
         model.addAttribute("basePage", basePageService.getBasePage());
