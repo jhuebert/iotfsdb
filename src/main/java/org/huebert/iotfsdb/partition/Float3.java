@@ -27,6 +27,8 @@ public final class Float3 extends Number {
 
     private static final int FLOAT3_BIAS = 63;
 
+    private static final int EXPONENT_ADJUSTMENT = DOUBLE_BIAS - FLOAT3_BIAS;
+
     private final byte[] bytes;
 
     private Float3(byte[] bytes) {
@@ -59,46 +61,24 @@ public final class Float3 extends Number {
             return ZERO;
         }
 
-        // Get the binary representation of the double
-        long bits = Double.doubleToLongBits(Math.abs(value));
+        long bits = Double.doubleToLongBits(value);
 
-        // Extract the exponent from the double (11 bits in IEEE 754)
-        int exponent = (int) ((bits >>> 52) & 0x7FF);
-
-        // Adjust the exponent for our 7-bit format
-        // IEEE 754 double has a bias of 1023, we'll use a bias of 63 for our 7-bit exponent
-        exponent = exponent - DOUBLE_BIAS + FLOAT3_BIAS;
-
-        // Handle very small numbers and underflow
+        int exponent = (int) ((bits >>> 52) & 0x7FF) - EXPONENT_ADJUSTMENT;
         if (exponent <= 0) {
-            // Subnormal numbers or underflow
             return ZERO;
         }
 
-        // Handle overflow
+        byte sign = (byte) ((bits >>> 56) & 0x80);
         if (exponent >= 127) {
-            // Return infinity with the appropriate sign
-            return (value > 0) ? POSITIVE_INFINITY : NEGATIVE_INFINITY;
+            return (sign == 0) ? POSITIVE_INFINITY : NEGATIVE_INFINITY;
         }
 
-        // Extract the mantissa from the double (52 bits in IEEE 754)
-        long mantissa = bits & 0xFFFFFFFFFFFFFL;
+        long mantissa = bits & 0x000FFFFFFFFFFFFFL;
 
-        // Adjust the mantissa for our 16-bit format by shifting
-        // IEEE 754 double has 52 bits, we need 16 bits
-        mantissa = mantissa >>> (52 - 16);
-
-        // Extract the sign bit (1 for negative, 0 for positive)
-        int sign = (value < 0) ? 1 : 0;
-
-        // Combine sign, exponent and mantissa into 24 bits
-        int result = (sign << 23) | (exponent << 16) | (int) (mantissa & 0xFFFF);
-
-        // Convert to 3 bytes
         return new Float3(new byte[] {
-            (byte) ((result >>> 16) & 0xFF),
-            (byte) ((result >>> 8) & 0xFF),
-            (byte) (result & 0xFF)
+            (byte) (sign | exponent),
+            (byte) (mantissa >>> 44),
+            (byte) (mantissa >>> 36)
         });
     }
 
@@ -170,42 +150,21 @@ public final class Float3 extends Number {
     @Override
     public double doubleValue() {
 
-        // Combine the 3 bytes into a 24-bit value
-        int bits = ((bytes[0] & 0xFF) << 16) | ((bytes[1] & 0xFF) << 8) | (bytes[2] & 0xFF);
+        int sign = bytes[0] & 0x80;
+        int exponent = bytes[0] & 0x7F;
+        int mantissa = ((bytes[1] << 8) & 0xFF00) | bytes[2];
 
-        // Extract components
-        int sign = (bits >>> 23) & 0x01;
-        int exponent = (bits >>> 16) & 0x7F;
-        int mantissa = bits & 0xFFFF;
-
-        // Handle special cases
         if (exponent == 0 && mantissa == 0) {
-            // Zero
             return (sign == 0) ? 0.0 : -0.0;
         }
 
         if (exponent == 0x7F) {
-            if (mantissa == 0) {
-                // Infinity
-                return (sign == 0) ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY;
-            } else {
-                // NaN
-                return Double.NaN;
-            }
+            return mantissa == 0
+                ? (sign == 0 ? Double.POSITIVE_INFINITY : Double.NEGATIVE_INFINITY)
+                : Double.NaN;
         }
 
-        // Convert to IEEE 754 double format
-        // Adjust exponent to IEEE 754 bias (1023 instead of 63)
-        int doubleExponent = exponent - FLOAT3_BIAS + DOUBLE_BIAS;
-
-        // Extend mantissa from 16 bits to 52 bits
-        long doubleMantissa = ((long) mantissa) << (52 - 16);
-
-        // Combine components in IEEE 754 double format
-        long doubleBits = ((long) sign << FLOAT3_BIAS) | ((long) doubleExponent << 52) | doubleMantissa;
-
-        // Convert to double
-        return Double.longBitsToDouble(doubleBits);
+        return Double.longBitsToDouble((long) sign << 56 | (long) (exponent + EXPONENT_ADJUSTMENT) << 52 | (long) mantissa << 36);
     }
 
 }
