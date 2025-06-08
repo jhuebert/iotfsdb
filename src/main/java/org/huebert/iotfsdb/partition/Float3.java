@@ -25,9 +25,13 @@ public final class Float3 extends Number {
 
     private static final int DOUBLE_BIAS = 1023;
 
+    private static final int FLOAT_BIAS = 127;
+
     private static final int FLOAT3_BIAS = 63;
 
-    private static final int EXPONENT_ADJUSTMENT = DOUBLE_BIAS - FLOAT3_BIAS;
+    private static final int DOUBLE_EXPONENT_ADJUSTMENT = DOUBLE_BIAS - FLOAT3_BIAS;
+
+    private static final int FLOAT_EXPONENT_ADJUSTMENT = FLOAT_BIAS - FLOAT3_BIAS;
 
     private final byte[] bytes;
 
@@ -63,7 +67,7 @@ public final class Float3 extends Number {
 
         long bits = Double.doubleToLongBits(value);
 
-        int exponent = (int) ((bits >>> 52) & 0x7FF) - EXPONENT_ADJUSTMENT;
+        int exponent = (int) ((bits >>> 52) & 0x7FF) - DOUBLE_EXPONENT_ADJUSTMENT;
         if (exponent <= 0) {
             return ZERO;
         }
@@ -134,17 +138,32 @@ public final class Float3 extends Number {
 
     @Override
     public int intValue() {
-        return (int) doubleValue();
+        return (int) floatValue();
     }
 
     @Override
     public long longValue() {
-        return (long) doubleValue();
+        return (long) floatValue();
     }
 
     @Override
     public float floatValue() {
-        return (float) doubleValue();
+
+        int sign = bytes[0] & 0x80;
+        int exponent = bytes[0] & 0x7F;
+        int mantissa = ((bytes[1] << 8) & 0xFF00) | bytes[2];
+
+        if (exponent == 0 && mantissa == 0) {
+            return (sign == 0) ? 0.0f : -0.0f;
+        }
+
+        if (exponent == 0x7F) {
+            return mantissa == 0
+                ? (sign == 0 ? Float.POSITIVE_INFINITY : Float.NEGATIVE_INFINITY)
+                : Float.NaN;
+        }
+
+        return Float.intBitsToFloat(sign << 24 | (exponent + FLOAT_EXPONENT_ADJUSTMENT) << 23 | mantissa << 7);
     }
 
     @Override
@@ -164,7 +183,7 @@ public final class Float3 extends Number {
                 : Double.NaN;
         }
 
-        return Double.longBitsToDouble((long) sign << 56 | (long) (exponent + EXPONENT_ADJUSTMENT) << 52 | (long) mantissa << 36);
+        return Double.longBitsToDouble((long) sign << 56 | (long) (exponent + DOUBLE_EXPONENT_ADJUSTMENT) << 52 | (long) mantissa << 36);
     }
 
 }
