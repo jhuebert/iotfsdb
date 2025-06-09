@@ -1,6 +1,8 @@
 package org.huebert.iotfsdb.grpc.mapper;
 
 import com.google.protobuf.DoubleValue;
+import com.google.protobuf.Int32Value;
+import com.google.protobuf.Int64Value;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.huebert.iotfsdb.grpc.Iotfsdb;
 import org.huebert.iotfsdb.schema.FindDataRequest;
@@ -55,8 +57,16 @@ public interface GrpcMappers {
         return timeZone.getID();
     }
 
-    default DoubleValue toDouble(Number number) {
-        return number != null ? DoubleValue.of(number.doubleValue()) : null;
+    default DoubleValue toDoubleValue(Number value) {
+        return value != null ? DoubleValue.of(value.doubleValue()) : null;
+    }
+
+    default Int32Value toInt32Value(Integer value) {
+        return value != null ? Int32Value.of(value) : null;
+    }
+
+    default Int64Value toInt64Value(Long value) {
+        return value != null ? Int64Value.of(value) : null;
     }
 
     default byte[] toBytes(Iotfsdb.FindDataRequest request) {

@@ -38,23 +38,23 @@ message DeleteSeriesRequest {
 }
 
 message FindDataRequest {
-  optional DateTimePreset date_time_preset = 1;
-  optional string timezone = 2;
-  optional string from = 3; //TODO Use oneof
-  optional string to = 4;
-  optional FindSeriesRequest series = 5;
-  optional int64 interval = 6;
-  optional int32 size = 7;
+  DateTimePreset date_time_preset = 1;
+  string timezone = 2;
+  string from = 3; //TODO Use oneof
+  string to = 4;
+  FindSeriesRequest series = 5;
+  google.protobuf.Int64Value interval = 6;
+  google.protobuf.Int32Value size = 7;
   bool include_null = 8;
   bool use_big_decimal = 9;
   bool use_previous = 10;
   google.protobuf.DoubleValue null_value = 11;
-  optional Reducer time_reducer = 12;
-  optional Reducer series_reducer = 13;
+  Reducer time_reducer = 12;
+  Reducer series_reducer = 13;
 }
 
 message FindSeriesRequest {
-  optional string series = 1;
+  string series = 1;
   map<string, string> metadata = 2;
 }
 
@@ -108,8 +108,8 @@ message SeriesDefinition {
   NumberType type = 2;
   int64 interval = 3;
   PartitionPeriod partition = 4;
-  optional double min = 5;
-  optional double max = 6;
+  google.protobuf.DoubleValue min = 5;
+  google.protobuf.DoubleValue max = 6;
 }
 
 message SeriesData {
