@@ -1,0 +1,181 @@
+syntax = "proto3";
+
+package iotfsdb;
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+option java_package = "org.huebert.iotfsdb.grpc";
+
+service SeriesService {
+  rpc findSeries(FindSeriesRequest) returns (FindSeriesResponse);
+  rpc getSeries(GetSeriesRequest) returns (GetSeriesResponse);
+  rpc getMetadata(GetMetadataRequest) returns (GetMetadataResponse);
+}
+
+service MutatingSeriesService {
+  rpc createSeries(CreateSeriesRequest) returns (google.protobuf.Empty);
+  rpc deleteSeries(DeleteSeriesRequest) returns (google.protobuf.Empty);
+  rpc updateMetadata(UpdateMetadataRequest) returns (google.protobuf.Empty);
+}
+
+service DataService {
+  rpc findData(FindDataRequest) returns (FindDataResponse);
+  rpc exportData(FindSeriesRequest) returns (FileData);
+}
+
+service MutatingDataService {
+  rpc insertData(InsertDataRequest) returns (google.protobuf.Empty);
+  rpc importData(FileData) returns (google.protobuf.Empty);
+}
+
+message CreateSeriesRequest {
+  Series series = 1;
+}
+
+message DeleteSeriesRequest {
+  Series series = 1;
+}
+
+message FindDataRequest {
+  optional DateTimePreset date_time_preset = 1;
+  optional string timezone = 2;
+  optional string from = 3;
+  optional string to = 4;
+  optional FindSeriesRequest series = 5;
+  optional int64 interval = 6;
+  optional int32 size = 7;
+  bool include_null = 8;
+  bool use_big_decimal = 9;
+  bool use_previous = 10;
+  optional double null_value = 11;
+  optional Reducer time_reducer = 12;
+  optional Reducer series_reducer = 13;
+}
+
+message FindSeriesRequest {
+  optional string series = 1;
+  map<string, string> metadata = 2;
+}
+
+message GetMetadataRequest {
+  string series = 1;
+}
+
+message GetSeriesRequest {
+  string series = 1;
+}
+
+message InsertDataRequests {
+  repeated InsertDataRequest request = 1;
+}
+
+message InsertDataRequest {
+  string series = 1;
+  repeated SeriesData values = 2;
+  Reducer reducer = 3;
+}
+
+message UpdateMetadataRequest {
+  string series = 1;
+  map<string, string> metadata = 2;
+}
+
+message FindDataResponse {
+  Series series = 1;
+  repeated SeriesData data = 2;
+}
+
+message FindSeriesResponse {
+  repeated Series series = 1;
+}
+
+message GetMetadataResponse {
+  map<string, string> metadata = 1;
+}
+
+message GetSeriesResponse {
+  Series series = 1;
+}
+
+message FileData {
+  bytes data = 1;
+  string filename = 2;
+}
+
+message SeriesDefinition {
+  string id = 1;
+  NumberType type = 2;
+  int64 interval = 3;
+  PartitionPeriod partition = 4;
+  optional double min = 5;
+  optional double max = 6;
+}
+
+message SeriesData {
+  string time = 1;
+  double value = 2;
+}
+
+message Series {
+  SeriesDefinition definition = 1;
+  map<string, string> metadata = 2;
+}
+
+enum DateTimePreset {
+  LAST_24_HOURS = 0;
+  NONE = 1;
+  LAST_5_MINUTES = 2;
+  LAST_15_MINUTES = 3;
+  LAST_30_MINUTES = 4;
+  LAST_1_HOUR = 5;
+  LAST_3_HOURS = 6;
+  LAST_6_HOURS = 7;
+  LAST_12_HOURS = 8;
+  LAST_2_DAYS = 9;
+  LAST_7_DAYS = 10;
+  LAST_30_DAYS = 11;
+  LAST_90_DAYS = 12;
+  LAST_6_MONTHS = 13;
+  LAST_1_YEAR = 14;
+  LAST_2_YEARS = 15;
+  LAST_5_YEARS = 16;
+}
+
+enum NumberType {
+  FLOAT8 = 0;
+  CURVED1 = 1;
+  CURVED2 = 2;
+  CURVED4 = 3;
+  FLOAT2 = 4;
+  FLOAT3 = 5;
+  FLOAT4 = 6;
+  INTEGER1 = 7;
+  INTEGER2 = 8;
+  INTEGER4 = 9;
+  INTEGER8 = 10;
+  MAPPED1 = 11;
+  MAPPED2 = 12;
+  MAPPED4 = 13;
+}
+
+enum PartitionPeriod {
+  DAY = 0;
+  MONTH = 1;
+  YEAR = 2;
+}
+
+enum Reducer {
+  AVERAGE = 0;
+  COUNT = 1;
+  COUNT_DISTINCT = 2;
+  FIRST = 3;
+  LAST = 4;
+  MAXIMUM = 5;
+  MEDIAN = 6;
+  MINIMUM = 7;
+  MODE = 8;
+  MULTIPLY = 9;
+  SQUARE_SUM = 10;
+  SUM = 11;
+}
