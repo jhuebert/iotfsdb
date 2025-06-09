@@ -13,6 +13,7 @@ import org.huebert.iotfsdb.IotfsdbProperties;
 import org.huebert.iotfsdb.partition.BytePartition;
 import org.huebert.iotfsdb.partition.CurvedMappedPartition;
 import org.huebert.iotfsdb.partition.DoublePartition;
+import org.huebert.iotfsdb.partition.Float3Partition;
 import org.huebert.iotfsdb.partition.FloatPartition;
 import org.huebert.iotfsdb.partition.HalfFloatPartition;
 import org.huebert.iotfsdb.partition.IntegerPartition;
@@ -55,6 +56,7 @@ public class PartitionService {
         ADAPTER_MAP.put(NumberType.CURVED2, new ShortPartition());
         ADAPTER_MAP.put(NumberType.CURVED4, new IntegerPartition());
         ADAPTER_MAP.put(NumberType.FLOAT2, new HalfFloatPartition());
+        ADAPTER_MAP.put(NumberType.FLOAT3, new Float3Partition());
         ADAPTER_MAP.put(NumberType.FLOAT4, new FloatPartition());
         ADAPTER_MAP.put(NumberType.FLOAT8, new DoublePartition());
         ADAPTER_MAP.put(NumberType.INTEGER1, new BytePartition());

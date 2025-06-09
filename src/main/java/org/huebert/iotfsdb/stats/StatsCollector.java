@@ -57,7 +57,7 @@ public class StatsCollector {
 
     @Around("@annotation(captureAnnotation)")
     public Object captureExecutionTime(ProceedingJoinPoint joinPoint, CaptureStats captureAnnotation) throws Throwable {
-        if (properties.isReadOnly() || !properties.isCaptureStats()) {
+        if (properties.isReadOnly() || !properties.isStats()) {
             return joinPoint.proceed();
         }
         long startTime = System.nanoTime();

@@ -82,7 +82,7 @@ public class McpTools {
             .filter(seriesFile -> matchesPattern.test(seriesFile.getId()) ||
                 seriesFile.getMetadata().values().stream().anyMatch(matchesPattern))
             .map(SeriesMcpResponse::new)
-            .collect(Collectors.toList());
+            .toList();
         log.debug("Exiting find-time-series: size={}", results.size());
         return results;
     }
