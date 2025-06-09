@@ -80,6 +80,7 @@ public class FindDataRequest {
         return from != null && to != null && to.isAfter(from);
     }
 
+    @JsonIgnore
     public Range<ZonedDateTime> getRange() {
         if ((dateTimePreset != null) && (dateTimePreset != DateTimePreset.NONE)) {
             ZoneId zoneId = timezone == null ? ZoneOffset.UTC : timezone.toZoneId();
@@ -90,10 +91,12 @@ public class FindDataRequest {
         return Range.closed(from.withZoneSameInstant(zoneId), to.withZoneSameInstant(zoneId));
     }
 
+    @JsonIgnore
     public Predicate<SeriesData> getNullPredicate() {
         return isIncludeNull() ? _ -> true : seriesData -> seriesData.getValue() != null;
     }
 
+    @JsonIgnore
     public Consumer<SeriesData> getPreviousConsumer() {
         if (!isUsePrevious()) {
             return _ -> {

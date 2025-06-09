@@ -1,9 +1,10 @@
-package org.huebert.iotfsdb.mcp;
+package org.huebert.iotfsdb.rest;
 
 import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.huebert.iotfsdb.stats.CaptureStats;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
@@ -41,7 +42,16 @@ public class ChatController {
             .build();
     }
 
-    @PostMapping("/chat")
+    @CaptureStats(
+        id = "api-ai-chat",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "api"),
+            @CaptureStats.Metadata(key = "type", value = "ai"),
+            @CaptureStats.Metadata(key = "operation", value = "chat"),
+            @CaptureStats.Metadata(key = "method", value = "post"),
+        }
+    )
+    @PostMapping("/v2/chat")
     public ChatResponse chat(@RequestBody ChatRequest request) {
         log.debug("Received chat request: {}", request.getConversationId());
 
