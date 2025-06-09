@@ -45,13 +45,13 @@ public class StatsCollector {
     private static final Set<CaptureStats> SERIES_MAP = Sets.newConcurrentHashSet();
     private static final double NS_PER_S = 1e9;
 
-    private final InsertService insertService;
     private final IotfsdbProperties properties;
+    private final InsertService insertService;
     private final DataService dataService;
 
-    public StatsCollector(InsertService insertService, IotfsdbProperties properties, DataService dataService) {
-        this.insertService = insertService;
+    public StatsCollector(IotfsdbProperties properties, InsertService insertService, DataService dataService) {
         this.properties = properties;
+        this.insertService = insertService;
         this.dataService = dataService;
     }
 
@@ -97,7 +97,7 @@ public class StatsCollector {
 
         ZonedDateTime now = ZonedDateTime.now();
         List<InsertRequest> requests = localStats.values().stream()
-            .flatMap(v -> create(now, v).stream())
+            .flatMap(v -> createRequests(now, v).stream())
             .toList();
 
         ParallelUtil.forEach(requests, insertService::insert);
@@ -107,20 +107,17 @@ public class StatsCollector {
         return annotation.id() + "-" + stat.getKey();
     }
 
-    private static List<InsertRequest> create(ZonedDateTime time, Accumulator stats) {
-        return List.of(
-            createRequest(getSeriesId(stats.getAnnotation(), Stat.MIN), time, stats.getMin() / NS_PER_S),
-            createRequest(getSeriesId(stats.getAnnotation(), Stat.MAX), time, stats.getMax() / NS_PER_S),
-            createRequest(getSeriesId(stats.getAnnotation(), Stat.MEAN), time, stats.getMean() / NS_PER_S),
-            createRequest(getSeriesId(stats.getAnnotation(), Stat.COUNT), time, stats.getCount())
-        );
+    private static List<InsertRequest> createRequests(ZonedDateTime time, Accumulator stats) {
+        return Stream.of(Stat.values())
+            .map(stat -> createRequest(time, stats, stat))
+            .toList();
     }
 
-    private static InsertRequest createRequest(String series, ZonedDateTime time, double value) {
+    private static InsertRequest createRequest(ZonedDateTime time, Accumulator stats, Stat stat) {
         return InsertRequest.builder()
-            .series(series)
+            .series(getSeriesId(stats.getAnnotation(), stat))
             .reducer(Reducer.LAST)
-            .values(List.of(new SeriesData(time, value)))
+            .values(List.of(new SeriesData(time, stats.getStat(stat))))
             .build();
     }
 
@@ -149,7 +146,7 @@ public class StatsCollector {
         return SeriesDefinition.builder()
             .id(getSeriesId(annotation, stat))
             .type(stat.getType())
-            .partition(PartitionPeriod.MONTH)
+            .partition(PartitionPeriod.DAY)
             .interval(MEASUREMENT_INTERVAL)
             .build();
     }
@@ -174,20 +171,17 @@ public class StatsCollector {
             max.accumulateAndGet(value, Math::max);
         }
 
-        public long getCount() {
-            return count.get();
-        }
-
-        public long getMean() {
-            return count.get() == 0 ? 0 : sum.get() / count.get();
-        }
-
-        public long getMin() {
-            return count.get() == 0 ? 0 : min.get();
-        }
-
-        public long getMax() {
-            return count.get() == 0 ? 0 : max.get();
+        public Number getStat(Stat stat) {
+            long localCount = count.get();
+            if (localCount == 0) {
+                return 0;
+            }
+            return switch (stat) {
+                case MIN -> min.get() / NS_PER_S;
+                case MAX -> max.get() / NS_PER_S;
+                case MEAN -> (sum.get() / localCount) / NS_PER_S;
+                case COUNT -> localCount;
+            };
         }
     }
 
