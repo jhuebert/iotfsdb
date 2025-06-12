@@ -44,7 +44,7 @@ public class ExportUiServiceTest {
         ResponseEntity<StreamingResponseBody> export = exportUiService.export("test-series");
 
         assertThat(export.getHeaders().get(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS)).isEqualTo(List.of(HttpHeaders.CONTENT_DISPOSITION));
-        assertThat(export.getHeaders().get(HttpHeaders.CONTENT_TYPE)).isEqualTo(List.of("application/zip"));
+        assertThat(export.getHeaders().get(HttpHeaders.CONTENT_TYPE)).isEqualTo(List.of("application/octet-stream"));
         assertThat(export.getHeaders().get(HttpHeaders.CONTENT_DISPOSITION)).matches(a -> (a.size() == 1) && a.getFirst().matches("attachment;filename=iotfsdb-test-series-.*-.*\\.zip"));
 
         ByteArrayOutputStream testOutputStream = new ByteArrayOutputStream();
@@ -69,7 +69,7 @@ public class ExportUiServiceTest {
         ResponseEntity<StreamingResponseBody> export = exportUiService.export(null);
 
         assertThat(export.getHeaders().get(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS)).isEqualTo(List.of(HttpHeaders.CONTENT_DISPOSITION));
-        assertThat(export.getHeaders().get(HttpHeaders.CONTENT_TYPE)).isEqualTo(List.of("application/zip"));
+        assertThat(export.getHeaders().get(HttpHeaders.CONTENT_TYPE)).isEqualTo(List.of("application/octet-stream"));
         assertThat(export.getHeaders().get(HttpHeaders.CONTENT_DISPOSITION)).matches(a -> (a.size() == 1) && a.getFirst().matches("attachment;filename=iotfsdb-.*-.*\\.zip"));
 
         ByteArrayOutputStream testOutputStream = new ByteArrayOutputStream();

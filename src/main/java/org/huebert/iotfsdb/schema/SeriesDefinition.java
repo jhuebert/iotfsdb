@@ -4,19 +4,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.AssertTrue;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Positive;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.*;
+import lombok.*;
 
 import java.time.Duration;
+import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.Map;
 import java.util.Set;
 
 @Data
@@ -32,6 +26,14 @@ public class SeriesDefinition {
     public static final String ID_PATTERN = "[a-z0-9][a-z0-9._-]{0,127}";
 
     private static final Set<NumberType> TYPES_WITH_RANGE = EnumSet.of(NumberType.CURVED1, NumberType.CURVED2, NumberType.CURVED4, NumberType.MAPPED1, NumberType.MAPPED2, NumberType.MAPPED4);
+
+    private static final Map<PartitionPeriod, Long> MAX_INTERVALS = new EnumMap<>(PartitionPeriod.class);
+
+    static {
+        MAX_INTERVALS.put(PartitionPeriod.DAY, Duration.ofDays(1).toMillis());
+        MAX_INTERVALS.put(PartitionPeriod.MONTH, Duration.ofDays(28).toMillis());
+        MAX_INTERVALS.put(PartitionPeriod.YEAR, Duration.ofDays(365).toMillis());
+    }
 
     @Schema(description = "Series ID")
     @NotBlank
@@ -63,10 +65,7 @@ public class SeriesDefinition {
         if ((min == null) != (max == null)) {
             return false;
         } else if (TYPES_WITH_RANGE.contains(type)) {
-            if (min == null) {
-                return false;
-            }
-            return min < max;
+            return min != null && min < max;
         }
         return min == null;
     }
@@ -74,14 +73,8 @@ public class SeriesDefinition {
     @JsonIgnore
     @AssertTrue
     public boolean isIntervalValid() {
-        if (PartitionPeriod.DAY == partition) {
-            return interval <= Duration.ofDays(1).toMillis();
-        } else if (PartitionPeriod.MONTH == partition) {
-            return interval <= Duration.ofDays(28).toMillis();
-        } else if (PartitionPeriod.YEAR == partition) {
-            return interval <= Duration.ofDays(365).toMillis();
-        }
-        return false;
+        Long maxInterval = MAX_INTERVALS.get(partition);
+        return maxInterval != null && interval <= maxInterval;
     }
 
     @JsonIgnore
