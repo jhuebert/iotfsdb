@@ -1,0 +1,132 @@
+syntax = "proto3";
+
+package iotfsdb;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+import "iotfsdb-enums.proto";
+import "iotfsdb-types.proto";
+
+option java_package = "org.huebert.iotfsdb.api.proto";
+
+service SeriesService {
+  rpc CreateSeries(CreateSeriesRequest) returns (CreateSeriesResponse);
+  rpc DeleteSeries(DeleteSeriesRequest) returns (DeleteSeriesResponse);
+  rpc FindSeries(FindSeriesRequest) returns (FindSeriesResponse);
+  rpc GetSeries(GetSeriesRequest) returns (GetSeriesResponse);
+}
+
+service MetadataService {
+  rpc GetMetadata(GetMetadataRequest) returns (GetMetadataResponse);
+  rpc UpdateMetadata(UpdateMetadataRequest) returns (UpdateMetadataResponse);
+}
+
+service DataService {
+  rpc FindData(FindDataRequest) returns (FindDataResponse);
+  rpc InsertData(stream InsertDataRequest) returns (stream InsertDataResponse);
+}
+
+service TransferService {
+  rpc ExportData(ExportDataRequest) returns (ExportDataResponse);
+  rpc ImportData(ImportDataRequest) returns (ImportDataResponse);
+}
+
+message CreateSeriesRequest {
+  Series series = 1;
+}
+
+message DeleteSeriesRequest {
+  Series series = 1;
+}
+
+message ExportDataRequest {
+  google.protobuf.StringValue id = 1;
+  map<string, string> metadata = 2;
+}
+
+message FindDataRequest {
+  FindSeriesRequest series = 1;
+  Time from_time = 2;
+  Time to_time = 3;
+  oneof size_option {
+    google.protobuf.Int64Value interval_ms = 4;
+    google.protobuf.Int32Value size = 5;
+  }
+  oneof null_option {
+    NullHandler null_handler = 6;
+    google.protobuf.DoubleValue null_value = 7;
+  }
+  bool high_precision = 8;
+  Reducer time_reducer = 9;
+  Reducer series_reducer = 10;
+}
+
+message FindSeriesRequest {
+  google.protobuf.StringValue id = 1;
+  map<string, string> metadata = 2;
+}
+
+message GetMetadataRequest {
+  string id = 1;
+}
+
+message GetSeriesRequest {
+  string id = 1;
+}
+
+message ImportDataRequest {
+  bytes data = 1;
+  google.protobuf.StringValue filename = 2;
+}
+
+message InsertDataRequest {
+  string id = 1;
+  repeated SeriesValue values = 2;
+  Reducer reducer = 3;
+}
+
+message UpdateMetadataRequest {
+  string id = 1;
+  map<string, string> metadata = 2;
+}
+
+message CreateSeriesResponse {
+
+}
+
+message DeleteSeriesResponse {
+
+}
+
+message FindDataResponse {
+  repeated SeriesData series_data = 1;
+}
+
+message FindSeriesResponse {
+  repeated Series series = 1;
+}
+
+message GetMetadataResponse {
+  map<string, string> metadata = 1;
+}
+
+message GetSeriesResponse {
+  Series series = 1;
+}
+
+message ImportDataResponse {
+
+}
+
+message InsertDataResponse {
+
+}
+
+message UpdateMetadataResponse {
+
+}
+
+message ExportDataResponse {
+  bytes data = 1;
+  google.protobuf.StringValue filename = 2;
+}

@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package iotfsdb;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+import "iotfsdb-enums.proto";
+
+option java_package = "org.huebert.iotfsdb.api.proto";
+
+message RelativeTime {
+  int32 value = 1;
+  TimeUnit unit = 2;
+}
+
+message Series {
+  SeriesDefinition definition = 1;
+  map<string, string> metadata = 2;
+}
+
+message SeriesData {
+  Series series = 1;
+  repeated SeriesValue values = 2;
+}
+
+message SeriesDefinition {
+  string id = 1;
+  NumberType type = 2;
+  int64 interval_ms = 3;
+  PartitionPeriod partition = 4;
+  google.protobuf.DoubleValue min = 5;
+  google.protobuf.DoubleValue max = 6;
+}
+
+message SeriesValue {
+  google.protobuf.Timestamp timestamp = 1;
+  double value = 2;
+}
+
+message Time {
+  oneof time_option {
+    RelativeTime relative_time = 1;
+    google.protobuf.Timestamp timestamp = 2;
+  }
+}
