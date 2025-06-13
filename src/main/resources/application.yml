@@ -1,8 +1,25 @@
 spring:
+  ai:
+    mcp:
+      server:
+        name: iotfsdb
+        version: 2
+        stdio: false
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        model: qwen3:30b-a3b
+        options:
+          num-ctx: 32768
+          num-predict: -1
+          max-tokens: 32768
   application:
     name: iotfsdb
   main:
     banner-mode: off
+  grpc:
+    server:
+      port: 9090
   servlet:
     multipart:
       max-file-size: 100MB
@@ -10,6 +27,11 @@ spring:
   threads:
     virtual:
       enabled: true
+
+logging.level:
+  root: INFO
+  org.huebert: INFO
+  org.springframework: INFO
 
 server:
   compression:

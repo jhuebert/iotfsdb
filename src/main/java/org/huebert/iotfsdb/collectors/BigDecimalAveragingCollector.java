@@ -56,9 +56,7 @@ public class BigDecimalAveragingCollector implements NumberCollector<BigDecimal,
             if (count == 0) {
                 return null;
             }
-            BigDecimal divisor = BigDecimal.valueOf(count);
-            int precision = sum.precision() + (int) Math.ceil(10.0 * divisor.precision() / 3.0);
-            return sum.divide(divisor, new MathContext(precision));
+            return sum.divide(BigDecimal.valueOf(count), MathContext.DECIMAL128);
         }
     }
 

@@ -1,5 +1,5 @@
 @import gg.jte.Content
-@import org.huebert.iotfsdb.ui.service.BasePageService
+@import org.huebert.iotfsdb.api.ui.service.BasePageService
 
 @param BasePageService.BasePage basePage
 @param String title

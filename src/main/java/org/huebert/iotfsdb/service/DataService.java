@@ -13,7 +13,7 @@ import org.huebert.iotfsdb.IotfsdbProperties;
 import org.huebert.iotfsdb.partition.PartitionAdapter;
 import org.huebert.iotfsdb.persistence.PartitionByteBuffer;
 import org.huebert.iotfsdb.persistence.PersistenceAdapter;
-import org.huebert.iotfsdb.schema.SeriesFile;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;

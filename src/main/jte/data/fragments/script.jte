@@ -1,4 +1,4 @@
-@import org.huebert.iotfsdb.ui.service.PlotData
+@import org.huebert.iotfsdb.api.ui.service.PlotData
 @import java.time.ZonedDateTime
 @import java.time.format.DateTimeFormatter
 @import java.util.stream.Collectors

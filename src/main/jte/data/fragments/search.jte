@@ -1,8 +1,8 @@
-@import org.huebert.iotfsdb.schema.DateTimePreset
-@import org.huebert.iotfsdb.schema.FindDataRequest
-@import org.huebert.iotfsdb.schema.Reducer
-@import org.huebert.iotfsdb.ui.service.PlotData
-@import org.huebert.iotfsdb.ui.service.SearchParser
+@import org.huebert.iotfsdb.api.schema.DateTimePreset
+@import org.huebert.iotfsdb.api.schema.FindDataRequest
+@import org.huebert.iotfsdb.api.schema.Reducer
+@import org.huebert.iotfsdb.api.ui.service.PlotData
+@import org.huebert.iotfsdb.api.ui.service.SearchParser
 
 @param FindDataRequest request
 @param PlotData plotData

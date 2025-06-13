@@ -63,9 +63,7 @@ public class BigDecimalMedianCollector implements NumberCollector<BigDecimal, Li
     }
 
     private static BigDecimal average(BigDecimal a, BigDecimal b) {
-        BigDecimal sum = a.add(b);
-        int precision = sum.precision() + (int) Math.ceil(10.0 * TWO.precision() / 3.0);
-        return sum.divide(TWO, new MathContext(precision));
+        return a.add(b).divide(TWO, MathContext.DECIMAL128);
     }
 
 }

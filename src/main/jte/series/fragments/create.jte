@@ -1,5 +1,5 @@
-@import org.huebert.iotfsdb.schema.NumberType
-@import org.huebert.iotfsdb.schema.PartitionPeriod
+@import org.huebert.iotfsdb.api.schema.NumberType
+@import org.huebert.iotfsdb.api.schema.PartitionPeriod
 
 <script>
     function onNumberTypeChanged(self) {

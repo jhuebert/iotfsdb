@@ -1,6 +1,6 @@
-@import org.huebert.iotfsdb.schema.FindDataRequest
-@import org.huebert.iotfsdb.ui.service.BasePageService
-@import org.huebert.iotfsdb.ui.service.PlotData
+@import org.huebert.iotfsdb.api.schema.FindDataRequest
+@import org.huebert.iotfsdb.api.ui.service.BasePageService
+@import org.huebert.iotfsdb.api.ui.service.PlotData
 
 @param BasePageService.BasePage basePage
 @param FindDataRequest request

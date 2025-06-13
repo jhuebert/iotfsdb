@@ -1,10 +1,10 @@
 package org.huebert.iotfsdb.service;
 
-import org.huebert.iotfsdb.schema.FindDataRequest;
-import org.huebert.iotfsdb.schema.FindDataResponse;
-import org.huebert.iotfsdb.schema.Reducer;
-import org.huebert.iotfsdb.schema.SeriesData;
-import org.huebert.iotfsdb.schema.SeriesFile;
+import org.huebert.iotfsdb.api.schema.FindDataRequest;
+import org.huebert.iotfsdb.api.schema.FindDataResponse;
+import org.huebert.iotfsdb.api.schema.Reducer;
+import org.huebert.iotfsdb.api.schema.SeriesData;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

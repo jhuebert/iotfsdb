@@ -5,8 +5,8 @@ import static org.huebert.iotfsdb.persistence.FilePersistenceAdapter.SERIES_JSON
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import org.huebert.iotfsdb.schema.FindSeriesRequest;
-import org.huebert.iotfsdb.schema.SeriesFile;
+import org.huebert.iotfsdb.api.schema.FindSeriesRequest;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 

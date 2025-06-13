@@ -1,7 +1,7 @@
 package org.huebert.iotfsdb.partition;
 
 import java.nio.ByteBuffer;
-import java.util.Iterator;
+import java.util.stream.Stream;
 
 public class Float3Partition implements PartitionAdapter {
 
@@ -11,11 +11,12 @@ public class Float3Partition implements PartitionAdapter {
     }
 
     @Override
-    public Iterator<Number> getIterator(ByteBuffer buffer, int index, int length) {
+    public Stream<Number> getStream(ByteBuffer buffer, int index, int length) {
         return new BufferIterator<>(
             buffer.slice(index * Float3.BYTES, length * Float3.BYTES),
+            length,
             this::readFloat3
-        );
+        ).asStream();
     }
 
     private Number readFloat3(ByteBuffer buffer) {

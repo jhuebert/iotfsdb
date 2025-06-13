@@ -21,10 +21,10 @@ import org.huebert.iotfsdb.partition.LongPartition;
 import org.huebert.iotfsdb.partition.MappedPartition;
 import org.huebert.iotfsdb.partition.PartitionAdapter;
 import org.huebert.iotfsdb.partition.ShortPartition;
-import org.huebert.iotfsdb.schema.NumberType;
-import org.huebert.iotfsdb.schema.PartitionPeriod;
-import org.huebert.iotfsdb.schema.SeriesDefinition;
-import org.huebert.iotfsdb.schema.SeriesFile;
+import org.huebert.iotfsdb.api.schema.NumberType;
+import org.huebert.iotfsdb.api.schema.PartitionPeriod;
+import org.huebert.iotfsdb.api.schema.SeriesDefinition;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 

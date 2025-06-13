@@ -4,10 +4,10 @@ import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import org.huebert.iotfsdb.schema.FindDataRequest;
-import org.huebert.iotfsdb.schema.FindDataResponse;
-import org.huebert.iotfsdb.schema.SeriesData;
-import org.huebert.iotfsdb.schema.SeriesFile;
+import org.huebert.iotfsdb.api.schema.FindDataRequest;
+import org.huebert.iotfsdb.api.schema.FindDataResponse;
+import org.huebert.iotfsdb.api.schema.SeriesData;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -85,11 +85,8 @@ public class QueryService {
     }
 
     private Stream<Number> findDataFromPartition(PartitionRange partitionRange, Range<LocalDateTime> current) {
-        Range<LocalDateTime> intersection = partitionRange.getRange().intersection(current);
-        int fromIndex = partitionRange.getIndex(intersection.lowerEndpoint());
-        int toIndex = partitionRange.getIndex(intersection.upperEndpoint());
         return dataService.getBuffer(partitionRange.getKey())
-            .map(b -> partitionRange.getAdapter().getStream(b, fromIndex, toIndex - fromIndex + 1))
+            .map(b -> partitionRange.getStream(b, current))
             .orElse(Stream.empty());
     }
 

@@ -2,10 +2,10 @@ package org.huebert.iotfsdb.persistence;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.huebert.iotfsdb.IotfsdbProperties;
-import org.huebert.iotfsdb.schema.NumberType;
-import org.huebert.iotfsdb.schema.PartitionPeriod;
-import org.huebert.iotfsdb.schema.SeriesDefinition;
-import org.huebert.iotfsdb.schema.SeriesFile;
+import org.huebert.iotfsdb.api.schema.NumberType;
+import org.huebert.iotfsdb.api.schema.PartitionPeriod;
+import org.huebert.iotfsdb.api.schema.SeriesDefinition;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.service.PartitionKey;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.FileSystemUtils;
