@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package iotfsdb;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
+
+option java_package = "org.huebert.iotfsdb.api.proto";
+
+service PartitionService {
+  rpc GetPartitions(GetPartitionsRequest) returns (GetPartitionsResponse);
+  rpc CreatePartition(CreatePartitionRequest) returns (CreatePartitionResponse);
+  rpc ReadPartition(ReadPartitionRequest) returns (ReadPartitionResponse);
+}
+
+message CreatePartitionRequest {
+  PartitionKey key = 1;
+  int64 size = 2;
+}
+
+message GetPartitionsRequest {
+  string id = 1;
+}
+
+message ReadPartitionRequest {
+  PartitionKey key = 1;
+}
+
+message CreatePartitionResponse {
+
+}
+
+message GetPartitionsResponse {
+  repeated PartitionKey partitions = 1;
+}
+
+message ReadPartitionResponse {
+  bytes data = 1;
+}
+
+message PartitionKey {
+  string series_id = 1;
+  string partition_id = 2;
+}

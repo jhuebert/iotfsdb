@@ -53,8 +53,16 @@ public interface ProtoCommonMapper {
         return value != null ? Int32Value.of(value) : null;
     }
 
+    default Integer toInteger(Int32Value value) {
+        return value != null ? value.getValue() : null;
+    }
+
     default Int64Value toInt64Value(Long value) {
         return value != null ? Int64Value.of(value) : null;
+    }
+
+    default Double toDouble(DoubleValue value) {
+        return value.getValue();
     }
 
 }

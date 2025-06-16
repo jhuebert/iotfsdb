@@ -19,7 +19,10 @@ spring:
     banner-mode: off
   grpc:
     server:
+      enabled: true
       port: 9090
+      ssl:
+        secure: false
   servlet:
     multipart:
       max-file-size: 100MB
@@ -29,9 +32,9 @@ spring:
       enabled: true
 
 logging.level:
-  root: INFO
+  root: WARN
   org.huebert: INFO
-  org.springframework: INFO
+  org.springframework: WARN
 
 server:
   compression:

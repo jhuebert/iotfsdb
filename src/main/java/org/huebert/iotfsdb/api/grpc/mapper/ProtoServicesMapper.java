@@ -2,6 +2,7 @@ package org.huebert.iotfsdb.api.grpc.mapper;
 
 import org.huebert.iotfsdb.api.proto.IotfsdbServices;
 import org.huebert.iotfsdb.api.schema.FindDataRequest;
+import org.huebert.iotfsdb.api.schema.FindDataResponse;
 import org.huebert.iotfsdb.api.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.api.schema.InsertRequest;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
@@ -49,10 +50,19 @@ public interface ProtoServicesMapper {
     })
     IotfsdbServices.FindDataRequest toGrpc(FindDataRequest request);
 
+    record FindDataResponseWrapper(List<FindDataResponse> findDataResponses) {
+    }
+
     record SeriesFileWrapper(List<SeriesFile> seriesFiles) {
     }
 
+    IotfsdbServices.FindDataResponse toGrpc(FindDataResponseWrapper wrapper);
+
     IotfsdbServices.FindSeriesResponse toGrpc(SeriesFileWrapper wrapper);
+
+    default IotfsdbServices.FindDataResponse toGrpcFindDataResponse(List<FindDataResponse> findDataResponses) {
+        return toGrpc(new FindDataResponseWrapper(findDataResponses));
+    }
 
     default IotfsdbServices.FindSeriesResponse toGrpc(List<SeriesFile> seriesFiles) {
         return toGrpc(new SeriesFileWrapper(seriesFiles));
@@ -60,5 +70,22 @@ public interface ProtoServicesMapper {
 
     @Mapping(target = "pattern", source = "id")
     FindSeriesRequest fromGrpc(IotfsdbServices.FindSeriesRequest request);
+
+    FindDataRequest fromGrpc(IotfsdbServices.FindDataRequest request);
+
+    @Mappings({
+        @Mapping(target = "definition", source = "series.definition"),
+        @Mapping(target = "metadata", source = "series.metadata"),
+    })
+    SeriesFile fromGrpc(IotfsdbServices.CreateSeriesRequest request);
+
+    InsertRequest fromGrpc(IotfsdbServices.InsertDataRequest request);
+
+    @Mappings({
+        @Mapping(target = "series.definition", source = "definition"),
+        @Mapping(target = "series.metadata", source = "metadata"),
+    })
+    IotfsdbServices.GetSeriesResponse toGrpc(SeriesFile request);
+
 
 }

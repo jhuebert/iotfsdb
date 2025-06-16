@@ -40,4 +40,51 @@ public class GrpcSeriesService extends SeriesServiceGrpc.SeriesServiceImplBase {
         responseObserver.onCompleted();
     }
 
+    @CaptureStats(
+        id = "iotfsdb-grpc-series-create",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "grpc"),
+            @CaptureStats.Metadata(key = "type", value = "series"),
+            @CaptureStats.Metadata(key = "operation", value = "create"),
+        }
+    )
+    @Override
+    public void createSeries(IotfsdbServices.CreateSeriesRequest request, StreamObserver<IotfsdbServices.CreateSeriesResponse> responseObserver) {
+        SeriesFile seriesFile = MAPPER.fromGrpc(request);
+        seriesService.createSeries(seriesFile);
+        responseObserver.onNext(IotfsdbServices.CreateSeriesResponse.getDefaultInstance());
+        responseObserver.onCompleted();
+    }
+
+    @CaptureStats(
+        id = "iotfsdb-grpc-series-delete",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "grpc"),
+            @CaptureStats.Metadata(key = "type", value = "series"),
+            @CaptureStats.Metadata(key = "operation", value = "delete"),
+        }
+    )
+    @Override
+    public void deleteSeries(IotfsdbServices.DeleteSeriesRequest request, StreamObserver<IotfsdbServices.DeleteSeriesResponse> responseObserver) {
+        seriesService.deleteSeries(request.getId());
+        responseObserver.onNext(IotfsdbServices.DeleteSeriesResponse.getDefaultInstance());
+        responseObserver.onCompleted();
+    }
+
+    @CaptureStats(
+        id = "iotfsdb-grpc-series-get",
+        metadata = {
+            @CaptureStats.Metadata(key = "group", value = "grpc"),
+            @CaptureStats.Metadata(key = "type", value = "series"),
+            @CaptureStats.Metadata(key = "operation", value = "get"),
+        }
+    )
+    @Override
+    public void getSeries(IotfsdbServices.GetSeriesRequest request, StreamObserver<IotfsdbServices.GetSeriesResponse> responseObserver) {
+        responseObserver.onNext(seriesService.findSeries(request.getId())
+            .map(MAPPER::toGrpc)
+            .orElseGet(IotfsdbServices.GetSeriesResponse::getDefaultInstance));
+        responseObserver.onCompleted();
+    }
+
 }

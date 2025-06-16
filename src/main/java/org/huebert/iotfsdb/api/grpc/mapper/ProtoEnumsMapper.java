@@ -25,7 +25,15 @@ public interface ProtoEnumsMapper {
     @EnumMapping(nameTransformationStrategy = "prefix", configuration = "NUMBER_TYPE_")
     IotfsdbEnums.NumberType toProto(NumberType value);
 
+    @EnumMapping(nameTransformationStrategy = "stripPrefix", configuration = "NUMBER_TYPE_")
+    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
+    NumberType fromProto(IotfsdbEnums.NumberType value);
+
     @EnumMapping(nameTransformationStrategy = "prefix", configuration = "PARTITION_PERIOD_")
     IotfsdbEnums.PartitionPeriod toProto(PartitionPeriod value);
+
+    @EnumMapping(nameTransformationStrategy = "stripPrefix", configuration = "PARTITION_PERIOD_")
+    @ValueMapping(source = MappingConstants.ANY_REMAINING, target = MappingConstants.NULL)
+    PartitionPeriod fromProto(IotfsdbEnums.PartitionPeriod value);
 
 }

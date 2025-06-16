@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -43,7 +44,6 @@ public class StatsCollector {
     private static final ReadWriteLock RW_LOCK = new ReentrantReadWriteLock();
     private static final Map<CaptureStats, Accumulator> STATS_MAP = new ConcurrentHashMap<>();
     private static final Set<CaptureStats> SERIES_MAP = Sets.newConcurrentHashSet();
-    private static final double NS_PER_S = 1e9;
 
     private final IotfsdbProperties properties;
     private final InsertService insertService;
@@ -81,6 +81,8 @@ public class StatsCollector {
         if (localStats.isEmpty()) {
             return;
         }
+
+        log.debug("Saving measurements for {} stats", localStats.size());
 
         localStats.keySet().stream()
             .filter(SERIES_MAP::add)
@@ -155,7 +157,7 @@ public class StatsCollector {
 
         @Getter
         private final CaptureStats annotation;
-        private final AtomicLong count = new AtomicLong();
+        private final AtomicInteger count = new AtomicInteger();
         private final AtomicLong sum = new AtomicLong();
         private final AtomicLong min = new AtomicLong(Long.MAX_VALUE);
         private final AtomicLong max = new AtomicLong(Long.MIN_VALUE);
@@ -171,18 +173,23 @@ public class StatsCollector {
             max.accumulateAndGet(value, Math::max);
         }
 
-        public Number getStat(Stat stat) {
-            long localCount = count.get();
+        public double getStat(Stat stat) {
+            int localCount = count.get();
             if (localCount == 0) {
                 return 0;
             }
             return switch (stat) {
-                case MIN -> min.get() / NS_PER_S;
-                case MAX -> max.get() / NS_PER_S;
-                case MEAN -> (sum.get() / localCount) / NS_PER_S;
+                case MIN -> toSeconds(min);
+                case MAX -> toSeconds(max);
+                case MEAN -> toSeconds(sum) / localCount;
                 case COUNT -> localCount;
             };
         }
+
+        private double toSeconds(AtomicLong value) {
+            return value.get() / 1e9;
+        }
+
     }
 
     @Getter

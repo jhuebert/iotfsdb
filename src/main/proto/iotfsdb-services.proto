@@ -36,7 +36,7 @@ message CreateSeriesRequest {
 }
 
 message DeleteSeriesRequest {
-  Series series = 1;
+  string id = 1;
 }
 
 message ExportDataRequest {
