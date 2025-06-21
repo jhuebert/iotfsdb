@@ -80,10 +80,10 @@ dependencies {
     implementation 'gg.jte:jte:3.2.1'
     implementation 'gg.jte:jte-spring-boot-starter-3:3.2.1'
     implementation("com.google.protobuf:protobuf-java:4.31.1")
-    implementation 'org.mapstruct:mapstruct:1.6.3'
-    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+    implementation 'org.mapstruct:mapstruct:1.6.3'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testImplementation 'org.openjdk.jmh:jmh-core:1.36'
