@@ -2,7 +2,7 @@ package org.huebert.iotfsdb.service;
 
 import com.google.common.collect.Range;
 import org.huebert.iotfsdb.IotfsdbProperties;
-import org.huebert.iotfsdb.schema.FindDataRequest;
+import org.huebert.iotfsdb.api.schema.FindDataRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

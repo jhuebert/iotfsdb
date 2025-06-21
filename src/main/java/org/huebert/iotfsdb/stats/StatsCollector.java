@@ -1,0 +1,207 @@
+package org.huebert.iotfsdb.stats;
+
+import com.google.common.collect.Sets;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.huebert.iotfsdb.IotfsdbProperties;
+import org.huebert.iotfsdb.api.schema.InsertRequest;
+import org.huebert.iotfsdb.api.schema.NumberType;
+import org.huebert.iotfsdb.api.schema.PartitionPeriod;
+import org.huebert.iotfsdb.api.schema.Reducer;
+import org.huebert.iotfsdb.api.schema.SeriesData;
+import org.huebert.iotfsdb.api.schema.SeriesDefinition;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
+import org.huebert.iotfsdb.service.DataService;
+import org.huebert.iotfsdb.service.InsertService;
+import org.huebert.iotfsdb.service.LockUtil;
+import org.huebert.iotfsdb.service.ParallelUtil;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Stream;
+
+@Slf4j
+@Aspect
+@Component
+public class StatsCollector {
+
+    private static final long MEASUREMENT_INTERVAL = 60000L;
+    private static final ReadWriteLock RW_LOCK = new ReentrantReadWriteLock();
+    private static final Map<CaptureStats, Accumulator> STATS_MAP = new ConcurrentHashMap<>();
+    private static final Set<CaptureStats> SERIES_MAP = Sets.newConcurrentHashSet();
+
+    private final IotfsdbProperties properties;
+    private final InsertService insertService;
+    private final DataService dataService;
+
+    public StatsCollector(IotfsdbProperties properties, InsertService insertService, DataService dataService) {
+        this.properties = properties;
+        this.insertService = insertService;
+        this.dataService = dataService;
+    }
+
+    @Around("@annotation(captureAnnotation)")
+    public Object captureExecutionTime(ProceedingJoinPoint joinPoint, CaptureStats captureAnnotation) throws Throwable {
+        if (properties.isReadOnly() || !properties.isStats()) {
+            return joinPoint.proceed();
+        }
+        long startTime = System.nanoTime();
+        Object result = joinPoint.proceed();
+        long duration = System.nanoTime() - startTime;
+        LockUtil.withRead(RW_LOCK, () ->
+            STATS_MAP.computeIfAbsent(captureAnnotation, Accumulator::new).add(duration)
+        );
+        return result;
+    }
+
+    @Scheduled(fixedRate = MEASUREMENT_INTERVAL, timeUnit = TimeUnit.MILLISECONDS)
+    public void calculateMeasurements() {
+
+        Map<CaptureStats, Accumulator> localStats = new HashMap<>();
+        LockUtil.withWrite(RW_LOCK, () -> {
+            localStats.putAll(STATS_MAP);
+            STATS_MAP.clear();
+        });
+
+        if (localStats.isEmpty()) {
+            return;
+        }
+
+        log.debug("Saving measurements for {} stats", localStats.size());
+
+        localStats.keySet().stream()
+            .filter(SERIES_MAP::add)
+            .map(StatsCollector::createSeries)
+            .flatMap(List::stream)
+            .forEach(ns -> dataService.getSeries(ns.getId()).ifPresentOrElse(sf -> {
+                log.debug("Updating existing series: {}", ns.getId());
+                sf.getMetadata().putAll(ns.getMetadata());
+                dataService.saveSeries(sf);
+            }, () -> {
+                log.debug("Creating new series: {}", ns.getId());
+                dataService.saveSeries(ns);
+            }));
+
+        ZonedDateTime now = ZonedDateTime.now();
+        List<InsertRequest> requests = localStats.values().stream()
+            .flatMap(v -> createRequests(now, v).stream())
+            .toList();
+
+        ParallelUtil.forEach(requests, insertService::insert);
+    }
+
+    private static String getSeriesId(CaptureStats annotation, Stat stat) {
+        return annotation.id() + "-" + stat.getKey();
+    }
+
+    private static List<InsertRequest> createRequests(ZonedDateTime time, Accumulator stats) {
+        return Stream.of(Stat.values())
+            .map(stat -> createRequest(time, stats, stat))
+            .toList();
+    }
+
+    private static InsertRequest createRequest(ZonedDateTime time, Accumulator stats, Stat stat) {
+        return InsertRequest.builder()
+            .series(getSeriesId(stats.getAnnotation(), stat))
+            .reducer(Reducer.LAST)
+            .values(List.of(new SeriesData(time, stats.getStat(stat))))
+            .build();
+    }
+
+    private static List<SeriesFile> createSeries(CaptureStats annotation) {
+        return Stream.of(Stat.values())
+            .map(stat -> createSeries(annotation, stat))
+            .toList();
+    }
+
+    private static SeriesFile createSeries(CaptureStats annotation, Stat stat) {
+        Map<String, String> metadata = new HashMap<>(Map.of(
+            "source", "iotfsdb",
+            "stat", stat.getKey(),
+            "unit", stat.getUnit()
+        ));
+        for (CaptureStats.Metadata m : annotation.metadata()) {
+            metadata.put(m.key(), m.value());
+        }
+        return SeriesFile.builder()
+            .definition(createDefinition(annotation, stat))
+            .metadata(metadata)
+            .build();
+    }
+
+    private static SeriesDefinition createDefinition(CaptureStats annotation, Stat stat) {
+        return SeriesDefinition.builder()
+            .id(getSeriesId(annotation, stat))
+            .type(stat.getType())
+            .partition(PartitionPeriod.DAY)
+            .interval(MEASUREMENT_INTERVAL)
+            .build();
+    }
+
+    private static class Accumulator {
+
+        @Getter
+        private final CaptureStats annotation;
+        private final AtomicInteger count = new AtomicInteger();
+        private final AtomicLong sum = new AtomicLong();
+        private final AtomicLong min = new AtomicLong(Long.MAX_VALUE);
+        private final AtomicLong max = new AtomicLong(Long.MIN_VALUE);
+
+        private Accumulator(CaptureStats annotation) {
+            this.annotation = annotation;
+        }
+
+        public void add(long value) {
+            count.incrementAndGet();
+            sum.addAndGet(value);
+            min.accumulateAndGet(value, Math::min);
+            max.accumulateAndGet(value, Math::max);
+        }
+
+        public double getStat(Stat stat) {
+            int localCount = count.get();
+            if (localCount == 0) {
+                return 0;
+            }
+            return switch (stat) {
+                case MIN -> toSeconds(min);
+                case MAX -> toSeconds(max);
+                case MEAN -> toSeconds(sum) / localCount;
+                case COUNT -> localCount;
+            };
+        }
+
+        private double toSeconds(AtomicLong value) {
+            return value.get() / 1e9;
+        }
+
+    }
+
+    @Getter
+    @AllArgsConstructor
+    private enum Stat {
+        MIN("min", "second", NumberType.FLOAT2),
+        MAX("max", "second", NumberType.FLOAT2),
+        MEAN("mean", "second", NumberType.FLOAT2),
+        COUNT("count", "count", NumberType.INTEGER2);
+
+        private final String key;
+        private final String unit;
+        private final NumberType type;
+    }
+}
