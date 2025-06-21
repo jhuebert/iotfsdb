@@ -1,16 +1,23 @@
 syntax = "proto3";
 
-package iotfsdb;
+package iotfsdb.internal;
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
+import "iotfsdb-types.proto";
 
-option java_package = "org.huebert.iotfsdb.api.proto";
+option java_package = "org.huebert.iotfsdb.api.proto.internal";
 
 service PartitionService {
-  rpc GetPartitions(GetPartitionsRequest) returns (GetPartitionsResponse);
   rpc CreatePartition(CreatePartitionRequest) returns (CreatePartitionResponse);
+  rpc GetPartitions(GetPartitionsRequest) returns (GetPartitionsResponse);
   rpc ReadPartition(ReadPartitionRequest) returns (ReadPartitionResponse);
+}
+
+service SeriesService {
+  rpc DeleteSeries(DeleteSeriesRequest) returns (DeleteSeriesResponse);
+  rpc GetSeries(GetSeriesRequest) returns (GetSeriesResponse);
+  rpc SaveSeries(SaveSeriesRequest) returns (SaveSeriesResponse);
 }
 
 message CreatePartitionRequest {
@@ -18,15 +25,31 @@ message CreatePartitionRequest {
   int64 size = 2;
 }
 
+message DeleteSeriesRequest {
+  string id = 1;
+}
+
 message GetPartitionsRequest {
   string id = 1;
+}
+
+message GetSeriesRequest {
+
 }
 
 message ReadPartitionRequest {
   PartitionKey key = 1;
 }
 
+message SaveSeriesRequest {
+  Series series = 1;
+}
+
 message CreatePartitionResponse {
+
+}
+
+message DeleteSeriesResponse {
 
 }
 
@@ -34,8 +57,16 @@ message GetPartitionsResponse {
   repeated PartitionKey partitions = 1;
 }
 
+message GetSeriesResponse {
+  repeated Series series = 1;
+}
+
 message ReadPartitionResponse {
   bytes data = 1;
+}
+
+message SaveSeriesResponse {
+
 }
 
 message PartitionKey {
