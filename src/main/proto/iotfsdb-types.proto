@@ -8,6 +8,11 @@ import "iotfsdb-enums.proto";
 
 option java_package = "org.huebert.iotfsdb.api.proto";
 
+message File {
+  bytes data = 1;
+  google.protobuf.StringValue filename = 2;
+}
+
 message RelativeTime {
   int32 value = 1;
   TimeUnit unit = 2;
@@ -18,8 +23,13 @@ message Series {
   map<string, string> metadata = 2;
 }
 
+message SeriesCriteria {
+  google.protobuf.StringValue id = 1;
+  map<string, string> metadata = 2;
+}
+
 message SeriesData {
-  Series series = 1;
+  string id = 1;
   repeated SeriesValue values = 2;
 }
 
@@ -42,4 +52,9 @@ message Time {
     RelativeTime relative_time = 1;
     google.protobuf.Timestamp timestamp = 2;
   }
+}
+
+message TimeRange {
+  Time from = 1;
+  Time to = 2;
 }
