@@ -6,6 +6,7 @@ import org.huebert.iotfsdb.api.proto.IotfsdbServices;
 import org.huebert.iotfsdb.api.proto.SeriesServiceGrpc;
 import org.huebert.iotfsdb.api.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
+import org.huebert.iotfsdb.service.CloneService;
 import org.huebert.iotfsdb.service.SeriesService;
 import org.huebert.iotfsdb.stats.CaptureStats;
 import org.mapstruct.factory.Mappers;
@@ -20,8 +21,11 @@ public class GrpcSeriesService extends SeriesServiceGrpc.SeriesServiceImplBase {
 
     private final SeriesService seriesService;
 
-    public GrpcSeriesService(SeriesService seriesService) {
+    private final CloneService cloneService;
+
+    public GrpcSeriesService(SeriesService seriesService, CloneService cloneService) {
         this.seriesService = seriesService;
+        this.cloneService = cloneService;
     }
 
     @CaptureStats(group = "grpc", type = "series", operation = "find", javaClass = GrpcSeriesService.class, javaMethod = "findSeries")
@@ -53,7 +57,9 @@ public class GrpcSeriesService extends SeriesServiceGrpc.SeriesServiceImplBase {
     @CaptureStats(group = "grpc", type = "series", operation = "clone", javaClass = GrpcSeriesService.class, javaMethod = "cloneSeries")
     @Override
     public void cloneSeries(IotfsdbServices.CloneSeriesRequest request, StreamObserver<IotfsdbServices.CloneSeriesResponse> responseObserver) {
-        super.cloneSeries(request, responseObserver);
+        cloneService.clone(request.getSourceId(), request.getDestinationId());
+        responseObserver.onNext(IotfsdbServices.CloneSeriesResponse.getDefaultInstance());
+        responseObserver.onCompleted();
     }
 
     @CaptureStats(group = "grpc", type = "series", operation = "update", javaClass = GrpcSeriesService.class, javaMethod = "updateSeries")

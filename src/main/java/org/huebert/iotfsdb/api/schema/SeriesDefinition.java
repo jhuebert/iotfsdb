@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 @Data
-@Builder
+@Builder(toBuilder = true)
 @EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
