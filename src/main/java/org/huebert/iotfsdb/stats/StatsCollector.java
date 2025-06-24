@@ -184,15 +184,15 @@ public class StatsCollector {
                 return 0;
             }
             return switch (stat) {
-                case MIN -> toSeconds(min);
-                case MAX -> toSeconds(max);
-                case MEAN -> toSeconds(sum) / localCount;
+                case MIN -> toMilliseconds(min);
+                case MAX -> toMilliseconds(max);
+                case MEAN -> toMilliseconds(sum) / localCount;
                 case COUNT -> localCount;
             };
         }
 
-        private double toSeconds(AtomicLong value) {
-            return value.get() / 1e9;
+        private double toMilliseconds(AtomicLong value) {
+            return value.get() / 1e6;
         }
 
     }
@@ -200,13 +200,14 @@ public class StatsCollector {
     @Getter
     @AllArgsConstructor
     private enum Stat {
-        MIN("min", "second", NumberType.FLOAT2),
-        MAX("max", "second", NumberType.FLOAT2),
-        MEAN("mean", "second", NumberType.FLOAT2),
+        MIN("min", "millisecond", NumberType.FLOAT4),
+        MAX("max", "millisecond", NumberType.FLOAT4),
+        MEAN("mean", "millisecond", NumberType.FLOAT4),
         COUNT("count", "count", NumberType.INTEGER4);
 
         private final String key;
         private final String unit;
         private final NumberType type;
     }
+
 }
