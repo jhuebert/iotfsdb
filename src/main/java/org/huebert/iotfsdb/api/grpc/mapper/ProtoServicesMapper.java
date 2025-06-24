@@ -27,15 +27,15 @@ import java.util.List;
 public interface ProtoServicesMapper {
 
     @Mappings({
-        @Mapping(target = "id", source = "series"),
-        @Mapping(target = "valuesList", source = "values"),
+        @Mapping(target = "data.id", source = "series"),
+        @Mapping(target = "data.valuesList", source = "values"),
     })
     IotfsdbServices.InsertDataRequest toGrpc(InsertRequest request);
 
     @Mappings({
-        @Mapping(target = "id", source = "pattern"),
-        @Mapping(target = "mutableMetadata", source = "metadata"),
-        @Mapping(target = "metadata", ignore = true),
+        @Mapping(target = "criteria.id", source = "pattern"),
+        @Mapping(target = "criteria.mutableMetadata", source = "metadata"),
+        @Mapping(target = "criteria.metadata", ignore = true),
     })
     IotfsdbServices.FindSeriesRequest toGrpc(FindSeriesRequest request);
 
@@ -45,8 +45,8 @@ public interface ProtoServicesMapper {
 //        @Mapping(target = "nullHandling.nullValue", source = "nullValue"),
         @Mapping(target = "highPrecision", source = "useBigDecimal"),
 //        @Mapping(target = "timeRangePreset", source = "dateTimePreset"),
-        @Mapping(target = "fromTime.timestamp", source = "from"),
-        @Mapping(target = "toTime.timestamp", source = "to"),
+        @Mapping(target = "timeRange.from.timestamp", source = "from"),
+        @Mapping(target = "timeRange.to.timestamp", source = "to"),
     })
     IotfsdbServices.FindDataRequest toGrpc(FindDataRequest request);
 
@@ -68,7 +68,7 @@ public interface ProtoServicesMapper {
         return toGrpc(new SeriesFileWrapper(seriesFiles));
     }
 
-    @Mapping(target = "pattern", source = "id")
+    @Mapping(target = "pattern", source = "criteria.id")
     FindSeriesRequest fromGrpc(IotfsdbServices.FindSeriesRequest request);
 
     FindDataRequest fromGrpc(IotfsdbServices.FindDataRequest request);
@@ -80,12 +80,5 @@ public interface ProtoServicesMapper {
     SeriesFile fromGrpc(IotfsdbServices.CreateSeriesRequest request);
 
     InsertRequest fromGrpc(IotfsdbServices.InsertDataRequest request);
-
-    @Mappings({
-        @Mapping(target = "series.definition", source = "definition"),
-        @Mapping(target = "series.metadata", source = "metadata"),
-    })
-    IotfsdbServices.GetSeriesResponse toGrpc(SeriesFile request);
-
 
 }

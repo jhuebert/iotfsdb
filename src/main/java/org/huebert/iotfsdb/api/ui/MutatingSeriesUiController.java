@@ -7,10 +7,10 @@ import org.huebert.iotfsdb.api.schema.NumberType;
 import org.huebert.iotfsdb.api.schema.PartitionPeriod;
 import org.huebert.iotfsdb.api.schema.SeriesDefinition;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
-import org.huebert.iotfsdb.service.SeriesService;
-import org.huebert.iotfsdb.stats.CaptureStats;
 import org.huebert.iotfsdb.api.ui.service.BasePageService;
 import org.huebert.iotfsdb.api.ui.service.ObjectEncoder;
+import org.huebert.iotfsdb.service.SeriesService;
+import org.huebert.iotfsdb.stats.CaptureStats;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -49,12 +49,9 @@ public class MutatingSeriesUiController {
     }
 
     @CaptureStats(
-        id = "ui-series-delete",
+        group = "ui", type = "series", operation = "delete", javaClass = MutatingSeriesUiController.class, javaMethod = "deleteSeries",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "ui"),
-            @CaptureStats.Metadata(key = "type", value = "series"),
-            @CaptureStats.Metadata(key = "operation", value = "delete"),
-            @CaptureStats.Metadata(key = "method", value = "delete"),
+            @CaptureStats.Metadata(key = "restMethod", value = "delete"),
         }
     )
     @DeleteMapping("{id}")
@@ -64,12 +61,9 @@ public class MutatingSeriesUiController {
     }
 
     @CaptureStats(
-        id = "ui-series-metadata-delete",
+        group = "ui", type = "metadata", operation = "delete", javaClass = MutatingSeriesUiController.class, javaMethod = "deleteMetadata",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "ui"),
-            @CaptureStats.Metadata(key = "type", value = "metadata"),
-            @CaptureStats.Metadata(key = "operation", value = "delete"),
-            @CaptureStats.Metadata(key = "method", value = "delete"),
+            @CaptureStats.Metadata(key = "restMethod", value = "delete"),
         }
     )
     @DeleteMapping("{id}/metadata/{key}")
@@ -81,12 +75,9 @@ public class MutatingSeriesUiController {
     }
 
     @CaptureStats(
-        id = "ui-series-metadata-add",
+        group = "ui", type = "metadata", operation = "add", javaClass = MutatingSeriesUiController.class, javaMethod = "addMetadata",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "ui"),
-            @CaptureStats.Metadata(key = "type", value = "metadata"),
-            @CaptureStats.Metadata(key = "operation", value = "add"),
-            @CaptureStats.Metadata(key = "method", value = "post"),
+            @CaptureStats.Metadata(key = "restMethod", value = "post"),
         }
     )
     @PostMapping("{id}/metadata")
@@ -95,12 +86,9 @@ public class MutatingSeriesUiController {
     }
 
     @CaptureStats(
-        id = "ui-series-metadata-update",
+        group = "ui", type = "metadata", operation = "update", javaClass = MutatingSeriesUiController.class, javaMethod = "updateMetadata",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "ui"),
-            @CaptureStats.Metadata(key = "type", value = "metadata"),
-            @CaptureStats.Metadata(key = "operation", value = "update"),
-            @CaptureStats.Metadata(key = "method", value = "post"),
+            @CaptureStats.Metadata(key = "restMethod", value = "post"),
         }
     )
     @PostMapping("{id}/metadata/{key}")
@@ -120,12 +108,9 @@ public class MutatingSeriesUiController {
     }
 
     @CaptureStats(
-        id = "ui-series-create-form",
+        group = "ui", type = "series", operation = "form", javaClass = MutatingSeriesUiController.class, javaMethod = "getCreateSeriesForm",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "ui"),
-            @CaptureStats.Metadata(key = "type", value = "series"),
-            @CaptureStats.Metadata(key = "operation", value = "create-form"),
-            @CaptureStats.Metadata(key = "method", value = "get"),
+            @CaptureStats.Metadata(key = "restMethod", value = "get"),
         }
     )
     @GetMapping("create")
@@ -134,12 +119,9 @@ public class MutatingSeriesUiController {
     }
 
     @CaptureStats(
-        id = "ui-series-create",
+        group = "ui", type = "series", operation = "create", javaClass = MutatingSeriesUiController.class, javaMethod = "createSeries",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "ui"),
-            @CaptureStats.Metadata(key = "type", value = "series"),
-            @CaptureStats.Metadata(key = "operation", value = "create"),
-            @CaptureStats.Metadata(key = "method", value = "post"),
+            @CaptureStats.Metadata(key = "restMethod", value = "post"),
         }
     )
     @PostMapping

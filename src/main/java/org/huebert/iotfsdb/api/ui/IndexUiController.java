@@ -13,12 +13,9 @@ import org.springframework.web.servlet.view.RedirectView;
 public class IndexUiController {
 
     @CaptureStats(
-        id = "ui-index",
+        group = "ui", type = "root", operation = "index", javaClass = IndexUiController.class, javaMethod = "getIndex",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "ui"),
-            @CaptureStats.Metadata(key = "type", value = "ui"),
-            @CaptureStats.Metadata(key = "operation", value = "index"),
-            @CaptureStats.Metadata(key = "method", value = "get"),
+            @CaptureStats.Metadata(key = "restMethod", value = "get"),
         }
     )
     @GetMapping

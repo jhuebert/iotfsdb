@@ -2,13 +2,13 @@ package org.huebert.iotfsdb.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.constraints.NotNull;
-import org.huebert.iotfsdb.persistence.FilePersistenceAdapter;
-import org.huebert.iotfsdb.persistence.PartitionByteBuffer;
-import org.huebert.iotfsdb.persistence.PersistenceAdapter;
 import org.huebert.iotfsdb.api.schema.InsertRequest;
 import org.huebert.iotfsdb.api.schema.Reducer;
 import org.huebert.iotfsdb.api.schema.SeriesData;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
+import org.huebert.iotfsdb.persistence.FilePersistenceAdapter;
+import org.huebert.iotfsdb.persistence.PartitionByteBuffer;
+import org.huebert.iotfsdb.persistence.PersistenceAdapter;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 

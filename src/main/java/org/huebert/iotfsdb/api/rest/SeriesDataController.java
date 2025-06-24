@@ -42,12 +42,10 @@ public class SeriesDataController {
     }
 
     @CaptureStats(
-        id = "api-data-find",
+        group = "rest-v2", type = "data", operation = "find", javaClass = SeriesDataController.class, javaMethod = "findData",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "api"),
-            @CaptureStats.Metadata(key = "type", value = "data"),
-            @CaptureStats.Metadata(key = "operation", value = "find"),
-            @CaptureStats.Metadata(key = "method", value = "post"),
+            @CaptureStats.Metadata(key = "restMethod", value = "post"),
+            @CaptureStats.Metadata(key = "restPath", value = "/v2/data/find"),
         }
     )
     @Operation(tags = "Data", summary = "Finds data matching the input request")
@@ -57,12 +55,10 @@ public class SeriesDataController {
     }
 
     @CaptureStats(
-        id = "api-data-export",
+        group = "rest-v2", type = "data", operation = "export", javaClass = SeriesDataController.class, javaMethod = "exportData",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "api"),
-            @CaptureStats.Metadata(key = "type", value = "data"),
-            @CaptureStats.Metadata(key = "operation", value = "export"),
-            @CaptureStats.Metadata(key = "method", value = "post"),
+            @CaptureStats.Metadata(key = "restMethod", value = "post"),
+            @CaptureStats.Metadata(key = "restPath", value = "/v2/data/export"),
         }
     )
     @Operation(tags = "Data", summary = "Exports a database archive of matching series")

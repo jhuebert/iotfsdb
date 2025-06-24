@@ -106,7 +106,7 @@ public class StatsCollector {
     }
 
     private static String getSeriesId(CaptureStats annotation, Stat stat) {
-        return annotation.id() + "-" + stat.getKey();
+        return String.join("-", "iotfsdb", annotation.group(), annotation.type(), annotation.operation());
     }
 
     private static List<InsertRequest> createRequests(ZonedDateTime time, Accumulator stats) {
@@ -132,6 +132,11 @@ public class StatsCollector {
     private static SeriesFile createSeries(CaptureStats annotation, Stat stat) {
         Map<String, String> metadata = new HashMap<>(Map.of(
             "source", "iotfsdb",
+            "group", annotation.group(),
+            "type", annotation.type(),
+            "operation", annotation.operation(),
+            "javaClass", annotation.javaClass().getName(),
+            "javaMethod", annotation.javaMethod(),
             "stat", stat.getKey(),
             "unit", stat.getUnit()
         ));

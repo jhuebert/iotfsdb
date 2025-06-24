@@ -1,7 +1,5 @@
 package org.huebert.iotfsdb.api.rest;
 
-import static org.huebert.iotfsdb.api.schema.SeriesDefinition.ID_PATTERN;
-
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -24,6 +22,8 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.Map;
 
+import static org.huebert.iotfsdb.api.schema.SeriesDefinition.ID_PATTERN;
+
 @Validated
 @Slf4j
 @RestController
@@ -37,12 +37,10 @@ public class SeriesController {
     }
 
     @CaptureStats(
-        id = "api-series-find",
+        group = "rest-v2", type = "series", operation = "find", javaClass = SeriesController.class, javaMethod = "findSeries",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "api"),
-            @CaptureStats.Metadata(key = "type", value = "series"),
-            @CaptureStats.Metadata(key = "operation", value = "find"),
-            @CaptureStats.Metadata(key = "method", value = "post"),
+            @CaptureStats.Metadata(key = "restMethod", value = "post"),
+            @CaptureStats.Metadata(key = "restPath", value = "/v2/series/find"),
         }
     )
     @Operation(tags = "Series", summary = "Finds series that match search parameters")
@@ -52,12 +50,10 @@ public class SeriesController {
     }
 
     @CaptureStats(
-        id = "api-series-get",
+        group = "rest-v2", type = "series", operation = "get", javaClass = SeriesController.class, javaMethod = "getSeries",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "api"),
-            @CaptureStats.Metadata(key = "type", value = "series"),
-            @CaptureStats.Metadata(key = "operation", value = "get"),
-            @CaptureStats.Metadata(key = "method", value = "get"),
+            @CaptureStats.Metadata(key = "restMethod", value = "get"),
+            @CaptureStats.Metadata(key = "restPath", value = "/v2/series/{id}"),
         }
     )
     @Operation(tags = "Series", summary = "Get series details")
@@ -67,12 +63,10 @@ public class SeriesController {
     }
 
     @CaptureStats(
-        id = "api-series-metadata-get",
+        group = "rest-v2", type = "metadata", operation = "get", javaClass = SeriesController.class, javaMethod = "getMetadata",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "api"),
-            @CaptureStats.Metadata(key = "type", value = "metadata"),
-            @CaptureStats.Metadata(key = "operation", value = "get"),
-            @CaptureStats.Metadata(key = "method", value = "get"),
+            @CaptureStats.Metadata(key = "restMethod", value = "get"),
+            @CaptureStats.Metadata(key = "restPath", value = "/v2/series/{id}/metadata"),
         }
     )
     @Operation(tags = "Series", summary = "Retrieves the metadata for a series")

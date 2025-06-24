@@ -14,15 +14,15 @@ public final class Float3 extends Number {
 
     public static final int BYTES = 3;
 
-    public static final Float3 NaN = new Float3(new byte[] {0x7F, (byte) 0xFF, (byte) 0xFF});
+    public static final Float3 NaN = new Float3(new byte[]{0x7F, (byte) 0xFF, (byte) 0xFF});
 
-    public static final Float3 ZERO = new Float3(new byte[] {0, 0, 0});
+    public static final Float3 ZERO = new Float3(new byte[]{0, 0, 0});
 
-    public static final Float3 NEGATIVE_ZERO = new Float3(new byte[] {(byte) 0x80, 0, 0});
+    public static final Float3 NEGATIVE_ZERO = new Float3(new byte[]{(byte) 0x80, 0, 0});
 
-    public static final Float3 POSITIVE_INFINITY = new Float3(new byte[] {0x7F, 0, 0});
+    public static final Float3 POSITIVE_INFINITY = new Float3(new byte[]{0x7F, 0, 0});
 
-    public static final Float3 NEGATIVE_INFINITY = new Float3(new byte[] {(byte) 0xFF, 0, 0});
+    public static final Float3 NEGATIVE_INFINITY = new Float3(new byte[]{(byte) 0xFF, 0, 0});
 
     private static final int DOUBLE_BIAS = 1023;
 
@@ -74,7 +74,7 @@ public final class Float3 extends Number {
 
         int mantissa = bits & 0x7FFFFF;
 
-        return new Float3(new byte[] {
+        return new Float3(new byte[]{
             (byte) (sign | exponent),
             (byte) (mantissa >>> 15),
             (byte) (mantissa >>> 7)
@@ -109,7 +109,7 @@ public final class Float3 extends Number {
 
         long mantissa = bits & 0xFFFFFFFFFFFFFL;
 
-        return new Float3(new byte[] {
+        return new Float3(new byte[]{
             (byte) (sign | exponent),
             (byte) (mantissa >>> 44),
             (byte) (mantissa >>> 36)

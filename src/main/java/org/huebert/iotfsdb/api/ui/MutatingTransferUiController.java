@@ -1,7 +1,5 @@
 package org.huebert.iotfsdb.api.ui;
 
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +19,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+
 @Slf4j
 @Controller
 @RequestMapping("/ui/transfer")
@@ -34,12 +34,9 @@ public class MutatingTransferUiController {
     }
 
     @CaptureStats(
-        id = "ui-transfer-import",
+        group = "ui", type = "transfer", operation = "import", javaClass = MutatingTransferUiController.class, javaMethod = "importData",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "ui"),
-            @CaptureStats.Metadata(key = "type", value = "transfer"),
-            @CaptureStats.Metadata(key = "operation", value = "import"),
-            @CaptureStats.Metadata(key = "method", value = "post"),
+            @CaptureStats.Metadata(key = "restMethod", value = "post"),
         }
     )
     @PostMapping("import")

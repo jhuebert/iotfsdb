@@ -1,7 +1,5 @@
 package org.huebert.iotfsdb.api.rest;
 
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +25,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+
 @Validated
 @Slf4j
 @RestController
@@ -44,12 +44,10 @@ public class MutatingSeriesDataController {
     }
 
     @CaptureStats(
-        id = "api-data-insert",
+        group = "rest-v2", type = "data", operation = "insert", javaClass = MutatingSeriesDataController.class, javaMethod = "updateMetadata",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "api"),
-            @CaptureStats.Metadata(key = "type", value = "data"),
-            @CaptureStats.Metadata(key = "operation", value = "insert"),
-            @CaptureStats.Metadata(key = "method", value = "post"),
+            @CaptureStats.Metadata(key = "restMethod", value = "post"),
+            @CaptureStats.Metadata(key = "restPath", value = "/v2/data"),
         }
     )
     @Operation(tags = "Data", summary = "Bulk insert of data")
@@ -60,12 +58,10 @@ public class MutatingSeriesDataController {
     }
 
     @CaptureStats(
-        id = "api-data-import",
+        group = "rest-v2", type = "data", operation = "import", javaClass = MutatingSeriesDataController.class, javaMethod = "importData",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "api"),
-            @CaptureStats.Metadata(key = "type", value = "data"),
-            @CaptureStats.Metadata(key = "operation", value = "import"),
-            @CaptureStats.Metadata(key = "method", value = "post"),
+            @CaptureStats.Metadata(key = "restMethod", value = "post"),
+            @CaptureStats.Metadata(key = "restPath", value = "/v2/data/import"),
         }
     )
     @Operation(tags = "Data", summary = "Imports a database archive")

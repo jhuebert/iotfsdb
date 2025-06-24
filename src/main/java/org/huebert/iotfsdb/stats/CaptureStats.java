@@ -16,11 +16,29 @@ import java.lang.annotation.Target;
 public @interface CaptureStats {
 
     /**
-     * A unique identifier for the statistics being captured.
-     *
-     * @return the ID as a String
+     * Returns the group name. The group name represents an API grouping (REST, GRPC, etc.)
      */
-    String id();
+    String group();
+
+    /**
+     * Returns the type of data being operated on.
+     */
+    String type();
+
+    /**
+     * Returns the operation name.
+     */
+    String operation();
+
+    /**
+     * Returns the associated Java class.
+     */
+    Class<?> javaClass();
+
+    /**
+     * Returns the associated Java method.
+     */
+    String javaMethod();
 
     /**
      * An array of metadata key-value pairs associated with the statistics.

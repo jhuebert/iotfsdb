@@ -85,12 +85,10 @@ public class ChatController {
     }
 
     @CaptureStats(
-        id = "api-ai-chat",
+        group = "rest-v2", type = "ai", operation = "chat", javaClass = ChatController.class, javaMethod = "chat",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "api"),
-            @CaptureStats.Metadata(key = "type", value = "ai"),
-            @CaptureStats.Metadata(key = "operation", value = "chat"),
-            @CaptureStats.Metadata(key = "method", value = "post"),
+            @CaptureStats.Metadata(key = "restMethod", value = "post"),
+            @CaptureStats.Metadata(key = "restPath", value = "/v2/chat"),
         }
     )
     @PostMapping("/v2/chat")

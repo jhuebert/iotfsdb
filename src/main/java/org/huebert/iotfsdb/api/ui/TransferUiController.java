@@ -1,9 +1,9 @@
 package org.huebert.iotfsdb.api.ui;
 
 import lombok.extern.slf4j.Slf4j;
-import org.huebert.iotfsdb.stats.CaptureStats;
 import org.huebert.iotfsdb.api.ui.service.BasePageService;
 import org.huebert.iotfsdb.api.ui.service.ExportUiService;
+import org.huebert.iotfsdb.stats.CaptureStats;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -28,12 +28,9 @@ public class TransferUiController {
     }
 
     @CaptureStats(
-        id = "ui-transfer-index",
+        group = "ui", type = "transfer", operation = "index", javaClass = TransferUiController.class, javaMethod = "getIndex",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "ui"),
-            @CaptureStats.Metadata(key = "type", value = "transfer"),
-            @CaptureStats.Metadata(key = "operation", value = "index"),
-            @CaptureStats.Metadata(key = "method", value = "get"),
+            @CaptureStats.Metadata(key = "restMethod", value = "get"),
         }
     )
     @GetMapping
@@ -43,12 +40,9 @@ public class TransferUiController {
     }
 
     @CaptureStats(
-        id = "ui-transfer-export",
+        group = "ui", type = "transfer", operation = "export", javaClass = TransferUiController.class, javaMethod = "exportData",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "ui"),
-            @CaptureStats.Metadata(key = "type", value = "transfer"),
-            @CaptureStats.Metadata(key = "operation", value = "export"),
-            @CaptureStats.Metadata(key = "method", value = "get"),
+            @CaptureStats.Metadata(key = "restMethod", value = "get"),
         }
     )
     @GetMapping("export")

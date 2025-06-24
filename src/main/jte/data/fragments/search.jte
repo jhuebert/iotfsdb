@@ -78,6 +78,7 @@
                     data-bs-target="#advancedModal">
                 <i class="bi bi-gear"></i>
             </button>
+            <!-- TODO Add left and right and zoom in and zoom out buttons for for navigating time -->
             <div class="modal fade" id="advancedModal" tabindex="-1"
                  aria-labelledby="advancedModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg">

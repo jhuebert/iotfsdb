@@ -21,7 +21,22 @@ public class IotfsdbProperties {
 
     private String partitionCache = "expireAfterAccess=5m,maximumSize=10000,softValues";
 
-    private AiProperties ai;
+    private ApiProperties api = new ApiProperties();
+
+    @Data
+    public static class ApiProperties {
+
+        private boolean rest = true;
+
+        private boolean ui = false;
+
+        private boolean grpc = false;
+
+        private boolean internalGrpc = false;
+
+        private AiProperties ai = new AiProperties();
+
+    }
 
     @Data
     public static class AiProperties {

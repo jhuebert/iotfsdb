@@ -21,7 +21,7 @@ public class McpConfiguration {
 
     @Bean
     public List<ToolCallback> toolCallbacks(McpTools mcpTools) {
-        if (!iotfsdbProperties.getAi().isMcp()) {
+        if (!iotfsdbProperties.getApi().getAi().isMcp()) {
             log.info("MCP tools are disabled");
             return List.of();
         }

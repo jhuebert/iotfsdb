@@ -7,13 +7,13 @@ import org.huebert.iotfsdb.api.schema.FindDataRequest;
 import org.huebert.iotfsdb.api.schema.FindDataResponse;
 import org.huebert.iotfsdb.api.schema.Reducer;
 import org.huebert.iotfsdb.api.schema.SeriesData;
-import org.huebert.iotfsdb.service.QueryService;
-import org.huebert.iotfsdb.service.TimeConverter;
-import org.huebert.iotfsdb.stats.CaptureStats;
 import org.huebert.iotfsdb.api.ui.service.BasePageService;
 import org.huebert.iotfsdb.api.ui.service.ObjectEncoder;
 import org.huebert.iotfsdb.api.ui.service.PlotData;
 import org.huebert.iotfsdb.api.ui.service.SearchParser;
+import org.huebert.iotfsdb.service.QueryService;
+import org.huebert.iotfsdb.service.TimeConverter;
+import org.huebert.iotfsdb.stats.CaptureStats;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -48,12 +48,9 @@ public class DataUiController {
     }
 
     @CaptureStats(
-        id = "ui-data-index",
+        group = "ui", type = "data", operation = "index", javaClass = DataUiController.class, javaMethod = "getIndex",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "ui"),
-            @CaptureStats.Metadata(key = "type", value = "data"),
-            @CaptureStats.Metadata(key = "operation", value = "index"),
-            @CaptureStats.Metadata(key = "method", value = "get"),
+            @CaptureStats.Metadata(key = "restMethod", value = "get"),
         }
     )
     @GetMapping
@@ -84,12 +81,9 @@ public class DataUiController {
     }
 
     @CaptureStats(
-        id = "ui-data-search",
+        group = "ui", type = "data", operation = "search", javaClass = DataUiController.class, javaMethod = "searchData",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "ui"),
-            @CaptureStats.Metadata(key = "type", value = "data"),
-            @CaptureStats.Metadata(key = "operation", value = "search"),
-            @CaptureStats.Metadata(key = "method", value = "post"),
+            @CaptureStats.Metadata(key = "restMethod", value = "post"),
         }
     )
     @PostMapping("search")

@@ -24,14 +24,7 @@ public class GrpcSeriesService extends SeriesServiceGrpc.SeriesServiceImplBase {
         this.seriesService = seriesService;
     }
 
-    @CaptureStats(
-        id = "iotfsdb-grpc-series-find",
-        metadata = {
-            @CaptureStats.Metadata(key = "group", value = "grpc"),
-            @CaptureStats.Metadata(key = "type", value = "series"),
-            @CaptureStats.Metadata(key = "operation", value = "find"),
-        }
-    )
+    @CaptureStats(group = "grpc", type = "series", operation = "find", javaClass = GrpcSeriesService.class, javaMethod = "findSeries")
     @Override
     public void findSeries(IotfsdbServices.FindSeriesRequest request, StreamObserver<IotfsdbServices.FindSeriesResponse> responseObserver) {
         FindSeriesRequest serviceRequest = MAPPER.fromGrpc(request);
@@ -40,14 +33,7 @@ public class GrpcSeriesService extends SeriesServiceGrpc.SeriesServiceImplBase {
         responseObserver.onCompleted();
     }
 
-    @CaptureStats(
-        id = "iotfsdb-grpc-series-create",
-        metadata = {
-            @CaptureStats.Metadata(key = "group", value = "grpc"),
-            @CaptureStats.Metadata(key = "type", value = "series"),
-            @CaptureStats.Metadata(key = "operation", value = "create"),
-        }
-    )
+    @CaptureStats(group = "grpc", type = "series", operation = "create", javaClass = GrpcSeriesService.class, javaMethod = "createSeries")
     @Override
     public void createSeries(IotfsdbServices.CreateSeriesRequest request, StreamObserver<IotfsdbServices.CreateSeriesResponse> responseObserver) {
         SeriesFile seriesFile = MAPPER.fromGrpc(request);
@@ -56,14 +42,7 @@ public class GrpcSeriesService extends SeriesServiceGrpc.SeriesServiceImplBase {
         responseObserver.onCompleted();
     }
 
-    @CaptureStats(
-        id = "iotfsdb-grpc-series-delete",
-        metadata = {
-            @CaptureStats.Metadata(key = "group", value = "grpc"),
-            @CaptureStats.Metadata(key = "type", value = "series"),
-            @CaptureStats.Metadata(key = "operation", value = "delete"),
-        }
-    )
+    @CaptureStats(group = "grpc", type = "series", operation = "delete", javaClass = GrpcSeriesService.class, javaMethod = "deleteSeries")
     @Override
     public void deleteSeries(IotfsdbServices.DeleteSeriesRequest request, StreamObserver<IotfsdbServices.DeleteSeriesResponse> responseObserver) {
         seriesService.deleteSeries(request.getId());
@@ -71,20 +50,15 @@ public class GrpcSeriesService extends SeriesServiceGrpc.SeriesServiceImplBase {
         responseObserver.onCompleted();
     }
 
-    @CaptureStats(
-        id = "iotfsdb-grpc-series-get",
-        metadata = {
-            @CaptureStats.Metadata(key = "group", value = "grpc"),
-            @CaptureStats.Metadata(key = "type", value = "series"),
-            @CaptureStats.Metadata(key = "operation", value = "get"),
-        }
-    )
+    @CaptureStats(group = "grpc", type = "series", operation = "clone", javaClass = GrpcSeriesService.class, javaMethod = "cloneSeries")
     @Override
-    public void getSeries(IotfsdbServices.GetSeriesRequest request, StreamObserver<IotfsdbServices.GetSeriesResponse> responseObserver) {
-        responseObserver.onNext(seriesService.findSeries(request.getId())
-            .map(MAPPER::toGrpc)
-            .orElseGet(IotfsdbServices.GetSeriesResponse::getDefaultInstance));
-        responseObserver.onCompleted();
+    public void cloneSeries(IotfsdbServices.CloneSeriesRequest request, StreamObserver<IotfsdbServices.CloneSeriesResponse> responseObserver) {
+        super.cloneSeries(request, responseObserver);
     }
 
+    @CaptureStats(group = "grpc", type = "series", operation = "update", javaClass = GrpcSeriesService.class, javaMethod = "updateSeries")
+    @Override
+    public void updateSeries(IotfsdbServices.UpdateSeriesRequest request, StreamObserver<IotfsdbServices.UpdateSeriesResponse> responseObserver) {
+        super.updateSeries(request, responseObserver);
+    }
 }

@@ -41,12 +41,9 @@ public class McpTools {
     }
 
     @CaptureStats(
-        id = "mcp-series-search",
+        group = "mcp", type = "series", operation = "search", javaClass = McpTools.class, javaMethod = "searchSeries",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "mcp"),
-            @CaptureStats.Metadata(key = "type", value = "series"),
-            @CaptureStats.Metadata(key = "operation", value = "search"),
-            @CaptureStats.Metadata(key = "method", value = "mcp"),
+            @CaptureStats.Metadata(key = "toolName", value = "find-time-series"),
         }
     )
     @Tool(
@@ -88,12 +85,9 @@ public class McpTools {
     }
 
     @CaptureStats(
-        id = "mcp-data-search",
+        group = "mcp", type = "data", operation = "search", javaClass = McpTools.class, javaMethod = "searchData",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "mcp"),
-            @CaptureStats.Metadata(key = "type", value = "data"),
-            @CaptureStats.Metadata(key = "operation", value = "search"),
-            @CaptureStats.Metadata(key = "method", value = "mcp"),
+            @CaptureStats.Metadata(key = "toolName", value = "fetch-time-series-data"),
         }
     )
     @Tool(
@@ -166,12 +160,9 @@ public class McpTools {
     }
 
     @CaptureStats(
-        id = "mcp-current-time-get",
+        group = "mcp", type = "time", operation = "get", javaClass = McpTools.class, javaMethod = "getCurrentDateTime",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "mcp"),
-            @CaptureStats.Metadata(key = "type", value = "time"),
-            @CaptureStats.Metadata(key = "operation", value = "get"),
-            @CaptureStats.Metadata(key = "method", value = "mcp"),
+            @CaptureStats.Metadata(key = "toolName", value = "get-current-time"),
         }
     )
     @Tool(

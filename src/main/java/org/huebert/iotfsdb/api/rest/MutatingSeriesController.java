@@ -1,8 +1,5 @@
 package org.huebert.iotfsdb.api.rest;
 
-import static org.huebert.iotfsdb.api.schema.SeriesDefinition.ID_PATTERN;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
@@ -23,6 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
+import static org.huebert.iotfsdb.api.schema.SeriesDefinition.ID_PATTERN;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+
 @Validated
 @Slf4j
 @RestController
@@ -37,12 +37,10 @@ public class MutatingSeriesController {
     }
 
     @CaptureStats(
-        id = "api-series-post",
+        group = "rest-v2", type = "series", operation = "create", javaClass = SeriesDataController.class, javaMethod = "createSeries",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "api"),
-            @CaptureStats.Metadata(key = "type", value = "series"),
-            @CaptureStats.Metadata(key = "operation", value = "create"),
-            @CaptureStats.Metadata(key = "method", value = "post"),
+            @CaptureStats.Metadata(key = "restMethod", value = "post"),
+            @CaptureStats.Metadata(key = "restPath", value = "/v2/series"),
         }
     )
     @Operation(tags = "Series", summary = "Create new series")
@@ -53,12 +51,10 @@ public class MutatingSeriesController {
     }
 
     @CaptureStats(
-        id = "api-series-delete",
+        group = "rest-v2", type = "series", operation = "delete", javaClass = SeriesDataController.class, javaMethod = "deleteSeries",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "api"),
-            @CaptureStats.Metadata(key = "type", value = "series"),
-            @CaptureStats.Metadata(key = "operation", value = "delete"),
-            @CaptureStats.Metadata(key = "method", value = "delete"),
+            @CaptureStats.Metadata(key = "restMethod", value = "delete"),
+            @CaptureStats.Metadata(key = "restPath", value = "/v2/series/{id}"),
         }
     )
     @Operation(tags = "Series", summary = "Delete a series")
@@ -69,12 +65,10 @@ public class MutatingSeriesController {
     }
 
     @CaptureStats(
-        id = "api-series-metadata-update",
+        group = "rest-v2", type = "metadata", operation = "update", javaClass = SeriesDataController.class, javaMethod = "updateMetadata",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "api"),
-            @CaptureStats.Metadata(key = "type", value = "metadata"),
-            @CaptureStats.Metadata(key = "operation", value = "update"),
-            @CaptureStats.Metadata(key = "method", value = "put"),
+            @CaptureStats.Metadata(key = "restMethod", value = "put"),
+            @CaptureStats.Metadata(key = "restPath", value = "/v2/series/{id}/metadata"),
         }
     )
     @Operation(tags = "Series", summary = "Updates metadata for a series")

@@ -4,12 +4,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.api.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
-import org.huebert.iotfsdb.service.SeriesService;
-import org.huebert.iotfsdb.stats.CaptureStats;
 import org.huebert.iotfsdb.api.ui.service.BasePageService;
 import org.huebert.iotfsdb.api.ui.service.ExportUiService;
 import org.huebert.iotfsdb.api.ui.service.ObjectEncoder;
 import org.huebert.iotfsdb.api.ui.service.SearchParser;
+import org.huebert.iotfsdb.service.SeriesService;
+import org.huebert.iotfsdb.stats.CaptureStats;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -46,12 +46,9 @@ public class SeriesUiController {
     }
 
     @CaptureStats(
-        id = "ui-series-index",
+        group = "ui", type = "series", operation = "index", javaClass = SeriesUiController.class, javaMethod = "getIndex",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "ui"),
-            @CaptureStats.Metadata(key = "type", value = "series"),
-            @CaptureStats.Metadata(key = "operation", value = "index"),
-            @CaptureStats.Metadata(key = "method", value = "get"),
+            @CaptureStats.Metadata(key = "restMethod", value = "get"),
         }
     )
     @GetMapping
@@ -72,12 +69,9 @@ public class SeriesUiController {
     }
 
     @CaptureStats(
-        id = "ui-series-search",
+        group = "ui", type = "series", operation = "find", javaClass = SeriesUiController.class, javaMethod = "search",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "ui"),
-            @CaptureStats.Metadata(key = "type", value = "series"),
-            @CaptureStats.Metadata(key = "operation", value = "search"),
-            @CaptureStats.Metadata(key = "method", value = "post"),
+            @CaptureStats.Metadata(key = "restMethod", value = "post"),
         }
     )
     @PostMapping("search")
@@ -94,12 +88,9 @@ public class SeriesUiController {
     }
 
     @CaptureStats(
-        id = "ui-series-export",
+        group = "ui", type = "series", operation = "export", javaClass = SeriesUiController.class, javaMethod = "exportSeries",
         metadata = {
-            @CaptureStats.Metadata(key = "group", value = "ui"),
-            @CaptureStats.Metadata(key = "type", value = "series"),
-            @CaptureStats.Metadata(key = "operation", value = "export"),
-            @CaptureStats.Metadata(key = "method", value = "get"),
+            @CaptureStats.Metadata(key = "restMethod", value = "get"),
         }
     )
     @GetMapping("{id}/export")
