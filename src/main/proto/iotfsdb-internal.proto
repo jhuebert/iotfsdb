@@ -30,7 +30,7 @@ message DeleteSeriesRequest {
 }
 
 message GetPartitionsRequest {
-  string id = 1;
+  Series series = 1;
 }
 
 message GetSeriesRequest {

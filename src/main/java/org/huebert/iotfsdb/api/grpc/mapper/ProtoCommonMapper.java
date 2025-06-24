@@ -2,7 +2,6 @@ package org.huebert.iotfsdb.api.grpc.mapper;
 
 import com.google.protobuf.DoubleValue;
 import com.google.protobuf.Int32Value;
-import com.google.protobuf.Int64Value;
 import com.google.protobuf.StringValue;
 import com.google.protobuf.Timestamp;
 import org.mapstruct.Mapper;
@@ -37,10 +36,6 @@ public interface ProtoCommonMapper {
         return pattern.pattern();
     }
 
-    default Pattern toPattern(String pattern) {
-        return Pattern.compile(pattern);
-    }
-
     default Pattern toPattern(StringValue pattern) {
         return Pattern.compile(pattern.getValue());
     }
@@ -55,10 +50,6 @@ public interface ProtoCommonMapper {
 
     default Integer toInteger(Int32Value value) {
         return value != null ? value.getValue() : null;
-    }
-
-    default Int64Value toInt64Value(Long value) {
-        return value != null ? Int64Value.of(value) : null;
     }
 
     default Double toDouble(DoubleValue value) {

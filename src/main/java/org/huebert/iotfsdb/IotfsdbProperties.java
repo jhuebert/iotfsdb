@@ -26,6 +26,7 @@ public class IotfsdbProperties {
     @Data
     public static class ApiProperties {
 
+        //TODO Need to use these properties in code
         private boolean rest = true;
 
         private boolean ui = false;
