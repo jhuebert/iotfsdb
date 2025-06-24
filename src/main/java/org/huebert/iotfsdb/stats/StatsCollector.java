@@ -203,7 +203,7 @@ public class StatsCollector {
         MIN("min", "second", NumberType.FLOAT2),
         MAX("max", "second", NumberType.FLOAT2),
         MEAN("mean", "second", NumberType.FLOAT2),
-        COUNT("count", "count", NumberType.INTEGER2);
+        COUNT("count", "count", NumberType.INTEGER4);
 
         private final String key;
         private final String unit;
