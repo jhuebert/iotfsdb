@@ -2,8 +2,6 @@ syntax = "proto3";
 
 package iotfsdb.internal;
 
-import "google/protobuf/timestamp.proto";
-import "google/protobuf/wrappers.proto";
 import "iotfsdb-types.proto";
 
 option java_package = "org.huebert.iotfsdb.api.proto.internal";

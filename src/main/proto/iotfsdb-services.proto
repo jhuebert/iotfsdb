@@ -2,7 +2,6 @@ syntax = "proto3";
 
 package iotfsdb;
 
-import "google/protobuf/timestamp.proto";
 import "google/protobuf/wrappers.proto";
 import "iotfsdb-enums.proto";
 import "iotfsdb-types.proto";
