@@ -2,6 +2,7 @@ package org.huebert.iotfsdb.api.grpc.service;
 
 import io.grpc.stub.StreamObserver;
 import org.huebert.iotfsdb.api.grpc.mapper.ProtoServicesMapper;
+import org.huebert.iotfsdb.api.grpc.mapper.ProtoTypesMapper;
 import org.huebert.iotfsdb.api.proto.IotfsdbServices;
 import org.huebert.iotfsdb.api.proto.SeriesServiceGrpc;
 import org.huebert.iotfsdb.api.schema.FindSeriesRequest;
@@ -17,7 +18,9 @@ import java.util.List;
 @GrpcService
 public class GrpcSeriesService extends SeriesServiceGrpc.SeriesServiceImplBase {
 
-    private static final ProtoServicesMapper MAPPER = Mappers.getMapper(ProtoServicesMapper.class);
+    private static final ProtoServicesMapper SERVICES_MAPPER = Mappers.getMapper(ProtoServicesMapper.class);
+
+    private static final ProtoTypesMapper TYPES_MAPPER = Mappers.getMapper(ProtoTypesMapper.class);
 
     private final SeriesService seriesService;
 
@@ -31,16 +34,16 @@ public class GrpcSeriesService extends SeriesServiceGrpc.SeriesServiceImplBase {
     @CaptureStats(group = "grpc", type = "series", operation = "find", javaClass = GrpcSeriesService.class, javaMethod = "findSeries")
     @Override
     public void findSeries(IotfsdbServices.FindSeriesRequest request, StreamObserver<IotfsdbServices.FindSeriesResponse> responseObserver) {
-        FindSeriesRequest serviceRequest = MAPPER.fromGrpc(request);
+        FindSeriesRequest serviceRequest = SERVICES_MAPPER.fromGrpc(request);
         List<SeriesFile> serviceResponse = seriesService.findSeries(serviceRequest);
-        responseObserver.onNext(MAPPER.toGrpc(serviceResponse));
+        responseObserver.onNext(SERVICES_MAPPER.toGrpc(serviceResponse));
         responseObserver.onCompleted();
     }
 
     @CaptureStats(group = "grpc", type = "series", operation = "create", javaClass = GrpcSeriesService.class, javaMethod = "createSeries")
     @Override
     public void createSeries(IotfsdbServices.CreateSeriesRequest request, StreamObserver<IotfsdbServices.CreateSeriesResponse> responseObserver) {
-        SeriesFile seriesFile = MAPPER.fromGrpc(request);
+        SeriesFile seriesFile = SERVICES_MAPPER.fromGrpc(request);
         seriesService.createSeries(seriesFile);
         responseObserver.onNext(IotfsdbServices.CreateSeriesResponse.getDefaultInstance());
         responseObserver.onCompleted();
@@ -57,7 +60,7 @@ public class GrpcSeriesService extends SeriesServiceGrpc.SeriesServiceImplBase {
     @CaptureStats(group = "grpc", type = "series", operation = "clone", javaClass = GrpcSeriesService.class, javaMethod = "cloneSeries")
     @Override
     public void cloneSeries(IotfsdbServices.CloneSeriesRequest request, StreamObserver<IotfsdbServices.CloneSeriesResponse> responseObserver) {
-        cloneService.clone(request.getSourceId(), request.getDestinationId());
+        cloneService.cloneSeries(request.getSourceId(), request.getDestinationId());
         responseObserver.onNext(IotfsdbServices.CloneSeriesResponse.getDefaultInstance());
         responseObserver.onCompleted();
     }
@@ -65,6 +68,15 @@ public class GrpcSeriesService extends SeriesServiceGrpc.SeriesServiceImplBase {
     @CaptureStats(group = "grpc", type = "series", operation = "update", javaClass = GrpcSeriesService.class, javaMethod = "updateSeries")
     @Override
     public void updateSeries(IotfsdbServices.UpdateSeriesRequest request, StreamObserver<IotfsdbServices.UpdateSeriesResponse> responseObserver) {
-        super.updateSeries(request, responseObserver);
+        SeriesFile updated = TYPES_MAPPER.fromGrpc(request.getSeries());
+        SeriesFile seriesFile = seriesService.findSeries(request.getId()).orElseThrow();
+        if (seriesFile.getDefinition().equals(updated.getDefinition())) {
+            seriesService.updateMetadata(request.getId(), updated.getMetadata());
+        } else {
+            cloneService.updateSeries(request.getId(), updated);
+        }
+        responseObserver.onNext(IotfsdbServices.UpdateSeriesResponse.getDefaultInstance());
+        responseObserver.onCompleted();
     }
+
 }

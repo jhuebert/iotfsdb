@@ -56,6 +56,10 @@ public class PartitionRange {
         size = getIndex(range.upperEndpoint()) + 1;
     }
 
+    public Stream<Number> getStream(ByteBuffer buffer) {
+        return adapter.getStream(buffer, 0, (int) size);
+    }
+
     public Stream<Number> getStream(ByteBuffer buffer, Range<LocalDateTime> current) {
         Range<LocalDateTime> intersection = range.intersection(current);
         int fromIndex = getIndex(intersection.lowerEndpoint());
