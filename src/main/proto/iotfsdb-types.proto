@@ -8,31 +8,37 @@ import "iotfsdb-enums.proto";
 
 option java_package = "org.huebert.iotfsdb.api.proto";
 
+// File represents a binary file with optional filename
 message File {
   bytes data = 1;
   google.protobuf.StringValue filename = 2;
 }
 
+// RelativeTime represents a time relative to now
 message RelativeTime {
   int32 value = 1;
   TimeUnit unit = 2;
 }
 
+// Series represents a time series with its definition and metadata
 message Series {
   SeriesDefinition definition = 1;
   map<string, string> metadata = 2;
 }
 
+// SeriesCriteria used for querying series
 message SeriesCriteria {
   google.protobuf.StringValue id = 1;
   map<string, string> metadata = 2;
 }
 
+// SeriesData contains values for a specific series
 message SeriesData {
   string id = 1;
   repeated SeriesValue values = 2;
 }
 
+// SeriesDefinition defines the properties of a time series
 message SeriesDefinition {
   string id = 1;
   NumberType type = 2;
@@ -42,11 +48,13 @@ message SeriesDefinition {
   google.protobuf.DoubleValue max = 6;
 }
 
+// SeriesValue represents a single timestamped value in a series
 message SeriesValue {
   google.protobuf.Timestamp timestamp = 1;
   double value = 2;
 }
 
+// Time represents either an absolute or relative time
 message Time {
   oneof time_option {
     RelativeTime relative_time = 1;
@@ -54,7 +62,15 @@ message Time {
   }
 }
 
+// TimeRange represents a time interval with start and end times
 message TimeRange {
   Time from = 1;
   Time to = 2;
+}
+
+// Status represents the result of an operation
+message Status {
+  bool success = 1;
+  StatusCode code = 2;
+  string message = 3;
 }

@@ -13,6 +13,7 @@ service SeriesService {
   rpc CreateSeries(CreateSeriesRequest) returns (CreateSeriesResponse);
   rpc DeleteSeries(DeleteSeriesRequest) returns (DeleteSeriesResponse);
   rpc FindSeries(FindSeriesRequest) returns (FindSeriesResponse);
+  rpc PruneSeries(PruneSeriesRequest) returns (PruneSeriesResponse);
   rpc UpdateDefinition(UpdateDefinitionRequest) returns (UpdateDefinitionResponse);
   rpc UpdateMetadata(UpdateMetadataRequest) returns (UpdateMetadataResponse);
 }
@@ -27,6 +28,7 @@ service DataService {
 message CloneSeriesRequest {
   string source_id = 1;
   string destination_id = 2;
+  bool include_data = 3;
 }
 
 message CreateSeriesRequest {
@@ -70,6 +72,11 @@ message InsertDataRequest {
   Reducer reducer = 3;
 }
 
+message PruneSeriesRequest {
+  string id = 1;
+  TimeRange time_range = 2;
+}
+
 message UpdateDefinitionRequest {
   string id = 1;
   SeriesDefinition definition = 2;
@@ -78,44 +85,52 @@ message UpdateDefinitionRequest {
 message UpdateMetadataRequest {
   string id = 1;
   map<string, string> metadata = 2;
+  bool merge = 3;
 }
 
 message CloneSeriesResponse {
-
+  Status status = 1;
 }
 
 message CreateSeriesResponse {
-
+  Status status = 1;
 }
 
 message DeleteSeriesResponse {
-
+  Status status = 1;
 }
 
 message FindDataResponse {
-  repeated SeriesData data = 1;
+  Status status = 1;
+  repeated SeriesData data = 2;
 }
 
 message FindSeriesResponse {
-  repeated Series series = 1;
+  Status status = 1;
+  repeated Series series = 2;
 }
 
 message ImportDataResponse {
-
+  Status status = 1;
 }
 
 message InsertDataResponse {
+  Status status = 1;
+}
 
+message PruneSeriesResponse {
+  Status status = 1;
 }
 
 message UpdateDefinitionResponse {
-
+  Status status = 1;
 }
 
 message UpdateMetadataResponse {
-
+  Status status = 1;
 }
 
 message ExportDataResponse {
-  File file = 1;
+  Status status = 1;
+  File file = 2;
 }
