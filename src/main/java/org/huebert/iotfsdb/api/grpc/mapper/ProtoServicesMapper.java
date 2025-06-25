@@ -40,6 +40,8 @@ public interface ProtoServicesMapper {
     IotfsdbServices.FindSeriesRequest toGrpc(FindSeriesRequest request);
 
     @Mappings({
+        @Mapping(target = "criteria", source = "series"),
+        @Mapping(target = "intervalMs", source = "interval"),
 //        @Mapping(target = "nullHandling.includeNull", source = "includeNull"),
 //        @Mapping(target = "nullHandling.usePrevious", source = "usePrevious"),
 //        @Mapping(target = "nullHandling.nullValue", source = "nullValue"),
@@ -68,7 +70,10 @@ public interface ProtoServicesMapper {
         return toGrpc(new SeriesFileWrapper(seriesFiles));
     }
 
-    @Mapping(target = "pattern", source = "criteria.id")
+    @Mappings({
+        @Mapping(target = "metadata", source = "criteria.metadata"),
+        @Mapping(target = "pattern", source = "criteria.id"),
+    })
     FindSeriesRequest fromGrpc(IotfsdbServices.FindSeriesRequest request);
 
     FindDataRequest fromGrpc(IotfsdbServices.FindDataRequest request);
@@ -79,6 +84,10 @@ public interface ProtoServicesMapper {
     })
     SeriesFile fromGrpc(IotfsdbServices.CreateSeriesRequest request);
 
+    @Mappings({
+        @Mapping(target = "values", source = "data.valuesList"),
+        @Mapping(target = "series", source = "data.id"),
+    })
     InsertRequest fromGrpc(IotfsdbServices.InsertDataRequest request);
 
 }

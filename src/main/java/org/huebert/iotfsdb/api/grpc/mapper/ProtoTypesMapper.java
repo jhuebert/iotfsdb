@@ -30,6 +30,7 @@ public interface ProtoTypesMapper {
 
     SeriesFile fromGrpc(IotfsdbTypes.Series series);
 
+    @Mapping(target = "interval", source = "intervalMs")
     SeriesDefinition fromGrpc(IotfsdbTypes.SeriesDefinition series);
 
     List<IotfsdbTypes.Series> toGrpc(List<SeriesFile> series);
