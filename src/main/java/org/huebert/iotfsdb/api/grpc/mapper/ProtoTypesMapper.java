@@ -2,6 +2,7 @@ package org.huebert.iotfsdb.api.grpc.mapper;
 
 import org.huebert.iotfsdb.api.proto.IotfsdbTypes;
 import org.huebert.iotfsdb.api.schema.SeriesData;
+import org.huebert.iotfsdb.api.schema.SeriesDefinition;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.mapstruct.CollectionMappingStrategy;
 import org.mapstruct.Mapper;
@@ -28,6 +29,8 @@ public interface ProtoTypesMapper {
     IotfsdbTypes.SeriesValue toGrpc(SeriesData data);
 
     SeriesFile fromGrpc(IotfsdbTypes.Series series);
+
+    SeriesDefinition fromGrpc(IotfsdbTypes.SeriesDefinition series);
 
     List<IotfsdbTypes.Series> toGrpc(List<SeriesFile> series);
 

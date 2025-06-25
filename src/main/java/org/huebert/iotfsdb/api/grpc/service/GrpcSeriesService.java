@@ -65,17 +65,19 @@ public class GrpcSeriesService extends SeriesServiceGrpc.SeriesServiceImplBase {
         responseObserver.onCompleted();
     }
 
-    @CaptureStats(group = "grpc", type = "series", operation = "update", javaClass = GrpcSeriesService.class, javaMethod = "updateSeries")
+    @CaptureStats(group = "grpc", type = "definition", operation = "update", javaClass = GrpcSeriesService.class, javaMethod = "updateDefinition")
     @Override
-    public void updateSeries(IotfsdbServices.UpdateSeriesRequest request, StreamObserver<IotfsdbServices.UpdateSeriesResponse> responseObserver) {
-        SeriesFile updated = TYPES_MAPPER.fromGrpc(request.getSeries());
-        SeriesFile seriesFile = seriesService.findSeries(request.getId()).orElseThrow();
-        if (seriesFile.getDefinition().equals(updated.getDefinition())) {
-            seriesService.updateMetadata(request.getId(), updated.getMetadata());
-        } else {
-            cloneService.updateSeries(request.getId(), updated);
-        }
-        responseObserver.onNext(IotfsdbServices.UpdateSeriesResponse.getDefaultInstance());
+    public void updateDefinition(IotfsdbServices.UpdateDefinitionRequest request, StreamObserver<IotfsdbServices.UpdateDefinitionResponse> responseObserver) {
+        cloneService.updateDefinition(request.getId(), TYPES_MAPPER.fromGrpc(request.getDefinition()));
+        responseObserver.onNext(IotfsdbServices.UpdateDefinitionResponse.getDefaultInstance());
+        responseObserver.onCompleted();
+    }
+
+    @CaptureStats(group = "grpc", type = "metadata", operation = "update", javaClass = GrpcSeriesService.class, javaMethod = "updateMetadata")
+    @Override
+    public void updateMetadata(IotfsdbServices.UpdateMetadataRequest request, StreamObserver<IotfsdbServices.UpdateMetadataResponse> responseObserver) {
+        seriesService.updateMetadata(request.getId(), request.getMetadataMap());
+        responseObserver.onNext(IotfsdbServices.UpdateMetadataResponse.getDefaultInstance());
         responseObserver.onCompleted();
     }
 

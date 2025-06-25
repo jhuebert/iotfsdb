@@ -1,9 +1,13 @@
 package org.huebert.iotfsdb.service;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.api.schema.InsertRequest;
 import org.huebert.iotfsdb.api.schema.Reducer;
 import org.huebert.iotfsdb.api.schema.SeriesData;
+import org.huebert.iotfsdb.api.schema.SeriesDefinition;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -36,10 +40,20 @@ public class CloneService {
         this.insertService = insertService;
     }
 
-    public void updateSeries(String id, SeriesFile updated) {
+    public void updateDefinition(@NotBlank String id, @NotNull @Valid SeriesDefinition definition) {
         log.info("Updating series for ID: {}", id);
 
-        boolean idChanged = !id.equals(updated.getId());
+        SeriesFile initial = seriesService.findSeries(id).orElseThrow();
+        if (initial.getDefinition().equals(definition)) {
+            return;
+        }
+
+        SeriesFile updated = SeriesFile.builder()
+            .definition(definition)
+            .metadata(new HashMap<>(initial.getMetadata()))
+            .build();
+
+        boolean idChanged = !id.equals(definition.getId());
 
         String sourceId = id;
         if (!idChanged) {
@@ -76,7 +90,7 @@ public class CloneService {
         return result;
     }
 
-    public void cloneSeries(String sourceId, String destinationId) {
+    public void cloneSeries(@NotBlank String sourceId, @NotBlank String destinationId) {
         log.debug("Cloning series from {} to {}", sourceId, destinationId);
         seriesService.createSeries(cloneSeriesFile(sourceId, destinationId));
         for (PartitionKey sourceKey : dataService.getPartitions(sourceId)) {

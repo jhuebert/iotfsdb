@@ -14,7 +14,8 @@ service SeriesService {
   rpc CreateSeries(CreateSeriesRequest) returns (CreateSeriesResponse);
   rpc DeleteSeries(DeleteSeriesRequest) returns (DeleteSeriesResponse);
   rpc FindSeries(FindSeriesRequest) returns (FindSeriesResponse);
-  rpc UpdateSeries(UpdateSeriesRequest) returns (UpdateSeriesResponse);
+  rpc UpdateDefinition(UpdateDefinitionRequest) returns (UpdateDefinitionResponse);
+  rpc UpdateMetadata(UpdateMetadataRequest) returns (UpdateMetadataResponse);
 }
 
 service DataService {
@@ -70,9 +71,14 @@ message InsertDataRequest {
   Reducer reducer = 3;
 }
 
-message UpdateSeriesRequest {
+message UpdateDefinitionRequest {
   string id = 1;
-  Series series = 2;
+  SeriesDefinition definition = 2;
+}
+
+message UpdateMetadataRequest {
+  string id = 1;
+  map<string, string> metadata = 2;
 }
 
 message CloneSeriesResponse {
@@ -103,7 +109,11 @@ message InsertDataResponse {
 
 }
 
-message UpdateSeriesResponse {
+message UpdateDefinitionResponse {
+
+}
+
+message UpdateMetadataResponse {
 
 }
 
