@@ -61,6 +61,7 @@ enum StatusCode {
   STATUS_CODE_UNSPECIFIED = 0;    // Default or unknown status
   STATUS_CODE_CLIENT_ERROR = 1;   // Error caused by client request
   STATUS_CODE_SERVER_ERROR = 2;   // Error caused by server failure
+  STATUS_CODE_NOT_FOUND = 3;      // Requested resource not found
 }
 
 // TimeUnit defines units for relative time specifications

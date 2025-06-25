@@ -40,12 +40,12 @@ message SeriesData {
 
 // SeriesDefinition defines the properties of a time series
 message SeriesDefinition {
-  string id = 1;
-  NumberType type = 2;
-  int64 interval_ms = 3;
-  PartitionPeriod partition = 4;
-  google.protobuf.DoubleValue min = 5;
-  google.protobuf.DoubleValue max = 6;
+  string id = 1;                                  // Unique identifier for the series
+  NumberType type = 2;                            // Storage type for the values
+  int64 interval_ms = 3;                          // Expected interval between values in milliseconds
+  PartitionPeriod partition = 4;                  // How data is partitioned for storage
+  google.protobuf.DoubleValue min = 5;            // Optional minimum expected value (for compression)
+  google.protobuf.DoubleValue max = 6;            // Optional maximum expected value (for compression)
 }
 
 // SeriesValue represents a single timestamped value in a series
@@ -70,7 +70,7 @@ message TimeRange {
 
 // Status represents the result of an operation
 message Status {
-  bool success = 1;
-  StatusCode code = 2;
-  string message = 3;
+  bool success = 1;                               // Whether the operation succeeded
+  StatusCode code = 2;                            // Specific status code
+  string message = 3;                             // Human-readable status message
 }
