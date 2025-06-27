@@ -2,12 +2,12 @@ package org.huebert.iotfsdb.service;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.huebert.iotfsdb.api.schema.InsertRequest;
+import org.huebert.iotfsdb.api.schema.PartitionPeriod;
+import org.huebert.iotfsdb.api.schema.SeriesData;
+import org.huebert.iotfsdb.api.schema.SeriesDefinition;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.partition.PartitionAdapter;
-import org.huebert.iotfsdb.schema.InsertRequest;
-import org.huebert.iotfsdb.schema.PartitionPeriod;
-import org.huebert.iotfsdb.schema.SeriesData;
-import org.huebert.iotfsdb.schema.SeriesDefinition;
-import org.huebert.iotfsdb.schema.SeriesFile;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -54,7 +54,7 @@ public class InsertService {
 
     private void insertIntoPartition(PartitionKey key, List<SeriesData> data, Collector<Number, ?, Number> collector) {
         PartitionRange details = partitionService.getRange(key);
-        PartitionAdapter adapter = details.adapter();
+        PartitionAdapter adapter = details.getAdapter();
         details.withWrite(() -> {
             ByteBuffer buffer = dataService.getBuffer(key, details.getSize(), adapter);
             for (SeriesData value : data) {

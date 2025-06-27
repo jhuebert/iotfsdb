@@ -15,10 +15,34 @@ public class IotfsdbProperties {
 
     private boolean readOnly = false;
 
+    private boolean stats = false;
+
     private int maxQuerySize = 1000;
 
     private String partitionCache = "expireAfterAccess=5m,maximumSize=10000,softValues";
 
-    private boolean ui = true;
+    private ApiProperties api = new ApiProperties();
+
+    @Data
+    public static class ApiProperties {
+
+        //TODO Need to use these properties in code
+        private boolean rest = true;
+
+        private boolean ui = false;
+
+        private boolean grpc = false;
+
+        private boolean internalGrpc = false;
+
+        private AiProperties ai = new AiProperties();
+
+    }
+
+    @Data
+    public static class AiProperties {
+        private boolean chat = false;
+        private boolean mcp = false;
+    }
 
 }

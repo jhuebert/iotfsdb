@@ -1,0 +1,98 @@
+syntax = "proto3";
+
+package iotfsdb.internal;
+
+import "iotfsdb-types.proto";
+
+option java_package = "org.huebert.iotfsdb.api.proto.internal";
+
+service PartitionService {
+  rpc CreatePartition(CreatePartitionRequest) returns (CreatePartitionResponse);
+  rpc DeletePartition(DeletePartitionRequest) returns (DeletePartitionResponse);
+  rpc GetPartitions(GetPartitionsRequest) returns (GetPartitionsResponse);
+  rpc ReadPartition(ReadPartitionRequest) returns (ReadPartitionResponse);
+  rpc UpdatePartition(UpdatePartitionRequest) returns (UpdatePartitionResponse);
+}
+
+service SeriesService {
+  rpc DeleteSeries(DeleteSeriesRequest) returns (DeleteSeriesResponse);
+  rpc GetSeries(GetSeriesRequest) returns (GetSeriesResponse);
+  rpc SaveSeries(SaveSeriesRequest) returns (SaveSeriesResponse);
+}
+
+message CreatePartitionRequest {
+  PartitionKey key = 1;
+  int64 size = 2;
+}
+
+message DeletePartitionRequest {
+  PartitionKey key = 1;
+}
+
+message DeleteSeriesRequest {
+  string id = 1;
+}
+
+message GetPartitionsRequest {
+  Series series = 1;
+}
+
+message GetSeriesRequest {
+
+}
+
+message ReadPartitionRequest {
+  PartitionKey key = 1;
+  int32 offset = 2;
+  int32 length = 3;
+}
+
+message SaveSeriesRequest {
+  Series series = 1;
+}
+
+message UpdatePartitionRequest {
+  PartitionKey key = 1;
+  int32 offset = 2;
+  bytes data = 3;
+}
+
+message CreatePartitionResponse {
+  Status status = 1;
+}
+
+message DeletePartitionResponse {
+  Status status = 1;
+}
+
+message DeleteSeriesResponse {
+  Status status = 1;
+}
+
+message GetPartitionsResponse {
+  Status status = 1;
+  repeated PartitionKey partitions = 2;
+}
+
+message GetSeriesResponse {
+  Status status = 1;
+  repeated Series series = 2;
+}
+
+message ReadPartitionResponse {
+  Status status = 1;
+  bytes data = 2;
+}
+
+message SaveSeriesResponse {
+  Status status = 1;
+}
+
+message UpdatePartitionResponse {
+  Status status = 1;
+}
+
+message PartitionKey {
+  string series_id = 1;
+  string partition_id = 2;
+}
