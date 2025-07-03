@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.Singular;
 
 import java.util.Map;
 
@@ -25,6 +26,7 @@ public class SeriesFile {
     @NotNull
     private SeriesDefinition definition;
 
+    @Singular(value = "metadata")
     @EqualsAndHashCode.Exclude
     @Schema(description = "Series key and value pairs")
     @NotNull
