@@ -1,8 +1,28 @@
 spring:
+  ai:
+    mcp:
+      server:
+        name: iotfsdb
+        version: 2
+        stdio: false
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        model: qwen3:30b-a3b
+        options:
+          num-ctx: 32768
+          num-predict: -1
+          max-tokens: 32768
   application:
     name: iotfsdb
   main:
     banner-mode: off
+  grpc:
+    server:
+      enabled: true
+      port: 9090
+      ssl:
+        secure: false
   servlet:
     multipart:
       max-file-size: 100MB
@@ -10,6 +30,11 @@ spring:
   threads:
     virtual:
       enabled: true
+
+logging.level:
+  root: WARN
+  org.huebert: INFO
+  org.springframework: WARN
 
 server:
   compression:
@@ -23,6 +48,10 @@ iotfsdb:
   max-query-size: 1000
   partition-cache: "expireAfterAccess=5m,maximumSize=10000,softValues"
   ui: true
+  stats: false
+  ai:
+    chat: false
+    mcp: false
 
 gg:
   jte:

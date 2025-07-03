@@ -1,6 +1,6 @@
 package org.huebert.iotfsdb.service;
 
-import org.huebert.iotfsdb.schema.PartitionPeriod;
+import org.huebert.iotfsdb.api.schema.PartitionPeriod;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
