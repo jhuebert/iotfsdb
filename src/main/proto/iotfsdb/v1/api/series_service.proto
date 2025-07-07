@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package iotfsdb.v1.api;
+
+import "google/protobuf/duration.proto";
+import "iotfsdb/v1/common/series.proto";
+import "iotfsdb/v1/common/series_criteria.proto";
+import "iotfsdb/v1/common/series_definition.proto";
+import "iotfsdb/v1/common/status.proto";
+import "iotfsdb/v1/common/time_range.proto";
+
+option java_package = "org.huebert.iotfsdb.api.grpc.proto.v1.api";
+option java_outer_classname = "SeriesServiceProto";
+option java_multiple_files = true;
+
+// SeriesService provides operations for managing time series metadata and definitions
+service SeriesService {
+
+  // CloneSeries creates a copy of an existing series
+  rpc CloneSeries(CloneSeriesRequest) returns (CloneSeriesResponse);
+
+  // CreateSeries creates a new time series
+  rpc CreateSeries(CreateSeriesRequest) returns (CreateSeriesResponse);
+
+  // DeleteSeries removes a time series and all its data
+  rpc DeleteSeries(DeleteSeriesRequest) returns (DeleteSeriesResponse);
+
+  // FindSeries retrieves series matching the provided criteria
+  rpc FindSeries(FindSeriesRequest) returns (FindSeriesResponse);
+
+  // PruneSeries removes data from a time series within a specified time range
+  rpc PruneSeries(PruneSeriesRequest) returns (PruneSeriesResponse);
+
+  // UpdateDefinition updates the definition of a time series
+  rpc UpdateDefinition(UpdateDefinitionRequest) returns (UpdateDefinitionResponse);
+
+  // UpdateMetadata updates the metadata of a time series
+  rpc UpdateMetadata(UpdateMetadataRequest) returns (UpdateMetadataResponse);
+}
+
+message CloneSeriesRequest {
+  string source_id = 1;
+  string destination_id = 2;
+  bool include_data = 3;
+}
+
+message CreateSeriesRequest {
+  iotfsdb.v1.common.Series series = 1;
+}
+
+message DeleteSeriesRequest {
+  string id = 1;
+}
+
+message FindSeriesRequest {
+  iotfsdb.v1.common.SeriesCriteria criteria = 1;
+}
+
+message PruneSeriesRequest {
+  string id = 1;
+  iotfsdb.v1.common.TimeRange time_range = 2;
+}
+
+message UpdateDefinitionRequest {
+  string id = 1;
+  iotfsdb.v1.common.SeriesDefinition definition = 2;
+}
+
+message UpdateMetadataRequest {
+  string id = 1;
+  map<string, string> metadata = 2;
+  bool merge = 3;
+}
+
+message CloneSeriesResponse {
+  iotfsdb.v1.common.Status status = 1;
+}
+
+message CreateSeriesResponse {
+  iotfsdb.v1.common.Status status = 1;
+}
+
+message DeleteSeriesResponse {
+  iotfsdb.v1.common.Status status = 1;
+}
+
+message FindSeriesResponse {
+  iotfsdb.v1.common.Status status = 1;
+  repeated iotfsdb.v1.common.Series series = 2;
+}
+
+message PruneSeriesResponse {
+  iotfsdb.v1.common.Status status = 1;
+}
+
+message UpdateDefinitionResponse {
+  iotfsdb.v1.common.Status status = 1;
+}
+
+message UpdateMetadataResponse {
+  iotfsdb.v1.common.Status status = 1;
+}

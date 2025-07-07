@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package iotfsdb.v1.common;
+
+option java_package = "org.huebert.iotfsdb.api.grpc.proto.v1.common";
+option java_outer_classname = "SeriesValueProto";
+option java_multiple_files = true;
+
+import "google/protobuf/timestamp.proto";
+
+// Represents a single timestamped value in a series
+message SeriesValue {
+  google.protobuf.Timestamp timestamp = 1;
+  double value = 2;
+}

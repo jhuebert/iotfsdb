@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package iotfsdb.v1.common;
+
+option java_package = "org.huebert.iotfsdb.api.grpc.proto.v1.common";
+option java_outer_classname = "PartitionPeriodProto";
+option java_multiple_files = true;
+
+// PartitionPeriod defines how data is partitioned in storage
+enum PartitionPeriod {
+  PARTITION_PERIOD_UNSPECIFIED = 0;  // Default period
+  PARTITION_PERIOD_DAY = 1;          // Daily partitions
+  PARTITION_PERIOD_MONTH = 2;        // Monthly partitions
+  PARTITION_PERIOD_YEAR = 3;         // Yearly partitions
+}

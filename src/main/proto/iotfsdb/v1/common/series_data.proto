@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package iotfsdb.v1.common;
+
+option java_package = "org.huebert.iotfsdb.api.grpc.proto.v1.common";
+option java_outer_classname = "SeriesDataProto";
+option java_multiple_files = true;
+
+import "iotfsdb/v1/common/series_value.proto";
+
+// Contains data values for a specific series
+message SeriesData {
+  string id = 1;
+  repeated SeriesValue values = 2;
+}

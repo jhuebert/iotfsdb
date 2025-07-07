@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package iotfsdb.v1.common;
+
+option java_package = "org.huebert.iotfsdb.api.grpc.proto.v1.common";
+option java_outer_classname = "ReducerProto";
+option java_multiple_files = true;
+
+// Reducer defines how multiple values are reduced to a single value
+enum Reducer {
+  REDUCER_UNSPECIFIED = 0;       // Default reducer
+  REDUCER_AVERAGE = 1;           // Average of values
+  REDUCER_COUNT = 2;             // Count of values
+  REDUCER_COUNT_DISTINCT = 3;    // Count of distinct values
+  REDUCER_FIRST = 4;             // First value
+  REDUCER_LAST = 5;              // Last value
+  REDUCER_MAXIMUM = 6;           // Maximum value
+  REDUCER_MEDIAN = 7;            // Median value
+  REDUCER_MINIMUM = 8;           // Minimum value
+  REDUCER_MODE = 9;              // Most common value
+  REDUCER_MULTIPLY = 10;         // Product of values
+  REDUCER_SQUARE_SUM = 11;       // Sum of squares
+  REDUCER_SUM = 12;              // Sum of values
+}

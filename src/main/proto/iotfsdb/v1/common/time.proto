@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package iotfsdb.v1.common;
+
+option java_package = "org.huebert.iotfsdb.api.grpc.proto.v1.common";
+option java_outer_classname = "TimeProto";
+option java_multiple_files = true;
+
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+// Time represents either an absolute or relative time
+message Time {
+  oneof time_option {
+    google.protobuf.Duration relative_time = 1;
+    google.protobuf.Timestamp timestamp = 2;
+  }
+}

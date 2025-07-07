@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package iotfsdb.v1.common;
+
+option java_package = "org.huebert.iotfsdb.api.grpc.proto.v1.common";
+option java_outer_classname = "SeriesCriteriaProto";
+option java_multiple_files = true;
+
+// Search criteria used for querying series
+message SeriesCriteria {
+  string id = 1;
+  map<string, string> metadata = 2;
+}

@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package iotfsdb.v1.common;
+
+option java_package = "org.huebert.iotfsdb.api.grpc.proto.v1.common";
+option java_outer_classname = "TimeRangeProto";
+option java_multiple_files = true;
+
+import "iotfsdb/v1/common/time.proto";
+
+// Represents a time interval with start and end times
+message TimeRange {
+  Time start = 1;
+  Time end = 2;
+}
