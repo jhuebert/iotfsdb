@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package iotfsdb.internal;
+package iotfsdb.service.internal;
 
 import "types.proto";
 

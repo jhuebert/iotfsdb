@@ -1,7 +1,8 @@
 syntax = "proto3";
 
-package iotfsdb.internal;
+package iotfsdb.service.internal;
 
+import "partition-key.proto";
 import "types.proto";
 
 option java_package = "org.huebert.iotfsdb.api.grpc.proto.internal";
@@ -16,12 +17,12 @@ service PartitionService {
 }
 
 message CreatePartitionRequest {
-  PartitionKey key = 1;
+  iotfsdb.internal.PartitionKey key = 1;
   int32 size = 2;
 }
 
 message DeletePartitionRequest {
-  PartitionKey key = 1;
+  iotfsdb.internal.PartitionKey key = 1;
 }
 
 message GetPartitionsRequest {
@@ -29,13 +30,13 @@ message GetPartitionsRequest {
 }
 
 message ReadPartitionRequest {
-  PartitionKey key = 1;
+  iotfsdb.internal.PartitionKey key = 1;
   int32 offset = 2;
   int32 length = 3;
 }
 
 message UpdatePartitionRequest {
-  PartitionKey key = 1;
+  iotfsdb.internal.PartitionKey key = 1;
   int32 offset = 2;
   bytes data = 3;
 }
@@ -50,7 +51,7 @@ message DeletePartitionResponse {
 
 message GetPartitionsResponse {
   Status status = 1;
-  repeated PartitionKey partitions = 2;
+  repeated iotfsdb.internal.PartitionKey partitions = 2;
 }
 
 message ReadPartitionResponse {
@@ -60,9 +61,4 @@ message ReadPartitionResponse {
 
 message UpdatePartitionResponse {
   Status status = 1;
-}
-
-message PartitionKey {
-  string series_id = 1;
-  string partition_id = 2;
 }
