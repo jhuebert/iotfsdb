@@ -22,7 +22,7 @@ service SeriesService {
 
 message CreatePartitionRequest {
   PartitionKey key = 1;
-  int64 size = 2;
+  int32 size = 2;
 }
 
 message DeletePartitionRequest {

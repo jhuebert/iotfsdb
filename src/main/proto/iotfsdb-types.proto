@@ -15,12 +15,6 @@ message File {
   google.protobuf.StringValue filename = 2;
 }
 
-// Represents a time relative to now
-message RelativeTime {
-  int32 value = 1;
-  TimeUnit unit = 2;
-}
-
 // Series represents a time series with its definition and metadata
 message Series {
   SeriesDefinition definition = 1;
@@ -58,7 +52,7 @@ message SeriesValue {
 // Time represents either an absolute or relative time
 message Time {
   oneof time_option {
-    RelativeTime relative_time = 1;
+    google.protobuf.Duration relative_time = 1;
     google.protobuf.Timestamp timestamp = 2;
   }
 }

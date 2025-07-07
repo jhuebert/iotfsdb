@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package iotfsdb;
 
+import "google/protobuf/duration.proto";
 import "google/protobuf/wrappers.proto";
 import "iotfsdb-enums.proto";
 import "iotfsdb-types.proto";
@@ -47,7 +48,7 @@ message FindDataRequest {
   SeriesCriteria criteria = 1;
   TimeRange time_range = 2;
   oneof size_option {
-    google.protobuf.Int64Value interval_ms = 3;
+    google.protobuf.Duration interval = 3;
     google.protobuf.Int32Value size = 4;
   }
   oneof null_option {
@@ -57,6 +58,7 @@ message FindDataRequest {
   bool high_precision = 7;
   Reducer time_reducer = 8;
   Reducer series_reducer = 9;
+  PartitionPeriod partition = 10;
 }
 
 message FindSeriesRequest {
