@@ -3,11 +3,11 @@ syntax = "proto3";
 package iotfsdb;
 
 import "google/protobuf/duration.proto";
-import "google/protobuf/wrappers.proto";
-import "iotfsdb-enums.proto";
-import "iotfsdb-types.proto";
+import "enums.proto";
+import "types.proto";
 
-option java_package = "org.huebert.iotfsdb.api.proto";
+option java_package = "org.huebert.iotfsdb.api.grpc.proto";
+option java_outer_classname = "SeriesServiceProto";
 
 service SeriesService {
   rpc CloneSeries(CloneSeriesRequest) returns (CloneSeriesResponse);
@@ -17,13 +17,6 @@ service SeriesService {
   rpc PruneSeries(PruneSeriesRequest) returns (PruneSeriesResponse);
   rpc UpdateDefinition(UpdateDefinitionRequest) returns (UpdateDefinitionResponse);
   rpc UpdateMetadata(UpdateMetadataRequest) returns (UpdateMetadataResponse);
-}
-
-service DataService {
-  rpc ExportData(ExportDataRequest) returns (ExportDataResponse);
-  rpc FindData(FindDataRequest) returns (FindDataResponse);
-  rpc ImportData(ImportDataRequest) returns (ImportDataResponse);
-  rpc InsertData(stream InsertDataRequest) returns (stream InsertDataResponse);
 }
 
 message CloneSeriesRequest {
@@ -40,38 +33,8 @@ message DeleteSeriesRequest {
   string id = 1;
 }
 
-message ExportDataRequest {
-  SeriesCriteria criteria = 1;
-}
-
-message FindDataRequest {
-  SeriesCriteria criteria = 1;
-  TimeRange time_range = 2;
-  oneof size_option {
-    google.protobuf.Duration interval = 3;
-    google.protobuf.Int32Value size = 4;
-  }
-  oneof null_option {
-    NullHandler null_handler = 5;
-    google.protobuf.DoubleValue null_value = 6;
-  }
-  bool high_precision = 7;
-  Reducer time_reducer = 8;
-  Reducer series_reducer = 9;
-  PartitionPeriod partition = 10;
-}
-
 message FindSeriesRequest {
   SeriesCriteria criteria = 1;
-}
-
-message ImportDataRequest {
-  File file = 1;
-}
-
-message InsertDataRequest {
-  SeriesData data = 1;
-  Reducer reducer = 2;
 }
 
 message PruneSeriesRequest {
@@ -102,22 +65,9 @@ message DeleteSeriesResponse {
   Status status = 1;
 }
 
-message FindDataResponse {
-  Status status = 1;
-  repeated SeriesData data = 2;
-}
-
 message FindSeriesResponse {
   Status status = 1;
   repeated Series series = 2;
-}
-
-message ImportDataResponse {
-  Status status = 1;
-}
-
-message InsertDataResponse {
-  Status status = 1;
 }
 
 message PruneSeriesResponse {
@@ -130,9 +80,4 @@ message UpdateDefinitionResponse {
 
 message UpdateMetadataResponse {
   Status status = 1;
-}
-
-message ExportDataResponse {
-  Status status = 1;
-  File file = 2;
 }

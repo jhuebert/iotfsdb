@@ -4,15 +4,21 @@ package iotfsdb;
 
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
-import "google/protobuf/wrappers.proto";
-import "iotfsdb-enums.proto";
+import "enums.proto";
 
-option java_package = "org.huebert.iotfsdb.api.proto";
+option java_package = "org.huebert.iotfsdb.api.grpc.proto";
+option java_outer_classname = "TypesProto";
 
 // Represents a binary file with optional filename
 message File {
   bytes data = 1;
-  google.protobuf.StringValue filename = 2;
+  string filename = 2;
+}
+
+// NullHandler defines how null values are handled in queries
+message NullHandler {
+  NullOption null_option = 1;
+  double null_value = 2;
 }
 
 // Series represents a time series with its definition and metadata
@@ -23,7 +29,7 @@ message Series {
 
 // Search criteria used for querying series
 message SeriesCriteria {
-  google.protobuf.StringValue id = 1;
+  string id = 1;
   map<string, string> metadata = 2;
 }
 
@@ -39,14 +45,20 @@ message SeriesDefinition {
   google.protobuf.Duration interval = 2; // Expected time interval between values
   PartitionPeriod partition = 3;         // How data is partitioned for storage
   NumberType type = 4;                   // Storage type for the values
-  google.protobuf.DoubleValue min = 5;   // Minimum expected value for MAPPED and CURVED types
-  google.protobuf.DoubleValue max = 6;   // Maximum expected value for MAPPED and CURVED types
+  double min = 5;                        // Minimum expected value for MAPPED and CURVED types
+  double max = 6;                        // Maximum expected value for MAPPED and CURVED types
 }
 
 // Represents a single timestamped value in a series
 message SeriesValue {
   google.protobuf.Timestamp timestamp = 1;
   double value = 2;
+}
+
+// Controls the size of data returned in queries
+message SizeControl {
+  google.protobuf.Duration interval = 1;
+  int32 size = 2;
 }
 
 // Time represents either an absolute or relative time
