@@ -9,7 +9,7 @@ import "iotfsdb/v1/common/file.proto";
 import "iotfsdb/v1/common/null_handler.proto";
 import "iotfsdb/v1/common/series_criteria.proto";
 import "iotfsdb/v1/common/series_data.proto";
-import "iotfsdb/v1/common/size_control.proto";
+import "iotfsdb/v1/common/size.proto";
 import "iotfsdb/v1/common/status.proto";
 import "iotfsdb/v1/common/time_range.proto";
 
@@ -40,7 +40,7 @@ message ExportDataRequest {
 message FindDataRequest {
   iotfsdb.v1.common.SeriesCriteria criteria = 1;
   iotfsdb.v1.common.TimeRange time_range = 2;
-  iotfsdb.v1.common.SizeControl size_control = 3;
+  iotfsdb.v1.common.Size size = 3;
   iotfsdb.v1.common.NullHandler null_handler = 4;
   bool high_precision = 5;
   iotfsdb.v1.common.Reducer time_reducer = 6;

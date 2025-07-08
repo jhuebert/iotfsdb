@@ -12,5 +12,4 @@ enum NullOption {
   NULL_HANDLER_INCLUDE = 1;       // Include null values in results
   NULL_HANDLER_EXCLUDE = 2;       // Exclude null values from results
   NULL_HANDLER_PREVIOUS = 3;      // Use previous non-null value
-  NULL_HANDLER_CONSTANT = 4;      // Use constant value
 }

@@ -10,6 +10,8 @@ import "iotfsdb/v1/common/null_option.proto";
 
 // NullHandler defines how null values are handled in queries
 message NullHandler {
-  NullOption null_option = 1;
-  double null_value = 2;
+  oneof null_handling {
+    NullOption null_option = 1;
+    double null_value = 2;
+  }
 }
