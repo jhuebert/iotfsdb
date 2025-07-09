@@ -7,6 +7,7 @@ import com.google.protobuf.Int64Value;
 import com.google.protobuf.StringValue;
 import com.google.protobuf.Timestamp;
 import org.huebert.iotfsdb.api.grpc.proto.v1.CommonProto;
+import org.huebert.iotfsdb.api.schema.InsertRequest;
 import org.huebert.iotfsdb.api.schema.NumberType;
 import org.huebert.iotfsdb.api.schema.PartitionPeriod;
 import org.huebert.iotfsdb.api.schema.Reducer;
@@ -28,6 +29,14 @@ import java.util.regex.Pattern;
 //    unmappedTargetPolicy = ReportingPolicy.ERROR
 )
 public interface CommonMapper {
+
+    @Mapping(target = "id", source = "series")
+    @Mapping(target = "valuesList", source = "values")
+    CommonProto.SeriesData toGrpc(InsertRequest request);
+
+    @Mapping(target = "series", source = "id")
+    @Mapping(target = "values", source = "valuesList")
+    InsertRequest fromGrpc(CommonProto.SeriesData request);
 
     default Long toMilliseconds(Duration value) {
         long totalNanos = value.getSeconds() * 1_000_000_000L + value.getNanos();

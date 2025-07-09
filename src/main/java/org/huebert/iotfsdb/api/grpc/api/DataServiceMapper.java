@@ -23,8 +23,7 @@ import java.util.List;
 )
 public interface DataServiceMapper {
 
-    @Mapping(target = "data.id", source = "series")
-    @Mapping(target = "data.valuesList", source = "values")
+    @Mapping(target = "dataList", source = ".")
     DataServiceProto.InsertDataRequest toGrpc(InsertRequest request);
 
     @Mapping(target = "criteria", source = "series")
@@ -48,8 +47,7 @@ public interface DataServiceMapper {
     @Mapping(target = "size", source = "size.size")
     FindDataRequest fromGrpc(DataServiceProto.FindDataRequest request);
 
-    @Mapping(target = "values", source = "data.valuesList")
-    @Mapping(target = "series", source = "data.id")
+    @Mapping(target = ".", source = "dataList")
     InsertRequest fromGrpc(DataServiceProto.InsertDataRequest request);
 
     record FindDataResponseWrapper(List<FindDataResponse> findDataResponses) {

@@ -44,7 +44,7 @@ message ImportDataRequest {
 }
 
 message InsertDataRequest {
-  iotfsdb.v1.common.SeriesData data = 1;
+  repeated iotfsdb.v1.common.SeriesData data = 1;
   iotfsdb.v1.common.Reducer reducer = 2;
 }
 
