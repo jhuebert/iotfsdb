@@ -1,9 +1,9 @@
 package org.huebert.iotfsdb.api.grpc.api;
 
 import io.grpc.stub.StreamObserver;
+import org.huebert.iotfsdb.api.grpc.CommonMapper;
 import org.huebert.iotfsdb.api.grpc.proto.v1.api.SeriesServiceGrpc;
 import org.huebert.iotfsdb.api.grpc.proto.v1.api.SeriesServiceProto;
-import org.huebert.iotfsdb.api.grpc.CommonMapper;
 import org.huebert.iotfsdb.api.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.service.CloneService;

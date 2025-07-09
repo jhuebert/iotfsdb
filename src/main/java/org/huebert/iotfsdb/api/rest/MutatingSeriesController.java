@@ -37,7 +37,7 @@ public class MutatingSeriesController {
     }
 
     @CaptureStats(
-        group = "rest-v2", type = "series", operation = "create", javaClass = SeriesDataController.class, javaMethod = "createSeries",
+        group = "rest-v2", type = "series", operation = "create", javaClass = MutatingSeriesController.class, javaMethod = "createSeries",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "post"),
             @CaptureStats.Metadata(key = "restPath", value = "/v2/series"),
@@ -51,7 +51,7 @@ public class MutatingSeriesController {
     }
 
     @CaptureStats(
-        group = "rest-v2", type = "series", operation = "delete", javaClass = SeriesDataController.class, javaMethod = "deleteSeries",
+        group = "rest-v2", type = "series", operation = "delete", javaClass = MutatingSeriesController.class, javaMethod = "deleteSeries",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "delete"),
             @CaptureStats.Metadata(key = "restPath", value = "/v2/series/{id}"),
@@ -65,7 +65,7 @@ public class MutatingSeriesController {
     }
 
     @CaptureStats(
-        group = "rest-v2", type = "metadata", operation = "update", javaClass = SeriesDataController.class, javaMethod = "updateMetadata",
+        group = "rest-v2", type = "metadata", operation = "update", javaClass = MutatingSeriesController.class, javaMethod = "updateMetadata",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "put"),
             @CaptureStats.Metadata(key = "restPath", value = "/v2/series/{id}/metadata"),

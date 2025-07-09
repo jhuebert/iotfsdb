@@ -1,7 +1,7 @@
 package org.huebert.iotfsdb.api.grpc.api;
 
-import org.huebert.iotfsdb.api.grpc.proto.v1.api.SeriesServiceProto;
 import org.huebert.iotfsdb.api.grpc.CommonMapper;
+import org.huebert.iotfsdb.api.grpc.proto.v1.api.SeriesServiceProto;
 import org.huebert.iotfsdb.api.schema.FindDataResponse;
 import org.huebert.iotfsdb.api.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.api.schema.SeriesFile;

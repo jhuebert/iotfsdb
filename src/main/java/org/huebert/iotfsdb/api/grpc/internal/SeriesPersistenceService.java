@@ -1,9 +1,9 @@
 package org.huebert.iotfsdb.api.grpc.internal;
 
 import io.grpc.stub.StreamObserver;
+import org.huebert.iotfsdb.api.grpc.CommonMapper;
 import org.huebert.iotfsdb.api.grpc.proto.v1.internal.SeriesPersistenceServiceGrpc;
 import org.huebert.iotfsdb.api.grpc.proto.v1.internal.SeriesPersistenceServiceProto;
-import org.huebert.iotfsdb.api.grpc.CommonMapper;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.persistence.PersistenceAdapter;
 import org.huebert.iotfsdb.stats.CaptureStats;

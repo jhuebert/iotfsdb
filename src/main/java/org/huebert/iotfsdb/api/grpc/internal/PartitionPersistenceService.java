@@ -2,9 +2,9 @@ package org.huebert.iotfsdb.api.grpc.internal;
 
 import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
+import org.huebert.iotfsdb.api.grpc.CommonMapper;
 import org.huebert.iotfsdb.api.grpc.proto.v1.internal.PartitionPersistenceServiceGrpc;
 import org.huebert.iotfsdb.api.grpc.proto.v1.internal.PartitionPersistenceServiceProto;
-import org.huebert.iotfsdb.api.grpc.CommonMapper;
 import org.huebert.iotfsdb.persistence.PartitionByteBuffer;
 import org.huebert.iotfsdb.persistence.PersistenceAdapter;
 import org.huebert.iotfsdb.service.PartitionKey;
