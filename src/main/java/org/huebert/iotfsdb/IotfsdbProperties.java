@@ -1,5 +1,8 @@
 package org.huebert.iotfsdb;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.huebert.iotfsdb.api.schema.NumberType;
 import org.huebert.iotfsdb.api.schema.PartitionPeriod;
@@ -11,9 +14,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
 import java.nio.file.Path;
-import javax.validation.Valid;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 
 /**
  * Configuration properties for IoTFSDB
@@ -112,36 +112,6 @@ public class IotfsdbProperties {
          */
         private boolean internal = false;
 
-        /**
-         * AI-related configuration properties.
-         * Controls AI-specific features and behaviors.
-         */
-        @NotNull
-        @Valid
-        @NestedConfigurationProperty
-        private AiProperties ai = new AiProperties();
-
-    }
-
-    /**
-     * Configuration properties for AI features.\
-     */
-    @Data
-    @Validated
-    public static class AiProperties {
-        /**
-         * Whether to enable chat functionality.
-         * When true, AI-powered chat interfaces will be available.
-         * Default: false
-         */
-        private boolean chat = false;
-
-        /**
-         * Whether to enable MCP (Model Control Protocol) functionality.
-         * When true, AI model control interfaces will be available.
-         * Default: false
-         */
-        private boolean mcp = false;
     }
 
     /**
