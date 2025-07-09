@@ -27,7 +27,7 @@ public class IntervalService {
         Range<ZonedDateTime> dateTimeRange = request.getRange();
         Duration rangeDuration = Duration.between(dateTimeRange.lowerEndpoint(), dateTimeRange.upperEndpoint());
 
-        int count = properties.getMaxQuerySize();
+        int count = properties.getQuery().getMaxSize();
         if (request.getSize() != null) {
             count = Math.min(count, request.getSize());
         }

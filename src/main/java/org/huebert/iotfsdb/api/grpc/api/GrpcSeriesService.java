@@ -1,10 +1,9 @@
-package org.huebert.iotfsdb.api.grpc.service;
+package org.huebert.iotfsdb.api.grpc.api;
 
 import io.grpc.stub.StreamObserver;
-import org.huebert.iotfsdb.api.grpc.mapper.ProtoServicesMapper;
-import org.huebert.iotfsdb.api.grpc.mapper.ProtoTypesMapper;
-import org.huebert.iotfsdb.api.proto.IotfsdbServices;
-import org.huebert.iotfsdb.api.proto.SeriesServiceGrpc;
+import org.huebert.iotfsdb.api.grpc.proto.v1.api.SeriesServiceGrpc;
+import org.huebert.iotfsdb.api.grpc.proto.v1.api.SeriesServiceProto;
+import org.huebert.iotfsdb.api.grpc.CommonMapper;
 import org.huebert.iotfsdb.api.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.service.CloneService;
@@ -18,9 +17,9 @@ import java.util.List;
 @GrpcService
 public class GrpcSeriesService extends SeriesServiceGrpc.SeriesServiceImplBase {
 
-    private static final ProtoServicesMapper SERVICES_MAPPER = Mappers.getMapper(ProtoServicesMapper.class);
+    private static final SeriesServiceMapper SERVICES_MAPPER = Mappers.getMapper(SeriesServiceMapper.class);
 
-    private static final ProtoTypesMapper TYPES_MAPPER = Mappers.getMapper(ProtoTypesMapper.class);
+    private static final CommonMapper TYPES_MAPPER = Mappers.getMapper(CommonMapper.class);
 
     private final SeriesService seriesService;
 
@@ -33,7 +32,7 @@ public class GrpcSeriesService extends SeriesServiceGrpc.SeriesServiceImplBase {
 
     @CaptureStats(group = "grpc", type = "series", operation = "find", javaClass = GrpcSeriesService.class, javaMethod = "findSeries")
     @Override
-    public void findSeries(IotfsdbServices.FindSeriesRequest request, StreamObserver<IotfsdbServices.FindSeriesResponse> responseObserver) {
+    public void findSeries(SeriesServiceProto.FindSeriesRequest request, StreamObserver<SeriesServiceProto.FindSeriesResponse> responseObserver) {
         FindSeriesRequest serviceRequest = SERVICES_MAPPER.fromGrpc(request);
         List<SeriesFile> serviceResponse = seriesService.findSeries(serviceRequest);
         responseObserver.onNext(SERVICES_MAPPER.toGrpc(serviceResponse));
@@ -42,42 +41,42 @@ public class GrpcSeriesService extends SeriesServiceGrpc.SeriesServiceImplBase {
 
     @CaptureStats(group = "grpc", type = "series", operation = "create", javaClass = GrpcSeriesService.class, javaMethod = "createSeries")
     @Override
-    public void createSeries(IotfsdbServices.CreateSeriesRequest request, StreamObserver<IotfsdbServices.CreateSeriesResponse> responseObserver) {
+    public void createSeries(SeriesServiceProto.CreateSeriesRequest request, StreamObserver<SeriesServiceProto.CreateSeriesResponse> responseObserver) {
         SeriesFile seriesFile = SERVICES_MAPPER.fromGrpc(request);
         seriesService.createSeries(seriesFile);
-        responseObserver.onNext(IotfsdbServices.CreateSeriesResponse.getDefaultInstance());
+        responseObserver.onNext(SeriesServiceProto.CreateSeriesResponse.getDefaultInstance());
         responseObserver.onCompleted();
     }
 
     @CaptureStats(group = "grpc", type = "series", operation = "delete", javaClass = GrpcSeriesService.class, javaMethod = "deleteSeries")
     @Override
-    public void deleteSeries(IotfsdbServices.DeleteSeriesRequest request, StreamObserver<IotfsdbServices.DeleteSeriesResponse> responseObserver) {
+    public void deleteSeries(SeriesServiceProto.DeleteSeriesRequest request, StreamObserver<SeriesServiceProto.DeleteSeriesResponse> responseObserver) {
         seriesService.deleteSeries(request.getId());
-        responseObserver.onNext(IotfsdbServices.DeleteSeriesResponse.getDefaultInstance());
+        responseObserver.onNext(SeriesServiceProto.DeleteSeriesResponse.getDefaultInstance());
         responseObserver.onCompleted();
     }
 
     @CaptureStats(group = "grpc", type = "series", operation = "clone", javaClass = GrpcSeriesService.class, javaMethod = "cloneSeries")
     @Override
-    public void cloneSeries(IotfsdbServices.CloneSeriesRequest request, StreamObserver<IotfsdbServices.CloneSeriesResponse> responseObserver) {
+    public void cloneSeries(SeriesServiceProto.CloneSeriesRequest request, StreamObserver<SeriesServiceProto.CloneSeriesResponse> responseObserver) {
         cloneService.cloneSeries(request.getSourceId(), request.getDestinationId());
-        responseObserver.onNext(IotfsdbServices.CloneSeriesResponse.getDefaultInstance());
+        responseObserver.onNext(SeriesServiceProto.CloneSeriesResponse.getDefaultInstance());
         responseObserver.onCompleted();
     }
 
     @CaptureStats(group = "grpc", type = "definition", operation = "update", javaClass = GrpcSeriesService.class, javaMethod = "updateDefinition")
     @Override
-    public void updateDefinition(IotfsdbServices.UpdateDefinitionRequest request, StreamObserver<IotfsdbServices.UpdateDefinitionResponse> responseObserver) {
+    public void updateDefinition(SeriesServiceProto.UpdateDefinitionRequest request, StreamObserver<SeriesServiceProto.UpdateDefinitionResponse> responseObserver) {
         cloneService.updateDefinition(request.getId(), TYPES_MAPPER.fromGrpc(request.getDefinition()));
-        responseObserver.onNext(IotfsdbServices.UpdateDefinitionResponse.getDefaultInstance());
+        responseObserver.onNext(SeriesServiceProto.UpdateDefinitionResponse.getDefaultInstance());
         responseObserver.onCompleted();
     }
 
     @CaptureStats(group = "grpc", type = "metadata", operation = "update", javaClass = GrpcSeriesService.class, javaMethod = "updateMetadata")
     @Override
-    public void updateMetadata(IotfsdbServices.UpdateMetadataRequest request, StreamObserver<IotfsdbServices.UpdateMetadataResponse> responseObserver) {
+    public void updateMetadata(SeriesServiceProto.UpdateMetadataRequest request, StreamObserver<SeriesServiceProto.UpdateMetadataResponse> responseObserver) {
         seriesService.updateMetadata(request.getId(), request.getMetadataMap());
-        responseObserver.onNext(IotfsdbServices.UpdateMetadataResponse.getDefaultInstance());
+        responseObserver.onNext(SeriesServiceProto.UpdateMetadataResponse.getDefaultInstance());
         responseObserver.onCompleted();
     }
 

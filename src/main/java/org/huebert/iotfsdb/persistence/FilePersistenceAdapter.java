@@ -67,7 +67,7 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
 
     @Autowired
     public FilePersistenceAdapter(@NotNull IotfsdbProperties properties, @NotNull ObjectMapper objectMapper) {
-        this(properties.getRoot(), objectMapper);
+        this(properties.getPersistence().getRoot(), objectMapper);
     }
 
     public static FilePersistenceAdapter create(Path propertyRoot, ObjectMapper objectMapper) {

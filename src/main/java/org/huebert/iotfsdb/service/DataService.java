@@ -46,7 +46,7 @@ public class DataService {
 
     public DataService(@NotNull IotfsdbProperties properties, @NotNull PersistenceAdapter persistenceAdapter) {
         this.persistenceAdapter = persistenceAdapter;
-        this.partitionCache = CacheBuilder.from(properties.getPartitionCache())
+        this.partitionCache = CacheBuilder.from(properties.getPersistence().getPartitionCache())
             .removalListener((RemovalListener<PartitionKey, PartitionByteBuffer>) notification -> {
                 PartitionByteBuffer value = notification.getValue();
                 if (value != null) {

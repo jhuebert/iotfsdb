@@ -70,7 +70,7 @@ public class PartitionService {
 
     public PartitionService(@NotNull IotfsdbProperties properties, @NotNull DataService dataService) {
         this.dataService = dataService;
-        this.partitionCache = CacheBuilder.from(properties.getPartitionCache())
+        this.partitionCache = CacheBuilder.from(properties.getPersistence().getPartitionCache())
             .build(new CacheLoader<>(this::calculateRange));
     }
 

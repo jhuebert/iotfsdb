@@ -31,7 +31,7 @@ public class IntervalServiceTest {
         request.setFrom(ZonedDateTime.parse(("2024-11-11T00:00:00-06:00")));
         request.setTo(ZonedDateTime.parse(("2024-11-11T04:00:00-06:00")));
 
-        when(properties.getMaxQuerySize()).thenReturn(10);
+        when(properties.getQuery().getMaxSize()).thenReturn(10);
 
         List<Range<ZonedDateTime>> ranges = intervalService.getIntervalRanges(request);
         assertThat(ranges.size()).isEqualTo(2);
@@ -46,7 +46,7 @@ public class IntervalServiceTest {
         request.setFrom(ZonedDateTime.parse(("2024-11-11T00:00:00-06:00")));
         request.setTo(ZonedDateTime.parse(("2024-11-11T04:00:00-06:00")));
 
-        when(properties.getMaxQuerySize()).thenReturn(1);
+        when(properties.getQuery().getMaxSize()).thenReturn(1);
 
         List<Range<ZonedDateTime>> ranges = intervalService.getIntervalRanges(request);
         assertThat(ranges.size()).isEqualTo(1);
@@ -60,7 +60,7 @@ public class IntervalServiceTest {
         request.setFrom(ZonedDateTime.parse(("2024-11-11T00:00:00-06:00")));
         request.setTo(ZonedDateTime.parse(("2024-11-11T04:00:00-06:00")));
 
-        when(properties.getMaxQuerySize()).thenReturn(10);
+        when(properties.getQuery().getMaxSize()).thenReturn(10);
 
         List<Range<ZonedDateTime>> ranges = intervalService.getIntervalRanges(request);
         assertThat(ranges.size()).isEqualTo(2);
@@ -75,7 +75,7 @@ public class IntervalServiceTest {
         request.setFrom(ZonedDateTime.parse(("2024-11-11T00:00:00-06:00")));
         request.setTo(ZonedDateTime.parse(("2024-11-11T04:00:00-06:00")));
 
-        when(properties.getMaxQuerySize()).thenReturn(1);
+        when(properties.getQuery().getMaxSize()).thenReturn(1);
 
         List<Range<ZonedDateTime>> ranges = intervalService.getIntervalRanges(request);
         assertThat(ranges.size()).isEqualTo(1);
@@ -88,7 +88,7 @@ public class IntervalServiceTest {
         request.setFrom(ZonedDateTime.parse(("2024-11-11T00:00:00-06:00")));
         request.setTo(ZonedDateTime.parse(("2024-11-11T04:00:00-06:00")));
 
-        when(properties.getMaxQuerySize()).thenReturn(10);
+        when(properties.getQuery().getMaxSize()).thenReturn(10);
 
         List<Range<ZonedDateTime>> ranges = intervalService.getIntervalRanges(request);
         assertThat(ranges.size()).isEqualTo(10);
@@ -104,7 +104,7 @@ public class IntervalServiceTest {
         request.setFrom(ZonedDateTime.parse(("2024-11-11T00:00:00-06:00")));
         request.setTo(ZonedDateTime.parse(("2024-11-11T04:00:00-06:00")));
 
-        when(properties.getMaxQuerySize()).thenReturn(10);
+        when(properties.getQuery().getMaxSize()).thenReturn(10);
 
         List<Range<ZonedDateTime>> ranges = intervalService.getIntervalRanges(request);
         assertThat(ranges.size()).isEqualTo(2);

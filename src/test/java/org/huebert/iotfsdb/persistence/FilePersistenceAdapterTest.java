@@ -28,7 +28,7 @@ public class FilePersistenceAdapterTest {
     @Test
     void testNullRoot() {
         IotfsdbProperties properties = new IotfsdbProperties();
-        properties.setRoot(null);
+        properties.getPersistence().setRoot(null);
         assertThrows(IllegalArgumentException.class, () -> new FilePersistenceAdapter(properties, new ObjectMapper()));
     }
 
@@ -42,7 +42,7 @@ public class FilePersistenceAdapterTest {
         }
 
         IotfsdbProperties properties = new IotfsdbProperties();
-        properties.setRoot(temp);
+        properties.getPersistence().setRoot(temp);
 
         assertThat(Files.exists(temp)).isFalse();
 
@@ -61,10 +61,10 @@ public class FilePersistenceAdapterTest {
 
         Path temp = Files.createTempDirectory("iotfsdb");
         IotfsdbProperties properties = new IotfsdbProperties();
-        properties.setRoot(temp);
+        properties.getPersistence().setRoot(temp);
 
         ObjectMapper objectMapper = new ObjectMapper();
-        FilePersistenceAdapter adapter = FilePersistenceAdapter.create(properties.getRoot(), objectMapper);
+        FilePersistenceAdapter adapter = FilePersistenceAdapter.create(properties.getPersistence().getRoot(), objectMapper);
 
         assertThat(adapter.getSeries()).isEqualTo(List.of());
 
@@ -79,7 +79,7 @@ public class FilePersistenceAdapterTest {
 
         Path temp = Files.createTempDirectory("iotfsdb");
         IotfsdbProperties properties = new IotfsdbProperties();
-        properties.setRoot(temp);
+        properties.getPersistence().setRoot(temp);
 
         ObjectMapper objectMapper = new ObjectMapper();
         FilePersistenceAdapter adapter = new FilePersistenceAdapter(properties, objectMapper);
@@ -121,7 +121,7 @@ public class FilePersistenceAdapterTest {
 
         Path temp = Files.createTempDirectory("iotfsdb");
         IotfsdbProperties properties = new IotfsdbProperties();
-        properties.setRoot(temp);
+        properties.getPersistence().setRoot(temp);
 
         ObjectMapper objectMapper = new ObjectMapper();
         FilePersistenceAdapter adapter = new FilePersistenceAdapter(properties, objectMapper);
@@ -157,7 +157,7 @@ public class FilePersistenceAdapterTest {
 
         Path temp = Files.createTempDirectory("iotfsdb");
         IotfsdbProperties properties = new IotfsdbProperties();
-        properties.setRoot(temp);
+        properties.getPersistence().setRoot(temp);
 
         ObjectMapper objectMapper = new ObjectMapper();
         FilePersistenceAdapter adapter = new FilePersistenceAdapter(properties, objectMapper);
@@ -217,7 +217,7 @@ public class FilePersistenceAdapterTest {
         }
 
         IotfsdbProperties properties = new IotfsdbProperties();
-        properties.setRoot(temp);
+        properties.getPersistence().setRoot(temp);
 
         ObjectMapper objectMapper = new ObjectMapper();
         FilePersistenceAdapter adapter = new FilePersistenceAdapter(properties, objectMapper);

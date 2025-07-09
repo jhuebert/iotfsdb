@@ -1,12 +1,10 @@
-package org.huebert.iotfsdb.api.grpc.service;
+package org.huebert.iotfsdb.api.grpc.api;
 
 import com.google.protobuf.ByteString;
-import com.google.protobuf.StringValue;
 import io.grpc.stub.StreamObserver;
-import org.huebert.iotfsdb.api.grpc.mapper.ProtoServicesMapper;
-import org.huebert.iotfsdb.api.proto.DataServiceGrpc;
-import org.huebert.iotfsdb.api.proto.IotfsdbServices;
-import org.huebert.iotfsdb.api.proto.IotfsdbTypes;
+import org.huebert.iotfsdb.api.grpc.proto.v1.CommonProto;
+import org.huebert.iotfsdb.api.grpc.proto.v1.api.DataServiceGrpc;
+import org.huebert.iotfsdb.api.grpc.proto.v1.api.DataServiceProto;
 import org.huebert.iotfsdb.api.schema.FindDataRequest;
 import org.huebert.iotfsdb.api.schema.FindDataResponse;
 import org.huebert.iotfsdb.api.schema.InsertRequest;
@@ -32,7 +30,7 @@ import java.util.concurrent.Executors;
 @GrpcService
 public class GrpcDataService extends DataServiceGrpc.DataServiceImplBase {
 
-    private static final ProtoServicesMapper MAPPER = Mappers.getMapper(ProtoServicesMapper.class);
+    private static final DataServiceMapper MAPPER = Mappers.getMapper(DataServiceMapper.class);
 
     private final InsertService insertService;
 
@@ -51,27 +49,27 @@ public class GrpcDataService extends DataServiceGrpc.DataServiceImplBase {
 
     @CaptureStats(group = "grpc", type = "data", operation = "find", javaClass = GrpcDataService.class, javaMethod = "findData")
     @Override
-    public void findData(IotfsdbServices.FindDataRequest request, StreamObserver<IotfsdbServices.FindDataResponse> responseObserver) {
+    public void findData(DataServiceProto.FindDataRequest request, StreamObserver<DataServiceProto.FindDataResponse> responseObserver) {
         FindDataRequest serviceRequest = MAPPER.fromGrpc(request);
         List<FindDataResponse> serviceResponse = queryService.findData(serviceRequest);
-        IotfsdbServices.FindDataResponse grpcResponse = MAPPER.toGrpcFindDataResponse(serviceResponse);
+        DataServiceProto.FindDataResponse grpcResponse = MAPPER.toGrpcFindDataResponse(serviceResponse);
         responseObserver.onNext(grpcResponse);
         responseObserver.onCompleted();
     }
 
     @CaptureStats(group = "grpc", type = "data", operation = "stream", javaClass = GrpcDataService.class, javaMethod = "insertData")
     @Override
-    public StreamObserver<IotfsdbServices.InsertDataRequest> insertData(StreamObserver<IotfsdbServices.InsertDataResponse> responseObserver) {
+    public StreamObserver<DataServiceProto.InsertDataRequest> insertData(StreamObserver<DataServiceProto.InsertDataResponse> responseObserver) {
         return new StreamObserver<>() {
 
             @CaptureStats(group = "grpc", type = "data", operation = "insert", javaClass = GrpcDataService.class, javaMethod = "StreamObserver.onNext")
             @Override
-            public void onNext(IotfsdbServices.InsertDataRequest value) {
+            public void onNext(DataServiceProto.InsertDataRequest value) {
                 try (ExecutorService es = Executors.newVirtualThreadPerTaskExecutor()) {
                     es.submit(() -> {
                         InsertRequest serviceRequest = MAPPER.fromGrpc(value);
                         insertService.insert(serviceRequest);
-                        responseObserver.onNext(IotfsdbServices.InsertDataResponse.getDefaultInstance());
+                        responseObserver.onNext(DataServiceProto.InsertDataResponse.getDefaultInstance());
                     });
                 } catch (Exception e) {
                     responseObserver.onError(new RuntimeException("Error during parallel processing", e));
@@ -93,14 +91,14 @@ public class GrpcDataService extends DataServiceGrpc.DataServiceImplBase {
 
     @CaptureStats(group = "grpc", type = "data", operation = "export", javaClass = GrpcDataService.class, javaMethod = "exportData")
     @Override
-    public void exportData(IotfsdbServices.ExportDataRequest request, StreamObserver<IotfsdbServices.ExportDataResponse> responseObserver) {
+    public void exportData(DataServiceProto.ExportDataRequest request, StreamObserver<DataServiceProto.ExportDataResponse> responseObserver) {
         String formattedTime = TimeConverter.toUtc(ZonedDateTime.now()).format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
         String filename = "iotfsdb-" + formattedTime + ".zip";
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         exportService.export(null, outputStream);
-        responseObserver.onNext(IotfsdbServices.ExportDataResponse.newBuilder()
-            .setFile(IotfsdbTypes.File.newBuilder()
-                .setFilename(StringValue.of(filename))
+        responseObserver.onNext(DataServiceProto.ExportDataResponse.newBuilder()
+            .setFile(CommonProto.File.newBuilder()
+                .setFilename(filename)
                 .setData(ByteString.copyFrom(outputStream.toByteArray()))
                 .build())
             .build());
@@ -109,7 +107,7 @@ public class GrpcDataService extends DataServiceGrpc.DataServiceImplBase {
 
     @CaptureStats(group = "grpc", type = "data", operation = "import", javaClass = GrpcDataService.class, javaMethod = "importData")
     @Override
-    public void importData(IotfsdbServices.ImportDataRequest request, StreamObserver<IotfsdbServices.ImportDataResponse> responseObserver) {
+    public void importData(DataServiceProto.ImportDataRequest request, StreamObserver<DataServiceProto.ImportDataResponse> responseObserver) {
         try {
             Path tempFile = Files.createTempFile("iotfsdb-", ".zip");
             try {
@@ -118,7 +116,7 @@ public class GrpcDataService extends DataServiceGrpc.DataServiceImplBase {
             } finally {
                 Files.deleteIfExists(tempFile);
             }
-            responseObserver.onNext(IotfsdbServices.ImportDataResponse.getDefaultInstance());
+            responseObserver.onNext(DataServiceProto.ImportDataResponse.getDefaultInstance());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

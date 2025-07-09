@@ -114,7 +114,6 @@ public class CloneService {
         PartitionRange destinationRange = partitionService.getRange(destinationKey);
         sourceRange.withRead(() -> {
             ByteBuffer sourceBuffer = dataService.getBuffer(sourceKey).orElseThrow();
-            // Worried about deadlock
             destinationRange.withWrite(() -> {
                 ByteBuffer destinationBuffer = dataService.getBuffer(destinationKey, sourceRange.getSize(), sourceRange.getAdapter());
                 destinationBuffer.put(sourceBuffer);
