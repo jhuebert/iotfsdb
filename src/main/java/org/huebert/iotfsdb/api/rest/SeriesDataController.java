@@ -42,7 +42,7 @@ public class SeriesDataController {
     }
 
     @CaptureStats(
-        group = "rest-v2", type = "data", operation = "find", javaClass = SeriesDataController.class, javaMethod = "findData",
+        group = "rest", type = "data", operation = "find", javaClass = SeriesDataController.class, javaMethod = "findData",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "post"),
             @CaptureStats.Metadata(key = "restPath", value = "/v2/data/find"),
@@ -55,7 +55,7 @@ public class SeriesDataController {
     }
 
     @CaptureStats(
-        group = "rest-v2", type = "data", operation = "export", javaClass = SeriesDataController.class, javaMethod = "exportData",
+        group = "rest", type = "data", operation = "export", javaClass = SeriesDataController.class, javaMethod = "exportData",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "post"),
             @CaptureStats.Metadata(key = "restPath", value = "/v2/data/export"),

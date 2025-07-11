@@ -37,7 +37,7 @@ public class SeriesController {
     }
 
     @CaptureStats(
-        group = "rest-v2", type = "series", operation = "find", javaClass = SeriesController.class, javaMethod = "findSeries",
+        group = "rest", type = "series", operation = "find", javaClass = SeriesController.class, javaMethod = "findSeries",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "post"),
             @CaptureStats.Metadata(key = "restPath", value = "/v2/series/find"),
@@ -50,7 +50,7 @@ public class SeriesController {
     }
 
     @CaptureStats(
-        group = "rest-v2", type = "series", operation = "get", javaClass = SeriesController.class, javaMethod = "getSeries",
+        group = "rest", type = "series", operation = "get", javaClass = SeriesController.class, javaMethod = "getSeries",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "get"),
             @CaptureStats.Metadata(key = "restPath", value = "/v2/series/{id}"),
@@ -63,7 +63,7 @@ public class SeriesController {
     }
 
     @CaptureStats(
-        group = "rest-v2", type = "metadata", operation = "get", javaClass = SeriesController.class, javaMethod = "getMetadata",
+        group = "rest", type = "metadata", operation = "get", javaClass = SeriesController.class, javaMethod = "getMetadata",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "get"),
             @CaptureStats.Metadata(key = "restPath", value = "/v2/series/{id}/metadata"),

@@ -44,7 +44,7 @@ public class MutatingSeriesDataController {
     }
 
     @CaptureStats(
-        group = "rest-v2", type = "data", operation = "insert", javaClass = MutatingSeriesDataController.class, javaMethod = "insertData",
+        group = "rest", type = "data", operation = "insert", javaClass = MutatingSeriesDataController.class, javaMethod = "insertData",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "post"),
             @CaptureStats.Metadata(key = "restPath", value = "/v2/data"),
@@ -58,7 +58,7 @@ public class MutatingSeriesDataController {
     }
 
     @CaptureStats(
-        group = "rest-v2", type = "data", operation = "import", javaClass = MutatingSeriesDataController.class, javaMethod = "importData",
+        group = "rest", type = "data", operation = "import", javaClass = MutatingSeriesDataController.class, javaMethod = "importData",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "post"),
             @CaptureStats.Metadata(key = "restPath", value = "/v2/data/import"),
