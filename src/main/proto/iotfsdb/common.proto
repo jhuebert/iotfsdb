@@ -116,9 +116,10 @@ message Size {
 
 // Status represents the result of an operation
 message Status {
-  bool success = 1;    // Whether the operation succeeded
-  StatusCode code = 2; // Specific status code
-  string message = 3;  // Human-readable status message
+  bool success = 1;                 // Whether the operation succeeded
+  StatusCode code = 2;              // Specific status code
+  string message = 3;               // Human-readable status message
+  map<string, string> metadata = 4; // Additional metadata about the status
 }
 
 // StatusCode defines standard status codes for API responses

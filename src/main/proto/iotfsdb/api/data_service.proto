@@ -21,7 +21,7 @@ service DataService {
   rpc ImportData(ImportDataRequest) returns (ImportDataResponse);
 
   // InsertData inserts streaming time-series data points
-  rpc InsertData(stream InsertDataRequest) returns (stream InsertDataResponse);
+  rpc InsertData(InsertDataRequest) returns (InsertDataResponse);
 }
 
 message ExportDataRequest {

@@ -1,21 +1,20 @@
 package org.huebert.iotfsdb.api.grpc.internal;
 
 import io.grpc.stub.StreamObserver;
+import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.api.grpc.CommonMapper;
 import org.huebert.iotfsdb.api.grpc.proto.v1.internal.SeriesPersistenceServiceGrpc;
 import org.huebert.iotfsdb.api.grpc.proto.v1.internal.SeriesPersistenceServiceProto;
-import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.persistence.PersistenceAdapter;
 import org.huebert.iotfsdb.stats.CaptureStats;
 import org.mapstruct.factory.Mappers;
 import org.springframework.grpc.server.service.GrpcService;
 
-import java.util.List;
-
+@Slf4j
 @GrpcService
 public class SeriesPersistenceService extends SeriesPersistenceServiceGrpc.SeriesPersistenceServiceImplBase {
 
-    private static final CommonMapper TYPES_MAPPER = Mappers.getMapper(CommonMapper.class);
+    private static final CommonMapper MAPPER = Mappers.getMapper(CommonMapper.class);
 
     private final PersistenceAdapter persistenceAdapter;
 
@@ -26,26 +25,45 @@ public class SeriesPersistenceService extends SeriesPersistenceServiceGrpc.Serie
     @CaptureStats(group = "grpc-internal", type = "series", operation = "delete", javaClass = SeriesPersistenceService.class, javaMethod = "deleteSeries")
     @Override
     public void deleteSeries(SeriesPersistenceServiceProto.DeleteSeriesRequest request, StreamObserver<SeriesPersistenceServiceProto.DeleteSeriesResponse> responseObserver) {
-        persistenceAdapter.deleteSeries(request.getId());
-        responseObserver.onNext(SeriesPersistenceServiceProto.DeleteSeriesResponse.getDefaultInstance());
+        SeriesPersistenceServiceProto.DeleteSeriesResponse.Builder builder = SeriesPersistenceServiceProto.DeleteSeriesResponse.newBuilder();
+        try {
+            persistenceAdapter.deleteSeries(request.getId());
+            builder.setStatus(CommonMapper.SUCCESS_STATUS);
+        } catch (Exception e) {
+            log.error("Error deleting series", e);
+            builder.setStatus(MAPPER.getFailedStatus(e));
+        }
+        responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
     }
 
     @CaptureStats(group = "grpc-internal", type = "series", operation = "get", javaClass = SeriesPersistenceService.class, javaMethod = "getSeries")
     @Override
     public void getSeries(SeriesPersistenceServiceProto.GetSeriesRequest request, StreamObserver<SeriesPersistenceServiceProto.GetSeriesResponse> responseObserver) {
-        List<SeriesFile> series = persistenceAdapter.getSeries();
-        responseObserver.onNext(SeriesPersistenceServiceProto.GetSeriesResponse.newBuilder()
-            .addAllSeries(TYPES_MAPPER.toGrpc(series))
-            .build());
+        SeriesPersistenceServiceProto.GetSeriesResponse.Builder builder = SeriesPersistenceServiceProto.GetSeriesResponse.newBuilder();
+        try {
+            builder.addAllSeries(persistenceAdapter.getSeries().stream().map(MAPPER::toProto).toList());
+            builder.setStatus(CommonMapper.SUCCESS_STATUS);
+        } catch (Exception e) {
+            log.error("Error getting series", e);
+            builder.setStatus(MAPPER.getFailedStatus(e));
+        }
+        responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
     }
 
     @CaptureStats(group = "grpc-internal", type = "series", operation = "save", javaClass = SeriesPersistenceService.class, javaMethod = "saveSeries")
     @Override
     public void saveSeries(SeriesPersistenceServiceProto.SaveSeriesRequest request, StreamObserver<SeriesPersistenceServiceProto.SaveSeriesResponse> responseObserver) {
-        persistenceAdapter.saveSeries(TYPES_MAPPER.fromGrpc(request.getSeries()));
-        responseObserver.onNext(SeriesPersistenceServiceProto.SaveSeriesResponse.getDefaultInstance());
+        SeriesPersistenceServiceProto.SaveSeriesResponse.Builder builder = SeriesPersistenceServiceProto.SaveSeriesResponse.newBuilder();
+        try {
+            persistenceAdapter.saveSeries(MAPPER.fromProto(request.getSeries()));
+            builder.setStatus(CommonMapper.SUCCESS_STATUS);
+        } catch (Exception e) {
+            log.error("Error saving series", e);
+            builder.setStatus(MAPPER.getFailedStatus(e));
+        }
+        responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
     }
 }
