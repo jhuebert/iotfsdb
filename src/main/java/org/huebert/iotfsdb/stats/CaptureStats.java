@@ -16,7 +16,7 @@ import java.lang.annotation.Target;
 public @interface CaptureStats {
 
     /**
-     * Returns the group name. The group name represents an API grouping (REST, GRPC, etc.)
+     * Returns the group name. The group name represents an API grouping (rest, grpc, etc.)
      */
     String group();
 
@@ -29,6 +29,11 @@ public @interface CaptureStats {
      * Returns the operation name.
      */
     String operation();
+
+    /**
+     * Returns the version (v2, v3, etc.)
+     */
+    String version() default "";
 
     /**
      * Returns the associated Java class.

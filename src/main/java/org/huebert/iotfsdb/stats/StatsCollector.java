@@ -23,6 +23,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -106,7 +107,16 @@ public class StatsCollector {
     }
 
     private static String getSeriesId(CaptureStats annotation, Stat stat) {
-        return String.join("-", "iotfsdb", annotation.group(), annotation.type(), annotation.operation());
+        List<String> components = new ArrayList<>(List.of(
+            "iotfsdb",
+            annotation.group(),
+            annotation.type(),
+            annotation.operation(),
+            stat.name(),
+            annotation.version()
+        ));
+        components.removeIf(String::isBlank);
+        return String.join("-", components);
     }
 
     private static List<InsertRequest> createRequests(ZonedDateTime time, Accumulator stats) {
@@ -135,6 +145,7 @@ public class StatsCollector {
             "group", annotation.group(),
             "type", annotation.type(),
             "operation", annotation.operation(),
+            "version", annotation.version(),
             "javaClass", annotation.javaClass().getName(),
             "javaMethod", annotation.javaMethod(),
             "stat", stat.getKey(),
