@@ -49,6 +49,7 @@ public class SeriesUiController {
         group = "ui", type = "series", operation = "index", javaClass = SeriesUiController.class, javaMethod = "getIndex",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "get"),
+            @CaptureStats.Metadata(key = "restPath", value = "/ui/series"),
         }
     )
     @GetMapping
@@ -72,6 +73,7 @@ public class SeriesUiController {
         group = "ui", type = "series", operation = "find", javaClass = SeriesUiController.class, javaMethod = "search",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "post"),
+            @CaptureStats.Metadata(key = "restPath", value = "/ui/series/search"),
         }
     )
     @PostMapping("search")
@@ -91,6 +93,7 @@ public class SeriesUiController {
         group = "ui", type = "series", operation = "export", javaClass = SeriesUiController.class, javaMethod = "exportSeries",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "get"),
+            @CaptureStats.Metadata(key = "restPath", value = "/ui/series/{id}/export"),
         }
     )
     @GetMapping("{id}/export")

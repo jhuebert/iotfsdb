@@ -31,6 +31,7 @@ public class TransferUiController {
         group = "ui", type = "transfer", operation = "index", javaClass = TransferUiController.class, javaMethod = "getIndex",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "get"),
+            @CaptureStats.Metadata(key = "restPath", value = "/ui/transfer"),
         }
     )
     @GetMapping
@@ -43,6 +44,7 @@ public class TransferUiController {
         group = "ui", type = "transfer", operation = "export", javaClass = TransferUiController.class, javaMethod = "exportData",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "get"),
+            @CaptureStats.Metadata(key = "restPath", value = "/ui/transfer/export"),
         }
     )
     @GetMapping("export")

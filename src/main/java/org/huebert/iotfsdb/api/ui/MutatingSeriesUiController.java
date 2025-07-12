@@ -52,6 +52,7 @@ public class MutatingSeriesUiController {
         group = "ui", type = "series", operation = "delete", javaClass = MutatingSeriesUiController.class, javaMethod = "deleteSeries",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "delete"),
+            @CaptureStats.Metadata(key = "restPath", value = "/ui/series/{id}"),
         }
     )
     @DeleteMapping("{id}")
@@ -64,6 +65,7 @@ public class MutatingSeriesUiController {
         group = "ui", type = "metadata", operation = "delete", javaClass = MutatingSeriesUiController.class, javaMethod = "deleteMetadata",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "delete"),
+            @CaptureStats.Metadata(key = "restPath", value = "/ui/series/{id}/metadata/{key}"),
         }
     )
     @DeleteMapping("{id}/metadata/{key}")
@@ -78,6 +80,7 @@ public class MutatingSeriesUiController {
         group = "ui", type = "metadata", operation = "add", javaClass = MutatingSeriesUiController.class, javaMethod = "addMetadata",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "post"),
+            @CaptureStats.Metadata(key = "restPath", value = "/ui/series/{id}/metadata"),
         }
     )
     @PostMapping("{id}/metadata")
@@ -89,6 +92,7 @@ public class MutatingSeriesUiController {
         group = "ui", type = "metadata", operation = "update", javaClass = MutatingSeriesUiController.class, javaMethod = "updateMetadata",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "post"),
+            @CaptureStats.Metadata(key = "restPath", value = "/ui/series/{id}/metadata/{key}"),
         }
     )
     @PostMapping("{id}/metadata/{key}")
@@ -111,6 +115,7 @@ public class MutatingSeriesUiController {
         group = "ui", type = "series", operation = "form", javaClass = MutatingSeriesUiController.class, javaMethod = "getCreateSeriesForm",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "get"),
+            @CaptureStats.Metadata(key = "restPath", value = "/ui/series/create"),
         }
     )
     @GetMapping("create")
@@ -122,6 +127,7 @@ public class MutatingSeriesUiController {
         group = "ui", type = "series", operation = "create", javaClass = MutatingSeriesUiController.class, javaMethod = "createSeries",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "post"),
+            @CaptureStats.Metadata(key = "restPath", value = "/ui/series"),
         }
     )
     @PostMapping

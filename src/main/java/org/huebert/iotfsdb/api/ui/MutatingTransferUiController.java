@@ -37,6 +37,7 @@ public class MutatingTransferUiController {
         group = "ui", type = "transfer", operation = "import", javaClass = MutatingTransferUiController.class, javaMethod = "importData",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "post"),
+            @CaptureStats.Metadata(key = "restPath", value = "/ui/transfer/import"),
         }
     )
     @PostMapping("import")

@@ -11,12 +11,14 @@ import org.huebert.iotfsdb.persistence.PersistenceAdapter;
 import org.huebert.iotfsdb.service.PartitionKey;
 import org.huebert.iotfsdb.stats.CaptureStats;
 import org.mapstruct.factory.Mappers;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.grpc.server.service.GrpcService;
 
 import java.util.Set;
 
 @Slf4j
 @GrpcService
+@ConditionalOnExpression("${iotfsdb.api.internal:true}")
 public class PartitionPersistenceService extends PartitionPersistenceServiceGrpc.PartitionPersistenceServiceImplBase {
 
     private static final CommonMapper MAPPER = Mappers.getMapper(CommonMapper.class);

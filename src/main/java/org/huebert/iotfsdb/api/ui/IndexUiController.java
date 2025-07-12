@@ -16,6 +16,7 @@ public class IndexUiController {
         group = "ui", type = "root", operation = "index", javaClass = IndexUiController.class, javaMethod = "getIndex",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "get"),
+            @CaptureStats.Metadata(key = "restPath", value = "/ui"),
         }
     )
     @GetMapping

@@ -51,6 +51,7 @@ public class DataUiController {
         group = "ui", type = "data", operation = "index", javaClass = DataUiController.class, javaMethod = "getIndex",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "get"),
+            @CaptureStats.Metadata(key = "restPath", value = "/ui/data"),
         }
     )
     @GetMapping
@@ -84,6 +85,7 @@ public class DataUiController {
         group = "ui", type = "data", operation = "search", javaClass = DataUiController.class, javaMethod = "searchData",
         metadata = {
             @CaptureStats.Metadata(key = "restMethod", value = "post"),
+            @CaptureStats.Metadata(key = "restPath", value = "/ui/data/search"),
         }
     )
     @PostMapping("search")

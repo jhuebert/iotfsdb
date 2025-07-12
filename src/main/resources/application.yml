@@ -29,13 +29,28 @@ server:
     min-response-size: 2048
 
 iotfsdb:
-#  TODO
-  root: "memory"
   read-only: false
-  max-query-size: 1000
-  partition-cache: "expireAfterAccess=5m,maximumSize=10000,softValues"
-  ui: true
-  stats: false
+  persistence:
+    root: "memory"
+    partition-cache: expireAfterAccess=5m,maximumSize=10000,softValues
+  api:
+    grpc: true
+    rest: true
+    internal: false
+    ui: true
+  stats:
+    enabled: true
+  query:
+    max-size: 1000
+  series:
+    create-on-insert: true
+    default-series:
+      definition:
+        type: FLOAT4
+        interval: 60000
+        partition: DAY
+      metadata:
+        createdBy: "iotfsdb"
 
 gg:
   jte:

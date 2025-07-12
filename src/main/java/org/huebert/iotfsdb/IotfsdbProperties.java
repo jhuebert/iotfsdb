@@ -184,6 +184,7 @@ public class IotfsdbProperties {
          */
         @NotNull
         @Valid
+        @NestedConfigurationProperty
         private SeriesFile defaultSeries = SeriesFile.builder()
             .definition(SeriesDefinition.builder()
                 .type(NumberType.FLOAT4)

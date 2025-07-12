@@ -14,6 +14,7 @@ import org.springframework.validation.annotation.Validated;
 
 import java.nio.ByteBuffer;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,7 +51,7 @@ public class InsertService {
                         .definition(defaultSeries.getDefinition().toBuilder()
                             .id(seriesId)
                             .build())
-                        .metadata(defaultSeries.getMetadata())
+                        .metadata(new HashMap<>(defaultSeries.getMetadata()))
                         .build();
                     dataService.saveSeries(toCreate);
                     return Optional.of(toCreate);

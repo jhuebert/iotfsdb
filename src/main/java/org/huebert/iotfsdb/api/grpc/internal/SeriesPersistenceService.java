@@ -8,10 +8,12 @@ import org.huebert.iotfsdb.api.grpc.proto.v1.internal.SeriesPersistenceServicePr
 import org.huebert.iotfsdb.persistence.PersistenceAdapter;
 import org.huebert.iotfsdb.stats.CaptureStats;
 import org.mapstruct.factory.Mappers;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.grpc.server.service.GrpcService;
 
 @Slf4j
 @GrpcService
+@ConditionalOnExpression("${iotfsdb.api.internal:true}")
 public class SeriesPersistenceService extends SeriesPersistenceServiceGrpc.SeriesPersistenceServiceImplBase {
 
     private static final CommonMapper MAPPER = Mappers.getMapper(CommonMapper.class);
