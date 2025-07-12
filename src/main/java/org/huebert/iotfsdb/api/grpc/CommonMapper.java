@@ -2,6 +2,7 @@ package org.huebert.iotfsdb.api.grpc;
 
 import com.google.protobuf.Duration;
 import com.google.protobuf.Timestamp;
+import jakarta.validation.ValidationException;
 import org.huebert.iotfsdb.api.grpc.proto.v1.CommonProto;
 import org.huebert.iotfsdb.api.schema.SeriesData;
 import org.huebert.iotfsdb.api.schema.SeriesDefinition;
@@ -91,7 +92,13 @@ public interface CommonMapper {
     SeriesData fromProto(CommonProto.SeriesValue data);
 
     default CommonProto.Status getFailedStatus(Exception e) {
-        //TODO Handle specific exceptions
+        if (e instanceof ValidationException ve) {
+            return CommonProto.Status.newBuilder()
+                .setSuccess(false)
+                .setMessage(ve.getMessage())
+                .setCode(CommonProto.StatusCode.STATUS_CODE_CLIENT_ERROR)
+                .build();
+        }
         return CommonProto.Status.newBuilder()
             .setSuccess(false)
             .setMessage("Error processing request")
