@@ -9,10 +9,12 @@ import org.huebert.iotfsdb.service.CloneService;
 import org.huebert.iotfsdb.service.SeriesService;
 import org.huebert.iotfsdb.stats.CaptureStats;
 import org.mapstruct.factory.Mappers;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.grpc.server.service.GrpcService;
 
 @Slf4j
 @GrpcService
+@ConditionalOnExpression("${iotfsdb.api.grpc:true} and not ${iotfsdb.read-only:false}")
 public class GrpcSeriesService extends SeriesServiceGrpc.SeriesServiceImplBase {
 
     private static final ServiceMapper SERVICE_MAPPER = Mappers.getMapper(ServiceMapper.class);

@@ -1,5 +1,7 @@
 package org.huebert.iotfsdb.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.huebert.iotfsdb.api.schema.FindDataRequest;
 import org.huebert.iotfsdb.api.schema.FindDataResponse;
 import org.huebert.iotfsdb.api.schema.Reducer;
@@ -16,8 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 public class ReducerServiceTest {

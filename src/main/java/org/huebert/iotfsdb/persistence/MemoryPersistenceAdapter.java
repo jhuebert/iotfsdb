@@ -11,7 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.service.PartitionKey;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentMap;
 @Slf4j
 @Validated
 @Service
-@ConditionalOnProperty(prefix = "iotfsdb", value = "root", havingValue = "memory", matchIfMissing = true)
+@ConditionalOnExpression("'${iotfsdb.persistence.root:}' == 'memory'")
 public class MemoryPersistenceAdapter implements PersistenceAdapter {
 
     private final ConcurrentMap<String, SeriesFile> seriesMap = new ConcurrentHashMap<>();

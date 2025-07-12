@@ -1,5 +1,8 @@
 package org.huebert.iotfsdb.persistence;
 
+import static java.nio.channels.FileChannel.MapMode.READ_ONLY;
+import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import jakarta.annotation.PostConstruct;
@@ -38,13 +41,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.nio.channels.FileChannel.MapMode.READ_ONLY;
-import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
-
 @Slf4j
 @Validated
 @Service
-@ConditionalOnExpression("'${iotfsdb.root:}' != 'memory'")
+@ConditionalOnExpression("'${iotfsdb.persistence.root:}' != 'memory'")
 public class FilePersistenceAdapter implements PersistenceAdapter {
 
     private static final OpenOption[] OPEN_OPTIONS_READ = {StandardOpenOption.READ};

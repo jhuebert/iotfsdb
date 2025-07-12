@@ -1,5 +1,7 @@
 package org.huebert.iotfsdb.api.ui;
 
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
@@ -19,12 +21,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-
 @Slf4j
 @Controller
 @RequestMapping("/ui/transfer")
-@ConditionalOnExpression("${iotfsdb.ui:true} and not ${iotfsdb.read-only:false}")
+@ConditionalOnExpression("${iotfsdb.api.ui:true} and not ${iotfsdb.read-only:false}")
 public class MutatingTransferUiController {
 
     private final ImportService importService;

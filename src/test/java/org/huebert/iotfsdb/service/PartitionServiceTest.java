@@ -1,8 +1,16 @@
 package org.huebert.iotfsdb.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import org.huebert.iotfsdb.IotfsdbProperties;
+import org.huebert.iotfsdb.api.schema.NumberType;
+import org.huebert.iotfsdb.api.schema.PartitionPeriod;
+import org.huebert.iotfsdb.api.schema.SeriesDefinition;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.partition.BytePartition;
 import org.huebert.iotfsdb.partition.CurvedMappedPartition;
 import org.huebert.iotfsdb.partition.DoublePartition;
@@ -13,10 +21,6 @@ import org.huebert.iotfsdb.partition.LongPartition;
 import org.huebert.iotfsdb.partition.MappedPartition;
 import org.huebert.iotfsdb.partition.PartitionAdapter;
 import org.huebert.iotfsdb.partition.ShortPartition;
-import org.huebert.iotfsdb.api.schema.NumberType;
-import org.huebert.iotfsdb.api.schema.PartitionPeriod;
-import org.huebert.iotfsdb.api.schema.SeriesDefinition;
-import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -27,10 +31,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class PartitionServiceTest {

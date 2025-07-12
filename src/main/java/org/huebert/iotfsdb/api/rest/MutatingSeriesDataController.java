@@ -1,5 +1,7 @@
 package org.huebert.iotfsdb.api.rest;
 
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -8,7 +10,7 @@ import org.huebert.iotfsdb.service.ImportService;
 import org.huebert.iotfsdb.service.InsertService;
 import org.huebert.iotfsdb.service.ParallelUtil;
 import org.huebert.iotfsdb.stats.CaptureStats;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,13 +27,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-
 @Validated
 @Slf4j
 @RestController
 @RequestMapping("/v2/data")
-@ConditionalOnProperty(prefix = "iotfsdb", value = "read-only", havingValue = "false")
+@ConditionalOnExpression("${iotfsdb.api.rest:true} and not ${iotfsdb.read-only:false}")
 public class MutatingSeriesDataController {
 
     private final InsertService insertService;

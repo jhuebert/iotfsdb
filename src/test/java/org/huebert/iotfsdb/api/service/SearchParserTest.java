@@ -1,5 +1,7 @@
 package org.huebert.iotfsdb.api.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.huebert.iotfsdb.api.schema.FindDataRequest;
 import org.huebert.iotfsdb.api.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.api.ui.service.SearchParser;
@@ -10,8 +12,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(MockitoExtension.class)
 public class SearchParserTest {

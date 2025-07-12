@@ -10,7 +10,7 @@ import org.huebert.iotfsdb.api.ui.service.ObjectEncoder;
 import org.huebert.iotfsdb.api.ui.service.SearchParser;
 import org.huebert.iotfsdb.service.SeriesService;
 import org.huebert.iotfsdb.stats.CaptureStats;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -27,7 +27,7 @@ import java.util.List;
 @Slf4j
 @Controller
 @RequestMapping("/ui/series")
-@ConditionalOnProperty(prefix = "iotfsdb", value = "ui", havingValue = "true")
+@ConditionalOnExpression("${iotfsdb.api.ui:true}")
 public class SeriesUiController {
 
     private final SeriesService seriesService;

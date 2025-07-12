@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 @Slf4j
 @Controller
 @RequestMapping("/ui/series")
-@ConditionalOnExpression("${iotfsdb.ui:true} and not ${iotfsdb.read-only:false}")
+@ConditionalOnExpression("${iotfsdb.api.ui:true} and not ${iotfsdb.read-only:false}")
 public class MutatingSeriesUiController {
 
     private final SeriesService seriesService;

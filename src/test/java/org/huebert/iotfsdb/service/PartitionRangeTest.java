@@ -1,5 +1,8 @@
 package org.huebert.iotfsdb.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+
 import com.google.common.collect.Range;
 import org.huebert.iotfsdb.partition.PartitionAdapter;
 import org.junit.jupiter.api.Test;
@@ -7,9 +10,6 @@ import org.junit.jupiter.api.Test;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 public class PartitionRangeTest {
 

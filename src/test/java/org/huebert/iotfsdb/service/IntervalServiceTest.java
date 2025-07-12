@@ -1,5 +1,8 @@
 package org.huebert.iotfsdb.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
 import com.google.common.collect.Range;
 import org.huebert.iotfsdb.IotfsdbProperties;
 import org.huebert.iotfsdb.api.schema.FindDataRequest;
@@ -11,9 +14,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.ZonedDateTime;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class IntervalServiceTest {

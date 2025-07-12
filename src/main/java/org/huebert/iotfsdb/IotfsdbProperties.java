@@ -93,16 +93,16 @@ public class IotfsdbProperties {
         /**
          * Whether to enable UI.
          * When true, a web-based user interface will be available.
-         * Default: false
+         * Default: true
          */
-        private boolean ui = false;
+        private boolean ui = true;
 
         /**
          * Whether to enable gRPC API.
          * When true, gRPC endpoints for database operations will be available.
-         * Default: false
+         * Default: true
          */
-        private boolean grpc = false;
+        private boolean grpc = true;
 
         /**
          * Whether to enable internal gRPC API.

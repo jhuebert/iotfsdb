@@ -1,7 +1,7 @@
 package org.huebert.iotfsdb.api.ui;
 
 import org.huebert.iotfsdb.stats.CaptureStats;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -9,7 +9,7 @@ import org.springframework.web.servlet.view.RedirectView;
 
 @Controller
 @RequestMapping("/ui")
-@ConditionalOnProperty(prefix = "iotfsdb", value = "ui", havingValue = "true")
+@ConditionalOnExpression("${iotfsdb.api.ui:true}")
 public class IndexUiController {
 
     @CaptureStats(

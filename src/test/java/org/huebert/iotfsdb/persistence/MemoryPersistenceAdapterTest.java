@@ -1,11 +1,11 @@
 package org.huebert.iotfsdb.persistence;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.huebert.iotfsdb.api.schema.SeriesDefinition;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.service.PartitionKey;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class MemoryPersistenceAdapterTest {
 

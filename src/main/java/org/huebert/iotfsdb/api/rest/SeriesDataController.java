@@ -11,6 +11,7 @@ import org.huebert.iotfsdb.service.ExportService;
 import org.huebert.iotfsdb.service.QueryService;
 import org.huebert.iotfsdb.service.TimeConverter;
 import org.huebert.iotfsdb.stats.CaptureStats;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -28,6 +29,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/v2/data")
+@ConditionalOnExpression("${iotfsdb.api.rest:true}")
 public class SeriesDataController {
 
     private static final MediaType ZIP_MEDIA_TYPE = MediaType.parseMediaType("application/zip");

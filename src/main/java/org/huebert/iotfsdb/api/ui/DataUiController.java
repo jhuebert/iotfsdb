@@ -14,7 +14,7 @@ import org.huebert.iotfsdb.api.ui.service.SearchParser;
 import org.huebert.iotfsdb.service.QueryService;
 import org.huebert.iotfsdb.service.TimeConverter;
 import org.huebert.iotfsdb.stats.CaptureStats;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,7 +32,7 @@ import java.util.TimeZone;
 @Slf4j
 @Controller
 @RequestMapping("/ui/data")
-@ConditionalOnProperty(prefix = "iotfsdb", value = "ui", havingValue = "true")
+@ConditionalOnExpression("${iotfsdb.api.ui:true}")
 public class DataUiController {
 
     private final QueryService queryService;

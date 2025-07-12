@@ -23,7 +23,7 @@ public class ObjectEncoder {
 
     public String encode(Object object) throws IOException {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-             CompressedStream zos = new CompressedStream(baos)) {
+            CompressedStream zos = new CompressedStream(baos)) {
             objectMapper.writeValue(zos, object);
             return Base64.getUrlEncoder().encodeToString(baos.toByteArray());
         }
@@ -31,7 +31,7 @@ public class ObjectEncoder {
 
     public <T> T decode(String payload, Class<T> type) throws IOException {
         try (ByteArrayInputStream bais = new ByteArrayInputStream(Base64.getUrlDecoder().decode(payload));
-             GZIPInputStream zis = new GZIPInputStream(bais)) {
+            GZIPInputStream zis = new GZIPInputStream(bais)) {
             return objectMapper.readValue(zis, type);
         }
     }

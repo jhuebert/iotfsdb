@@ -1,11 +1,11 @@
 package org.huebert.iotfsdb.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.huebert.iotfsdb.api.schema.PartitionPeriod;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class PartitionKeyTest {
 

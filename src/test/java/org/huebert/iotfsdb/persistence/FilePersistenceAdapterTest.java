@@ -1,5 +1,8 @@
 package org.huebert.iotfsdb.persistence;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.huebert.iotfsdb.IotfsdbProperties;
 import org.huebert.iotfsdb.api.schema.NumberType;
@@ -19,9 +22,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class FilePersistenceAdapterTest {
 

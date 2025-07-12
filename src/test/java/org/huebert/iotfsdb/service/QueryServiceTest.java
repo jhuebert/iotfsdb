@@ -1,10 +1,13 @@
 package org.huebert.iotfsdb.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
+
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeMap;
 import com.google.common.collect.TreeRangeMap;
-import org.huebert.iotfsdb.collectors.CountingCollector;
-import org.huebert.iotfsdb.partition.PartitionAdapter;
 import org.huebert.iotfsdb.api.schema.FindDataRequest;
 import org.huebert.iotfsdb.api.schema.FindDataResponse;
 import org.huebert.iotfsdb.api.schema.FindSeriesRequest;
@@ -12,6 +15,8 @@ import org.huebert.iotfsdb.api.schema.Reducer;
 import org.huebert.iotfsdb.api.schema.SeriesData;
 import org.huebert.iotfsdb.api.schema.SeriesDefinition;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
+import org.huebert.iotfsdb.collectors.CountingCollector;
+import org.huebert.iotfsdb.partition.PartitionAdapter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,11 +31,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.IntStream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class QueryServiceTest {

@@ -15,6 +15,7 @@ import org.huebert.iotfsdb.service.QueryService;
 import org.huebert.iotfsdb.service.TimeConverter;
 import org.huebert.iotfsdb.stats.CaptureStats;
 import org.mapstruct.factory.Mappers;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.grpc.server.service.GrpcService;
 
 import java.io.ByteArrayOutputStream;
@@ -25,6 +26,7 @@ import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @GrpcService
+@ConditionalOnExpression("${iotfsdb.api.grpc:true} and not ${iotfsdb.read-only:false}")
 public class GrpcDataService extends DataServiceGrpc.DataServiceImplBase {
 
     private static final ServiceMapper SERVICE_MAPPER = Mappers.getMapper(ServiceMapper.class);

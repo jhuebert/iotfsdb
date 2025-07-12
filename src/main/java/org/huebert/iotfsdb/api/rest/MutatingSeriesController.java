@@ -1,5 +1,8 @@
 package org.huebert.iotfsdb.api.rest;
 
+import static org.huebert.iotfsdb.api.schema.SeriesDefinition.ID_PATTERN;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
@@ -7,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.service.SeriesService;
 import org.huebert.iotfsdb.stats.CaptureStats;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,14 +23,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
-import static org.huebert.iotfsdb.api.schema.SeriesDefinition.ID_PATTERN;
-import static org.springframework.http.HttpStatus.NO_CONTENT;
-
 @Validated
 @Slf4j
 @RestController
 @RequestMapping("/v2/series")
-@ConditionalOnProperty(prefix = "iotfsdb", value = "read-only", havingValue = "false")
+@ConditionalOnExpression("${iotfsdb.api.rest:true} and not ${iotfsdb.read-only:false}")
 public class MutatingSeriesController {
 
     private final SeriesService seriesService;

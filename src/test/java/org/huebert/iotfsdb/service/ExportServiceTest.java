@@ -1,11 +1,15 @@
 package org.huebert.iotfsdb.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Range;
-import org.huebert.iotfsdb.partition.PartitionAdapter;
 import org.huebert.iotfsdb.api.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.api.schema.SeriesDefinition;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
+import org.huebert.iotfsdb.partition.PartitionAdapter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -23,10 +27,6 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 import java.util.zip.ZipInputStream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class ExportServiceTest {

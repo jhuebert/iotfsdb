@@ -1,13 +1,16 @@
 package org.huebert.iotfsdb.service;
 
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.google.common.collect.Range;
-import org.huebert.iotfsdb.partition.PartitionAdapter;
 import org.huebert.iotfsdb.api.schema.InsertRequest;
 import org.huebert.iotfsdb.api.schema.PartitionPeriod;
 import org.huebert.iotfsdb.api.schema.Reducer;
 import org.huebert.iotfsdb.api.schema.SeriesData;
 import org.huebert.iotfsdb.api.schema.SeriesDefinition;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
+import org.huebert.iotfsdb.partition.PartitionAdapter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -22,9 +25,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
-
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class InsertServiceTest {
@@ -128,10 +128,10 @@ public class InsertServiceTest {
         when(dataService.getBuffer(key4, 24L, partitionAdapter)).thenReturn(byteBuffer4);
 
         when(reducerService.getCollector(Reducer.AVERAGE, false, null)).thenCallRealMethod();
-        when(partitionAdapter.getStream(byteBuffer1, 6, 1)).thenReturn(Stream.of(new Double[]{null}));
+        when(partitionAdapter.getStream(byteBuffer1, 6, 1)).thenReturn(Stream.of(new Double[] {null}));
         when(partitionAdapter.getStream(byteBuffer2, 7, 1)).thenReturn(Stream.of(1));
         when(partitionAdapter.getStream(byteBuffer3, 8, 1)).thenReturn(Stream.of(8));
-        when(partitionAdapter.getStream(byteBuffer4, 9, 1)).thenReturn(Stream.of(new Double[]{null}));
+        when(partitionAdapter.getStream(byteBuffer4, 9, 1)).thenReturn(Stream.of(new Double[] {null}));
 
         insertService.insert(new InsertRequest("123", List.of(
             new SeriesData(time1, null),

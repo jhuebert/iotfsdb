@@ -1,5 +1,7 @@
 package org.huebert.iotfsdb.service;
 
+import static org.huebert.iotfsdb.persistence.FilePersistenceAdapter.SERIES_JSON;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -16,8 +18,6 @@ import java.nio.file.Path;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
-import static org.huebert.iotfsdb.persistence.FilePersistenceAdapter.SERIES_JSON;
 
 @Validated
 @Service

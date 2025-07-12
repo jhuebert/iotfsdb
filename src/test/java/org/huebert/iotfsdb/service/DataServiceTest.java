@@ -6,11 +6,11 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.huebert.iotfsdb.IotfsdbProperties;
+import org.huebert.iotfsdb.api.schema.SeriesDefinition;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.partition.PartitionAdapter;
 import org.huebert.iotfsdb.persistence.PartitionByteBuffer;
 import org.huebert.iotfsdb.persistence.PersistenceAdapter;
-import org.huebert.iotfsdb.api.schema.SeriesDefinition;
-import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.junit.jupiter.api.Test;
 
 import java.nio.ByteBuffer;
