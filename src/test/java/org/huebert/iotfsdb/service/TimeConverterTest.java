@@ -1,12 +1,12 @@
 package org.huebert.iotfsdb.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.google.common.collect.Range;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class TimeConverterTest {
 

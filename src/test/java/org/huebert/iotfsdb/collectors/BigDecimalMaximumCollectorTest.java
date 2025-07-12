@@ -1,12 +1,12 @@
 package org.huebert.iotfsdb.collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class BigDecimalMaximumCollectorTest {
 

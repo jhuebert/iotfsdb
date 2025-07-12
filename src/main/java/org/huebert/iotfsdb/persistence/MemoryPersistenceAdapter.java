@@ -9,9 +9,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.huebert.iotfsdb.schema.SeriesFile;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.service.PartitionKey;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentMap;
 @Slf4j
 @Validated
 @Service
-@ConditionalOnProperty(prefix = "iotfsdb", value = "root", havingValue = "memory", matchIfMissing = true)
+@ConditionalOnExpression("'${iotfsdb.persistence.root:}' == 'memory'")
 public class MemoryPersistenceAdapter implements PersistenceAdapter {
 
     private final ConcurrentMap<String, SeriesFile> seriesMap = new ConcurrentHashMap<>();
@@ -35,7 +35,7 @@ public class MemoryPersistenceAdapter implements PersistenceAdapter {
 
     @PostConstruct
     public void postConstruct() {
-        log.info("Using {}", MemoryPersistenceAdapter.class.getSimpleName());
+        log.info("Using {}", getClass().getSimpleName());
     }
 
     @Override
@@ -81,7 +81,7 @@ public class MemoryPersistenceAdapter implements PersistenceAdapter {
 
         @Override
         public ByteBuffer getByteBuffer() {
-            return byteBuffer.slice(0, byteBuffer.capacity());
+            return byteBuffer.slice();
         }
 
         @Override

@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package iotfsdb.v1.internal;
+
+import "iotfsdb/common.proto";
+
+option java_package = "org.huebert.iotfsdb.api.grpc.proto.v1.internal";
+option java_outer_classname = "PartitionPersistenceServiceProto";
+
+// PartitionService provides internal operations for managing partition-level storage
+service PartitionPersistenceService {
+
+  // CreatePartition creates a new data partition
+  rpc CreatePartition(CreatePartitionRequest) returns (CreatePartitionResponse);
+
+  // DeletePartition removes a data partition
+  rpc DeletePartition(DeletePartitionRequest) returns (DeletePartitionResponse);
+
+  // GetPartitions retrieves all partitions for a series
+  rpc GetPartitions(GetPartitionsRequest) returns (GetPartitionsResponse);
+
+  // ReadPartition reads data from a partition
+  rpc ReadPartition(ReadPartitionRequest) returns (ReadPartitionResponse);
+
+  // UpdatePartition writes data to a partition
+  rpc UpdatePartition(UpdatePartitionRequest) returns (UpdatePartitionResponse);
+}
+
+message CreatePartitionRequest {
+  PartitionKey key = 1;
+  int32 size = 2;
+}
+
+message DeletePartitionRequest {
+  PartitionKey key = 1;
+}
+
+message GetPartitionsRequest {
+  iotfsdb.v1.common.Series series = 1;
+}
+
+message ReadPartitionRequest {
+  PartitionKey key = 1;
+  int32 offset = 2;
+  int32 length = 3;
+}
+
+message UpdatePartitionRequest {
+  PartitionKey key = 1;
+  int32 offset = 2;
+  bytes data = 3;
+}
+
+message CreatePartitionResponse {
+  iotfsdb.v1.common.Status status = 1;
+}
+
+message DeletePartitionResponse {
+  iotfsdb.v1.common.Status status = 1;
+}
+
+message GetPartitionsResponse {
+  iotfsdb.v1.common.Status status = 1;
+  repeated PartitionKey partitions = 2;
+}
+
+message ReadPartitionResponse {
+  iotfsdb.v1.common.Status status = 1;
+  bytes data = 2;
+}
+
+message UpdatePartitionResponse {
+  iotfsdb.v1.common.Status status = 1;
+}
+
+// PartitionKey represents a unique identifier for a partition within a series
+message PartitionKey {
+  string series_id = 1;
+  string partition_id = 2;
+}

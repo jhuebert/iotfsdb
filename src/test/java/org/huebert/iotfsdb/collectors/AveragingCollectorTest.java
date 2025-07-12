@@ -1,11 +1,11 @@
 package org.huebert.iotfsdb.collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class AveragingCollectorTest {
 

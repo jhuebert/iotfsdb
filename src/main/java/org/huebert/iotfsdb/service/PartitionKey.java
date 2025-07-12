@@ -1,7 +1,7 @@
 package org.huebert.iotfsdb.service;
 
 import jakarta.validation.constraints.NotBlank;
-import org.huebert.iotfsdb.schema.PartitionPeriod;
+import org.huebert.iotfsdb.api.schema.PartitionPeriod;
 
 import java.time.LocalDateTime;
 

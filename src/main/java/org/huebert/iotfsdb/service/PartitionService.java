@@ -10,9 +10,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.IotfsdbProperties;
+import org.huebert.iotfsdb.api.schema.NumberType;
+import org.huebert.iotfsdb.api.schema.PartitionPeriod;
+import org.huebert.iotfsdb.api.schema.SeriesDefinition;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.partition.BytePartition;
 import org.huebert.iotfsdb.partition.CurvedMappedPartition;
 import org.huebert.iotfsdb.partition.DoublePartition;
+import org.huebert.iotfsdb.partition.Float3Partition;
 import org.huebert.iotfsdb.partition.FloatPartition;
 import org.huebert.iotfsdb.partition.HalfFloatPartition;
 import org.huebert.iotfsdb.partition.IntegerPartition;
@@ -20,16 +25,12 @@ import org.huebert.iotfsdb.partition.LongPartition;
 import org.huebert.iotfsdb.partition.MappedPartition;
 import org.huebert.iotfsdb.partition.PartitionAdapter;
 import org.huebert.iotfsdb.partition.ShortPartition;
-import org.huebert.iotfsdb.schema.NumberType;
-import org.huebert.iotfsdb.schema.PartitionPeriod;
-import org.huebert.iotfsdb.schema.SeriesDefinition;
-import org.huebert.iotfsdb.schema.SeriesFile;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDateTime;
+import java.util.EnumMap;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -50,11 +51,12 @@ public class PartitionService {
     private final LoadingCache<PartitionKey, PartitionRange> partitionCache;
 
     static {
-        ADAPTER_MAP = new HashMap<>();
+        ADAPTER_MAP = new EnumMap<>(NumberType.class);
         ADAPTER_MAP.put(NumberType.CURVED1, new BytePartition());
         ADAPTER_MAP.put(NumberType.CURVED2, new ShortPartition());
         ADAPTER_MAP.put(NumberType.CURVED4, new IntegerPartition());
         ADAPTER_MAP.put(NumberType.FLOAT2, new HalfFloatPartition());
+        ADAPTER_MAP.put(NumberType.FLOAT3, new Float3Partition());
         ADAPTER_MAP.put(NumberType.FLOAT4, new FloatPartition());
         ADAPTER_MAP.put(NumberType.FLOAT8, new DoublePartition());
         ADAPTER_MAP.put(NumberType.INTEGER1, new BytePartition());
@@ -68,7 +70,7 @@ public class PartitionService {
 
     public PartitionService(@NotNull IotfsdbProperties properties, @NotNull DataService dataService) {
         this.dataService = dataService;
-        this.partitionCache = CacheBuilder.from(properties.getPartitionCache())
+        this.partitionCache = CacheBuilder.from(properties.getPersistence().getPartitionCache())
             .build(new CacheLoader<>(this::calculateRange));
     }
 
@@ -80,12 +82,13 @@ public class PartitionService {
         RangeMap<LocalDateTime, PartitionRange> rangeMap = TreeRangeMap.create();
         dataService.getPartitions(seriesId).stream()
             .map(this::getRange)
-            .forEach(pr -> rangeMap.put(pr.range(), pr));
+            .forEach(pr -> rangeMap.put(pr.getRange(), pr));
         return rangeMap;
     }
 
     private PartitionRange calculateRange(PartitionKey key) {
-        SeriesFile series = dataService.getSeries(key.seriesId()).orElseThrow();
+        SeriesFile series = dataService.getSeries(key.seriesId())
+            .orElseThrow(() -> new IllegalArgumentException("Series not found for id: " + key.seriesId()));
         return calculateRange(series.getDefinition(), key);
     }
 
@@ -107,13 +110,13 @@ public class PartitionService {
         NumberType type = definition.getType();
         PartitionAdapter adapter = ADAPTER_MAP.get(type);
         if (adapter == null) {
-            throw new IllegalArgumentException(String.format("series type %s not supported", type));
+            throw new IllegalArgumentException("Series type " + definition.getType() + " is not supported");
         }
 
         if (MAPPED.contains(type)) {
-            adapter = new MappedPartition(adapter, definition.getMin(), definition.getMax());
+            return new MappedPartition(adapter, definition.getMin(), definition.getMax());
         } else if (CURVED.contains(type)) {
-            adapter = new CurvedMappedPartition(adapter, definition.getMin(), definition.getMax());
+            return new CurvedMappedPartition(adapter, definition.getMin(), definition.getMax());
         }
 
         return adapter;

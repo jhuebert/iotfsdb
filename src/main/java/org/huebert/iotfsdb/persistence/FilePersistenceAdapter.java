@@ -1,5 +1,8 @@
 package org.huebert.iotfsdb.persistence;
 
+import static java.nio.channels.FileChannel.MapMode.READ_ONLY;
+import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
 import jakarta.annotation.PostConstruct;
@@ -10,9 +13,9 @@ import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.IotfsdbProperties;
-import org.huebert.iotfsdb.schema.PartitionPeriod;
-import org.huebert.iotfsdb.schema.SeriesDefinition;
-import org.huebert.iotfsdb.schema.SeriesFile;
+import org.huebert.iotfsdb.api.schema.PartitionPeriod;
+import org.huebert.iotfsdb.api.schema.SeriesDefinition;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.service.PartitionKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
@@ -38,20 +41,17 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.nio.channels.FileChannel.MapMode.READ_ONLY;
-import static java.nio.channels.FileChannel.MapMode.READ_WRITE;
-
 @Slf4j
 @Validated
 @Service
-@ConditionalOnExpression("'${iotfsdb.root:}' != 'memory'")
+@ConditionalOnExpression("'${iotfsdb.persistence.root:}' != 'memory'")
 public class FilePersistenceAdapter implements PersistenceAdapter {
 
-    private static final OpenOption[] OPEN_OPTIONS_READ = new OpenOption[]{StandardOpenOption.READ};
+    private static final OpenOption[] OPEN_OPTIONS_READ = {StandardOpenOption.READ};
 
-    private static final OpenOption[] OPEN_OPTIONS_TEMP = new OpenOption[]{StandardOpenOption.READ, StandardOpenOption.DELETE_ON_CLOSE};
+    private static final OpenOption[] OPEN_OPTIONS_TEMP = {StandardOpenOption.READ, StandardOpenOption.DELETE_ON_CLOSE};
 
-    private static final OpenOption[] OPEN_OPTIONS_READ_WRITE = new OpenOption[]{StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.DSYNC};
+    private static final OpenOption[] OPEN_OPTIONS_READ_WRITE = {StandardOpenOption.READ, StandardOpenOption.WRITE, StandardOpenOption.DSYNC};
 
     public static final String SERIES_JSON = "series.json";
 
@@ -67,7 +67,7 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
 
     @Autowired
     public FilePersistenceAdapter(@NotNull IotfsdbProperties properties, @NotNull ObjectMapper objectMapper) {
-        this(properties.getRoot(), objectMapper);
+        this(properties.getPersistence().getRoot(), objectMapper);
     }
 
     public static FilePersistenceAdapter create(Path propertyRoot, ObjectMapper objectMapper) {
@@ -79,35 +79,30 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
         this.propertyRoot = propertyRoot;
 
         if (propertyRoot == null) {
-            throw new IllegalArgumentException("root database path is null");
+            throw new IllegalArgumentException("Root database path is null");
         }
 
-        if (!Files.exists(propertyRoot)) {
-            try {
+        try {
+            if (!Files.exists(propertyRoot)) {
                 Files.createDirectories(propertyRoot);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
             }
-        }
-
-        if (Files.isDirectory(propertyRoot)) {
-            zip = false;
-            fileSystem = null;
-            rootPath = propertyRoot;
-        } else {
-            try {
+            if (Files.isDirectory(propertyRoot)) {
+                zip = false;
+                fileSystem = null;
+                rootPath = propertyRoot;
+            } else {
                 zip = true;
                 fileSystem = FileSystems.newFileSystem(propertyRoot, Map.of());
                 rootPath = fileSystem.getPath("/");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
     @PostConstruct
     public void postConstruct() {
-        log.info("Using {}", FilePersistenceAdapter.class.getSimpleName());
+        log.info("Using {}", getClass().getSimpleName());
     }
 
     @Override
@@ -115,19 +110,18 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
         try (Stream<Path> stream = Files.list(rootPath)) {
             return stream
                 .filter(Files::isDirectory)
-                .filter(Files::isReadable)
                 .map(s -> s.resolve(SERIES_JSON))
-                .filter(Files::exists)
                 .filter(Files::isRegularFile)
-                .filter(Files::isReadable)
-                .map(file -> {
-                    try {
-                        return objectMapper.readValue(file.toUri().toURL(), SeriesFile.class);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                })
+                .map(this::readSeriesFile)
                 .toList();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private SeriesFile readSeriesFile(Path file) {
+        try {
+            return objectMapper.readValue(file.toUri().toURL(), SeriesFile.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -148,7 +142,7 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
     public void deleteSeries(@NotBlank String seriesId) {
         Preconditions.checkArgument(!zip);
         if (!FileSystemUtils.deleteRecursively(getSeriesRoot(seriesId).toFile())) {
-            throw new RuntimeException(String.format("unable to delete series (%s)", seriesId));
+            throw new RuntimeException("Unable to delete series: " + seriesId);
         }
     }
 
@@ -158,9 +152,7 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
         String seriesId = seriesFile.getId();
         try (Stream<Path> stream = Files.list(getSeriesRoot(seriesId))) {
             return stream
-                .filter(Files::exists)
                 .filter(Files::isRegularFile)
-                .filter(Files::isReadable)
                 .map(Path::getFileName)
                 .map(Path::toString)
                 .filter(partitionPeriod::matches)
@@ -220,7 +212,7 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
 
     private Path getSeriesRoot(String seriesId) {
         if (!seriesId.matches(SeriesDefinition.ID_PATTERN)) {
-            throw new IllegalArgumentException("series ID is malformed");
+            throw new IllegalArgumentException("Series ID is malformed");
         }
         return rootPath.resolve(seriesId);
     }
@@ -242,7 +234,7 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
 
         @Override
         public ByteBuffer getByteBuffer() {
-            return byteBuffer.slice(0, byteBuffer.capacity());
+            return byteBuffer.slice();
         }
 
         @Override

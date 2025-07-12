@@ -3,6 +3,12 @@ spring:
     name: iotfsdb
   main:
     banner-mode: off
+  grpc:
+    server:
+      enabled: true
+      port: 9090
+      ssl:
+        secure: false
   servlet:
     multipart:
       max-file-size: 100MB
@@ -11,6 +17,11 @@ spring:
     virtual:
       enabled: true
 
+logging.level:
+  root: WARN
+  org.huebert: INFO
+  org.springframework: WARN
+
 server:
   compression:
     enabled: true
@@ -18,11 +29,28 @@ server:
     min-response-size: 2048
 
 iotfsdb:
-  root: "memory"
   read-only: false
-  max-query-size: 1000
-  partition-cache: "expireAfterAccess=5m,maximumSize=10000,softValues"
-  ui: true
+  persistence:
+    root: "memory"
+    partition-cache: expireAfterAccess=5m,maximumSize=10000,softValues
+  api:
+    grpc: true
+    rest: true
+    internal: false
+    ui: true
+  stats:
+    enabled: true
+  query:
+    max-size: 1000
+  series:
+    create-on-insert: true
+    default-series:
+      definition:
+        type: FLOAT4
+        interval: 60000
+        partition: DAY
+      metadata:
+        createdBy: "iotfsdb"
 
 gg:
   jte:

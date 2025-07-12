@@ -1,11 +1,14 @@
 package org.huebert.iotfsdb.persistence;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.huebert.iotfsdb.IotfsdbProperties;
-import org.huebert.iotfsdb.schema.NumberType;
-import org.huebert.iotfsdb.schema.PartitionPeriod;
-import org.huebert.iotfsdb.schema.SeriesDefinition;
-import org.huebert.iotfsdb.schema.SeriesFile;
+import org.huebert.iotfsdb.api.schema.NumberType;
+import org.huebert.iotfsdb.api.schema.PartitionPeriod;
+import org.huebert.iotfsdb.api.schema.SeriesDefinition;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.service.PartitionKey;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.FileSystemUtils;
@@ -20,15 +23,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 public class FilePersistenceAdapterTest {
 
     @Test
     void testNullRoot() {
         IotfsdbProperties properties = new IotfsdbProperties();
-        properties.setRoot(null);
+        properties.getPersistence().setRoot(null);
         assertThrows(IllegalArgumentException.class, () -> new FilePersistenceAdapter(properties, new ObjectMapper()));
     }
 
@@ -42,7 +42,7 @@ public class FilePersistenceAdapterTest {
         }
 
         IotfsdbProperties properties = new IotfsdbProperties();
-        properties.setRoot(temp);
+        properties.getPersistence().setRoot(temp);
 
         assertThat(Files.exists(temp)).isFalse();
 
@@ -61,10 +61,10 @@ public class FilePersistenceAdapterTest {
 
         Path temp = Files.createTempDirectory("iotfsdb");
         IotfsdbProperties properties = new IotfsdbProperties();
-        properties.setRoot(temp);
+        properties.getPersistence().setRoot(temp);
 
         ObjectMapper objectMapper = new ObjectMapper();
-        FilePersistenceAdapter adapter = FilePersistenceAdapter.create(properties.getRoot(), objectMapper);
+        FilePersistenceAdapter adapter = FilePersistenceAdapter.create(properties.getPersistence().getRoot(), objectMapper);
 
         assertThat(adapter.getSeries()).isEqualTo(List.of());
 
@@ -79,7 +79,7 @@ public class FilePersistenceAdapterTest {
 
         Path temp = Files.createTempDirectory("iotfsdb");
         IotfsdbProperties properties = new IotfsdbProperties();
-        properties.setRoot(temp);
+        properties.getPersistence().setRoot(temp);
 
         ObjectMapper objectMapper = new ObjectMapper();
         FilePersistenceAdapter adapter = new FilePersistenceAdapter(properties, objectMapper);
@@ -121,7 +121,7 @@ public class FilePersistenceAdapterTest {
 
         Path temp = Files.createTempDirectory("iotfsdb");
         IotfsdbProperties properties = new IotfsdbProperties();
-        properties.setRoot(temp);
+        properties.getPersistence().setRoot(temp);
 
         ObjectMapper objectMapper = new ObjectMapper();
         FilePersistenceAdapter adapter = new FilePersistenceAdapter(properties, objectMapper);
@@ -157,7 +157,7 @@ public class FilePersistenceAdapterTest {
 
         Path temp = Files.createTempDirectory("iotfsdb");
         IotfsdbProperties properties = new IotfsdbProperties();
-        properties.setRoot(temp);
+        properties.getPersistence().setRoot(temp);
 
         ObjectMapper objectMapper = new ObjectMapper();
         FilePersistenceAdapter adapter = new FilePersistenceAdapter(properties, objectMapper);
@@ -217,7 +217,7 @@ public class FilePersistenceAdapterTest {
         }
 
         IotfsdbProperties properties = new IotfsdbProperties();
-        properties.setRoot(temp);
+        properties.getPersistence().setRoot(temp);
 
         ObjectMapper objectMapper = new ObjectMapper();
         FilePersistenceAdapter adapter = new FilePersistenceAdapter(properties, objectMapper);
