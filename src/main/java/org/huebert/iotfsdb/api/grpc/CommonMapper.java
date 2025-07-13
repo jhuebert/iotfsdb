@@ -65,10 +65,9 @@ public interface CommonMapper {
             return fromTimestamp(value.getTimestamp());
         }
         Duration relativeTime = value.getRelativeTime();
-        //TODO Add?
         return ZonedDateTime.now()
-            .minusSeconds(relativeTime.getSeconds())
-            .minusNanos(relativeTime.getNanos());
+            .plusSeconds(relativeTime.getSeconds())
+            .plusNanos(relativeTime.getNanos());
     }
 
     default String fromPattern(Pattern pattern) {
