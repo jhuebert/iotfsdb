@@ -69,7 +69,7 @@ public class MutatingSeriesControllerTest {
                 .content(mapper.writeValueAsString(metadata)))
             .andExpect(status().isNoContent());
 
-        verify(seriesService).updateMetadata("123", metadata);
+        verify(seriesService).updateMetadata("123", metadata, false);
     }
 
 }

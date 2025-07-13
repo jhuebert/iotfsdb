@@ -57,7 +57,7 @@ public class SeriesServiceTest {
 
         when(dataService.getSeries("123")).thenReturn(Optional.of(seriesFile));
 
-        seriesService.updateMetadata("123", metadata);
+        seriesService.updateMetadata("123", metadata, false);
 
         verify(dataService).getSeries("123");
         verify(dataService).saveSeries(captor.capture());

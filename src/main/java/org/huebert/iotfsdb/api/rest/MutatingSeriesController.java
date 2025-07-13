@@ -75,7 +75,7 @@ public class MutatingSeriesController {
     @PutMapping("{id}/metadata")
     @ResponseStatus(NO_CONTENT)
     public void updateMetadata(@PathVariable @Pattern(regexp = ID_PATTERN) String id, @Valid @RequestBody Map<String, String> metadata) {
-        seriesService.updateMetadata(id, metadata);
+        seriesService.updateMetadata(id, metadata, false);
     }
 
 }

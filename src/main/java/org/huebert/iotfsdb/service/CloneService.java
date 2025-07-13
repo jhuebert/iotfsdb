@@ -59,7 +59,7 @@ public class CloneService {
         if (!idChanged) {
             // If the ID is staying the same, we need to move the series to a new ID first
             sourceId = UUID.randomUUID().toString();
-            cloneSeries(id, sourceId);
+            cloneSeries(id, sourceId, true);
             seriesService.deleteSeries(id);
         }
 
@@ -90,11 +90,13 @@ public class CloneService {
         return result;
     }
 
-    public void cloneSeries(@NotBlank String sourceId, @NotBlank String destinationId) {
+    public void cloneSeries(@NotBlank String sourceId, @NotBlank String destinationId, boolean includeData) {
         log.debug("Cloning series from {} to {}", sourceId, destinationId);
         seriesService.createSeries(cloneSeriesFile(sourceId, destinationId));
-        for (PartitionKey sourceKey : dataService.getPartitions(sourceId)) {
-            clonePartition(sourceKey, destinationId);
+        if (includeData) {
+            for (PartitionKey sourceKey : dataService.getPartitions(sourceId)) {
+                clonePartition(sourceKey, destinationId);
+            }
         }
     }
 

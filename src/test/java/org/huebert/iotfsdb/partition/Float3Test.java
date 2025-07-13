@@ -387,6 +387,46 @@ public class Float3Test {
     }
 
     @Test
+    public void testInfinity_FromFloat() {
+        float value = 2.5e30f;
+        assertThat(Float3.fromFloat(value)).isEqualTo(Float3.POSITIVE_INFINITY);
+        assertThat(Float3.fromFloat(value).isPositiveInfinity()).isTrue();
+        assertThat(Float3.fromFloat(value).isNegativeInfinity()).isFalse();
+        assertThat(Float3.fromFloat(-value)).isEqualTo(Float3.NEGATIVE_INFINITY);
+        assertThat(Float3.fromFloat(-value).isPositiveInfinity()).isFalse();
+        assertThat(Float3.fromFloat(-value).isNegativeInfinity()).isTrue();
+    }
+
+    @Test
+    public void testZero_FromFloat() {
+        float value = 2.5e-30f;
+        assertThat(Float3.fromFloat(value)).isEqualTo(Float3.ZERO);
+        assertThat(Float3.fromFloat(value).floatValue()).isEqualTo(0.0f);
+        assertThat(Float3.fromFloat(-value)).isEqualTo(Float3.NEGATIVE_ZERO);
+        assertThat(Float3.fromFloat(-value).floatValue()).isEqualTo(-0.0f);
+    }
+
+    @Test
+    public void testInfinity_FromDouble() {
+        double value = 2.5e30;
+        assertThat(Float3.fromDouble(value)).isEqualTo(Float3.POSITIVE_INFINITY);
+        assertThat(Float3.fromDouble(value).isPositiveInfinity()).isTrue();
+        assertThat(Float3.fromDouble(value).isNegativeInfinity()).isFalse();
+        assertThat(Float3.fromDouble(-value)).isEqualTo(Float3.NEGATIVE_INFINITY);
+        assertThat(Float3.fromDouble(-value).isPositiveInfinity()).isFalse();
+        assertThat(Float3.fromDouble(-value).isNegativeInfinity()).isTrue();
+    }
+
+    @Test
+    public void testZero_FromDouble() {
+        double value = 2.5e-30;
+        assertThat(Float3.fromDouble(value)).isEqualTo(Float3.ZERO);
+        assertThat(Float3.fromDouble(value).doubleValue()).isEqualTo(0.0);
+        assertThat(Float3.fromDouble(-value)).isEqualTo(Float3.NEGATIVE_ZERO);
+        assertThat(Float3.fromDouble(-value).doubleValue()).isEqualTo(-0.0);
+    }
+
+    @Test
     public void testInfinity_Negative() {
         ByteBuffer buffer = getBuffer(0b1_1111111_00000000_00000000);
         Float3 float3 = Float3.readFrom(buffer);

@@ -82,7 +82,7 @@ public class GrpcSeriesService extends SeriesServiceGrpc.SeriesServiceImplBase {
     public void cloneSeries(SeriesServiceProto.CloneSeriesRequest request, StreamObserver<SeriesServiceProto.CloneSeriesResponse> responseObserver) {
         SeriesServiceProto.CloneSeriesResponse.Builder builder = SeriesServiceProto.CloneSeriesResponse.newBuilder();
         try {
-            cloneService.cloneSeries(request.getSourceId(), request.getDestinationId());
+            cloneService.cloneSeries(request.getSourceId(), request.getDestinationId(), request.getIncludeData());
             builder.setStatus(CommonMapper.SUCCESS_STATUS);
         } catch (Exception e) {
             log.error("Error cloning series", e);
@@ -112,7 +112,7 @@ public class GrpcSeriesService extends SeriesServiceGrpc.SeriesServiceImplBase {
     public void updateMetadata(SeriesServiceProto.UpdateMetadataRequest request, StreamObserver<SeriesServiceProto.UpdateMetadataResponse> responseObserver) {
         SeriesServiceProto.UpdateMetadataResponse.Builder builder = SeriesServiceProto.UpdateMetadataResponse.newBuilder();
         try {
-            seriesService.updateMetadata(request.getId(), request.getMetadataMap());
+            seriesService.updateMetadata(request.getId(), request.getMetadataMap(), request.getMerge());
             builder.setStatus(CommonMapper.SUCCESS_STATUS);
         } catch (Exception e) {
             log.error("Error updating metadata", e);

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,9 +47,14 @@ public class SeriesService {
             .toList();
     }
 
-    public void updateMetadata(@NotBlank String seriesId, @NotNull Map<String, String> metadata) {
+    public void updateMetadata(@NotBlank String seriesId, @NotNull Map<String, String> metadata, boolean merge) {
         SeriesFile seriesFile = dataService.getSeries(seriesId).orElseThrow();
-        dataService.saveSeries(new SeriesFile(seriesFile.getDefinition(), metadata));
+        Map<String, String> updatedMetadata = metadata;
+        if (merge) {
+            updatedMetadata = new HashMap<>(seriesFile.getMetadata());
+            updatedMetadata.putAll(metadata);
+        }
+        dataService.saveSeries(new SeriesFile(seriesFile.getDefinition(), updatedMetadata));
     }
 
     public void deleteSeries(@NotBlank String seriesId) {

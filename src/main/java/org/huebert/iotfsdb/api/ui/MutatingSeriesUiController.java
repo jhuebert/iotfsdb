@@ -73,7 +73,7 @@ public class MutatingSeriesUiController {
     public void deleteMetadata(@PathVariable String id, @PathVariable String key) {
         Map<String, String> updatedMetadata = new HashMap<>(getSeries(id).getMetadata());
         updatedMetadata.remove(key);
-        seriesService.updateMetadata(id, updatedMetadata);
+        seriesService.updateMetadata(id, updatedMetadata, false);
     }
 
     @CaptureStats(
@@ -101,7 +101,7 @@ public class MutatingSeriesUiController {
 
         Map<String, String> updatedMetadata = new HashMap<>(seriesFile.getMetadata());
         updatedMetadata.put(key, value);
-        seriesService.updateMetadata(id, updatedMetadata);
+        seriesService.updateMetadata(id, updatedMetadata, false);
 
         model.addAttribute("file", seriesFile);
         model.addAttribute("key", key);
