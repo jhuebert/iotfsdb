@@ -40,7 +40,7 @@ public class PartitionPersistenceService extends PartitionPersistenceServiceGrpc
             .build();
     }
 
-    @CaptureStats(group = "grpc-internal", type = "partition", operation = "create", javaClass = PartitionPersistenceService.class, javaMethod = "createPartition")
+    @CaptureStats(group = "internal", type = "partition", operation = "create", javaClass = PartitionPersistenceService.class, javaMethod = "createPartition")
     @Override
     public void createPartition(PartitionPersistenceServiceProto.CreatePartitionRequest request, StreamObserver<PartitionPersistenceServiceProto.CreatePartitionResponse> responseObserver) {
         PartitionPersistenceServiceProto.CreatePartitionResponse.Builder builder = PartitionPersistenceServiceProto.CreatePartitionResponse.newBuilder();
@@ -55,7 +55,7 @@ public class PartitionPersistenceService extends PartitionPersistenceServiceGrpc
         responseObserver.onCompleted();
     }
 
-    @CaptureStats(group = "grpc-internal", type = "partition", operation = "get", javaClass = PartitionPersistenceService.class, javaMethod = "getPartitions")
+    @CaptureStats(group = "internal", type = "partition", operation = "get", javaClass = PartitionPersistenceService.class, javaMethod = "getPartitions")
     @Override
     public void getPartitions(PartitionPersistenceServiceProto.GetPartitionsRequest request, StreamObserver<PartitionPersistenceServiceProto.GetPartitionsResponse> responseObserver) {
         PartitionPersistenceServiceProto.GetPartitionsResponse.Builder builder = PartitionPersistenceServiceProto.GetPartitionsResponse.newBuilder();
@@ -71,7 +71,7 @@ public class PartitionPersistenceService extends PartitionPersistenceServiceGrpc
         responseObserver.onCompleted();
     }
 
-    @CaptureStats(group = "grpc-internal", type = "partition", operation = "read", javaClass = PartitionPersistenceService.class, javaMethod = "readPartition")
+    @CaptureStats(group = "internal", type = "partition", operation = "read", javaClass = PartitionPersistenceService.class, javaMethod = "readPartition")
     @Override
     public void readPartition(PartitionPersistenceServiceProto.ReadPartitionRequest request, StreamObserver<PartitionPersistenceServiceProto.ReadPartitionResponse> responseObserver) {
         PartitionPersistenceServiceProto.ReadPartitionResponse.Builder builder = PartitionPersistenceServiceProto.ReadPartitionResponse.newBuilder();
@@ -89,6 +89,20 @@ public class PartitionPersistenceService extends PartitionPersistenceServiceGrpc
         }
         responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
+    }
+
+    @CaptureStats(group = "internal", type = "partition", operation = "delete", javaClass = PartitionPersistenceService.class, javaMethod = "deletePartition")
+    @Override
+    public void deletePartition(PartitionPersistenceServiceProto.DeletePartitionRequest request, StreamObserver<PartitionPersistenceServiceProto.DeletePartitionResponse> responseObserver) {
+        // TODO : Implement delete logic
+        super.deletePartition(request, responseObserver);
+    }
+
+    @CaptureStats(group = "internal", type = "partition", operation = "update", javaClass = PartitionPersistenceService.class, javaMethod = "updatePartition")
+    @Override
+    public void updatePartition(PartitionPersistenceServiceProto.UpdatePartitionRequest request, StreamObserver<PartitionPersistenceServiceProto.UpdatePartitionResponse> responseObserver) {
+        // TODO : Implement update logic
+        super.updatePartition(request, responseObserver);
     }
 
 }

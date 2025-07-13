@@ -22,6 +22,9 @@ service DataService {
 
   // InsertData inserts streaming time-series data points
   rpc InsertData(InsertDataRequest) returns (InsertDataResponse);
+
+  // PruneSeries removes data from a time series within a specified time range
+  rpc PruneData(PruneDataRequest) returns (PruneDataResponse);
 }
 
 message ExportDataRequest {
@@ -48,6 +51,16 @@ message InsertDataRequest {
   iotfsdb.v1.common.Reducer reducer = 2;
 }
 
+message PruneDataRequest {
+  string id = 1;
+  iotfsdb.v1.common.TimeRange time_range = 2;
+}
+
+message ExportDataResponse {
+  iotfsdb.v1.common.Status status = 1;
+  iotfsdb.v1.common.File file = 2;
+}
+
 message FindDataResponse {
   iotfsdb.v1.common.Status status = 1;
   repeated iotfsdb.v1.common.SeriesData data = 2;
@@ -61,7 +74,6 @@ message InsertDataResponse {
   iotfsdb.v1.common.Status status = 1;
 }
 
-message ExportDataResponse {
+message PruneDataResponse {
   iotfsdb.v1.common.Status status = 1;
-  iotfsdb.v1.common.File file = 2;
 }

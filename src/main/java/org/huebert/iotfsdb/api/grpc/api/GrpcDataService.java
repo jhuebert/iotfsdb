@@ -123,4 +123,11 @@ public class GrpcDataService extends DataServiceGrpc.DataServiceImplBase {
         responseObserver.onCompleted();
     }
 
+    @CaptureStats(group = "grpc", type = "data", operation = "prune", javaClass = GrpcDataService.class, javaMethod = "pruneData")
+    @Override
+    public void pruneData(DataServiceProto.PruneDataRequest request, StreamObserver<DataServiceProto.PruneDataResponse> responseObserver) {
+        // TODO : Implement pruning logic
+        super.pruneData(request, responseObserver);
+    }
+
 }

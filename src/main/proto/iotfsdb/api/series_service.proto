@@ -23,9 +23,6 @@ service SeriesService {
   // FindSeries retrieves series matching the provided criteria
   rpc FindSeries(FindSeriesRequest) returns (FindSeriesResponse);
 
-  // PruneSeries removes data from a time series within a specified time range
-  rpc PruneSeries(PruneSeriesRequest) returns (PruneSeriesResponse);
-
   // UpdateDefinition updates the definition of a time series
   rpc UpdateDefinition(UpdateDefinitionRequest) returns (UpdateDefinitionResponse);
 
@@ -49,11 +46,6 @@ message DeleteSeriesRequest {
 
 message FindSeriesRequest {
   iotfsdb.v1.common.SeriesCriteria criteria = 1;
-}
-
-message PruneSeriesRequest {
-  string id = 1;
-  iotfsdb.v1.common.TimeRange time_range = 2;
 }
 
 message UpdateDefinitionRequest {
@@ -82,10 +74,6 @@ message DeleteSeriesResponse {
 message FindSeriesResponse {
   iotfsdb.v1.common.Status status = 1;
   repeated iotfsdb.v1.common.Series series = 2;
-}
-
-message PruneSeriesResponse {
-  iotfsdb.v1.common.Status status = 1;
 }
 
 message UpdateDefinitionResponse {
