@@ -66,6 +66,43 @@ public class SeriesServiceTest {
     }
 
     @Test
+    public void testUpdateMetadata_WithMerge() {
+
+        // Setup existing series file with some metadata
+        SeriesDefinition definition = SeriesDefinition.builder().id("123").build();
+        Map<String, String> existingMetadata = Map.of("existing1", "value1", "existing2", "value2");
+        SeriesFile seriesFile = SeriesFile.builder()
+            .definition(definition)
+            .metadata(existingMetadata)
+            .build();
+
+        // New metadata to merge
+        Map<String, String> newMetadata = Map.of("existing1", "updated", "new1", "newValue");
+
+        when(dataService.getSeries("123")).thenReturn(Optional.of(seriesFile));
+
+        // Call updateMetadata with merge=true
+        seriesService.updateMetadata("123", newMetadata, true);
+
+        // Verify interactions and captured value
+        verify(dataService).getSeries("123");
+        verify(dataService).saveSeries(captor.capture());
+
+        // Verify the definition was preserved
+        assertThat(captor.getValue().getDefinition()).isEqualTo(definition);
+
+        // Verify the metadata was properly merged:
+        // - existing1 should be updated
+        // - existing2 should remain
+        // - new1 should be added
+        Map<String, String> expectedMetadata = Map.of(
+            "existing1", "updated",
+            "existing2", "value2",
+            "new1", "newValue");
+        assertThat(captor.getValue().getMetadata()).isEqualTo(expectedMetadata);
+    }
+
+    @Test
     public void testDeleteSeries() {
         seriesService.deleteSeries("123");
         verify(dataService).deleteSeries("123");

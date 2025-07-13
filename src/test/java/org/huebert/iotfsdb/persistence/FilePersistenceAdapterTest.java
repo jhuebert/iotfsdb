@@ -248,4 +248,56 @@ public class FilePersistenceAdapterTest {
             throw new RuntimeException("unable to delete root");
         }
     }
+
+    @Test
+    void testGetSeriesRootWithInvalidId() throws Exception {
+
+        // Setup
+        Path temp = Files.createTempDirectory("iotfsdb");
+        IotfsdbProperties properties = new IotfsdbProperties();
+        properties.getPersistence().setRoot(temp);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        FilePersistenceAdapter adapter = new FilePersistenceAdapter(properties, objectMapper);
+
+        try {
+            // Test with various invalid series IDs
+            assertThrows(IllegalArgumentException.class, () ->
+                adapter.saveSeries(SeriesFile.builder()
+                    .definition(SeriesDefinition.builder()
+                        .id("invalid id with spaces")
+                        .type(NumberType.FLOAT4)
+                        .interval(60000L)
+                        .partition(PartitionPeriod.MONTH)
+                        .build())
+                    .build()));
+
+            assertThrows(IllegalArgumentException.class, () ->
+                adapter.saveSeries(SeriesFile.builder()
+                    .definition(SeriesDefinition.builder()
+                        .id("invalid/with/slashes")
+                        .type(NumberType.FLOAT4)
+                        .interval(60000L)
+                        .partition(PartitionPeriod.MONTH)
+                        .build())
+                    .build()));
+
+            assertThrows(IllegalArgumentException.class, () ->
+                adapter.deleteSeries("invalid@#$%characters"));
+
+            // Test directly with partition operations
+            PartitionKey invalidKey = new PartitionKey("invalid id", "202411");
+            assertThrows(IllegalArgumentException.class, () ->
+                adapter.createPartition(invalidKey, 80));
+
+            assertThrows(IllegalArgumentException.class, () ->
+                adapter.openPartition(invalidKey));
+        } finally {
+            // Clean up
+            adapter.close();
+            if (!FileSystemUtils.deleteRecursively(temp)) {
+                throw new RuntimeException("unable to delete root");
+            }
+        }
+    }
 }
