@@ -33,7 +33,6 @@ public interface ServiceMapper {
     @Mapping(target = "timeRange.start.timestamp", source = "from")
     @Mapping(target = "timeRange.end.timestamp", source = "to")
     @Mapping(target = "partition", ignore = true)
-        //TODO
     DataServiceProto.FindDataRequest toProto(FindDataRequest request);
 
     default CommonProto.NullOption getNullOption(FindDataRequest request) {
@@ -68,8 +67,8 @@ public interface ServiceMapper {
     @Mapping(target = "interval", source = "size.interval")
     @Mapping(target = "size", source = "size.size")
     @Mapping(target = "timezone", expression = "java(java.util.TimeZone.getTimeZone(\"UTC\"))")
-    @Mapping(target = "from", constant = "timeRange.start")
-    @Mapping(target = "to", constant = "timeRange.end")
+    @Mapping(target = "from", source = "timeRange.start")
+    @Mapping(target = "to", source = "timeRange.end")
     @Mapping(target = "dateTimePreset", ignore = true)
     @Mapping(target = "series", source = "criteria")
     @Mapping(target = "includeNull", expression = "java(request.getNullHandler().getNullOption() == CommonProto.NullOption.NULL_HANDLER_INCLUDE)")
