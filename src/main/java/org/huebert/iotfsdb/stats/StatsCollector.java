@@ -91,7 +91,9 @@ public class StatsCollector {
             .flatMap(List::stream)
             .forEach(ns -> dataService.getSeries(ns.getId()).ifPresentOrElse(sf -> {
                 log.debug("Updating existing series: {}", ns.getId());
-                sf.getMetadata().putAll(ns.getMetadata());
+                Map<String, String> metadata = new HashMap<>(sf.getMetadata());
+                metadata.putAll(ns.getMetadata());
+                sf.setMetadata(metadata);
                 dataService.saveSeries(sf);
             }, () -> {
                 log.debug("Creating new series: {}", ns.getId());
