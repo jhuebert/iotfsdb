@@ -1,22 +1,23 @@
 package org.huebert.iotfsdb.service;
 
-import org.huebert.iotfsdb.IotfsdbProperties;
-import org.huebert.iotfsdb.partition.PartitionAdapter;
-import org.huebert.iotfsdb.persistence.PartitionByteBuffer;
-import org.huebert.iotfsdb.persistence.PersistenceAdapter;
-import org.huebert.iotfsdb.schema.SeriesDefinition;
-import org.huebert.iotfsdb.schema.SeriesFile;
-import org.junit.jupiter.api.Test;
-
-import java.nio.ByteBuffer;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import org.huebert.iotfsdb.IotfsdbProperties;
+import org.huebert.iotfsdb.api.schema.SeriesDefinition;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
+import org.huebert.iotfsdb.partition.PartitionAdapter;
+import org.huebert.iotfsdb.persistence.PartitionByteBuffer;
+import org.huebert.iotfsdb.persistence.PersistenceAdapter;
+import org.junit.jupiter.api.Test;
+
+import java.nio.ByteBuffer;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 public class DataServiceTest {
 
@@ -55,7 +56,7 @@ public class DataServiceTest {
         verify(persistenceAdapter).getPartitions(seriesFile1);
         verify(persistenceAdapter).getPartitions(seriesFile2);
 
-        List<SeriesFile> series = dataService.getSeries();
+        Collection<SeriesFile> series = dataService.getSeries();
         assertThat(series).containsExactly(seriesFile1, seriesFile2);
 
         assertThat(dataService.getSeries("abc")).isEqualTo(Optional.of(seriesFile1));
@@ -85,7 +86,7 @@ public class DataServiceTest {
         DataService dataService = new DataService(new IotfsdbProperties(), persistenceAdapter);
         verify(persistenceAdapter).getSeries();
 
-        List<SeriesFile> series = dataService.getSeries();
+        Collection<SeriesFile> series = dataService.getSeries();
         assertThat(series).isEmpty();
 
         SeriesFile seriesFile = SeriesFile.builder().definition(SeriesDefinition.builder().id("abc").build()).build();
@@ -152,7 +153,7 @@ public class DataServiceTest {
         DataService dataService = new DataService(new IotfsdbProperties(), persistenceAdapter);
         verify(persistenceAdapter).getSeries();
 
-        List<SeriesFile> series = dataService.getSeries();
+        Collection<SeriesFile> series = dataService.getSeries();
         assertThat(series).isEmpty();
 
         assertThat(dataService.getBuffer(new PartitionKey("abc", "123"))).isEqualTo(Optional.empty());
@@ -167,8 +168,9 @@ public class DataServiceTest {
         DataService dataService = new DataService(new IotfsdbProperties(), persistenceAdapter);
         verify(persistenceAdapter).getSeries();
 
-        List<SeriesFile> series = dataService.getSeries();
-        assertThat(series).isEqualTo(List.of(seriesFile));
+        Collection<SeriesFile> series = dataService.getSeries();
+        assertThat(series.size()).isEqualTo(1);
+        assertThat(series.contains(seriesFile)).isTrue();
 
         PartitionKey key = new PartitionKey("abc", "123");
 

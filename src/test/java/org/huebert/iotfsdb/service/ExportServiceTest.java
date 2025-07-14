@@ -1,11 +1,15 @@
 package org.huebert.iotfsdb.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Range;
+import org.huebert.iotfsdb.api.schema.FindSeriesRequest;
+import org.huebert.iotfsdb.api.schema.SeriesDefinition;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.partition.PartitionAdapter;
-import org.huebert.iotfsdb.schema.FindSeriesRequest;
-import org.huebert.iotfsdb.schema.SeriesDefinition;
-import org.huebert.iotfsdb.schema.SeriesFile;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -15,6 +19,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -22,10 +27,6 @@ import java.util.Set;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.regex.Pattern;
 import java.util.zip.ZipInputStream;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class ExportServiceTest {
@@ -52,7 +53,7 @@ public class ExportServiceTest {
 
         PartitionKey key = new PartitionKey("abc", "123");
         PartitionAdapter adapter = mock(PartitionAdapter.class);
-        when(partitionService.getRange(key)).thenReturn(new PartitionRange(key, Range.all(), Duration.ZERO, adapter, new ReentrantReadWriteLock()));
+        when(partitionService.getRange(key)).thenReturn(new PartitionRange(key, Range.closed(LocalDateTime.parse("2024-11-10T00:00:00"), LocalDateTime.parse("2024-11-10T23:59:59")), Duration.ofMinutes(1), adapter, new ReentrantReadWriteLock()));
 
         when(dataService.getPartitions(seriesFile.getId())).thenReturn(Set.of(key));
 

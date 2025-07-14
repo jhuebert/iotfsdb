@@ -1,13 +1,19 @@
 package org.huebert.iotfsdb.persistence;
 
-import org.huebert.iotfsdb.schema.SeriesDefinition;
-import org.huebert.iotfsdb.schema.SeriesFile;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import org.huebert.iotfsdb.api.schema.SeriesDefinition;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.service.PartitionKey;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 public class MemoryPersistenceAdapterTest {
+
+    @Test
+    public void testPostConstruct() {
+        MemoryPersistenceAdapter adapter = new MemoryPersistenceAdapter();
+        adapter.postConstruct();
+    }
 
     @Test
     public void testSeries() {

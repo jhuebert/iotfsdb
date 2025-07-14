@@ -1,13 +1,16 @@
 package org.huebert.iotfsdb.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.huebert.iotfsdb.api.schema.InsertRequest;
+import org.huebert.iotfsdb.api.schema.NumberType;
+import org.huebert.iotfsdb.api.schema.Reducer;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.persistence.FilePersistenceAdapterTest;
-import org.huebert.iotfsdb.schema.InsertRequest;
-import org.huebert.iotfsdb.schema.NumberType;
-import org.huebert.iotfsdb.schema.Reducer;
-import org.huebert.iotfsdb.schema.SeriesFile;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -20,9 +23,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.verify;
 
 @ExtendWith(MockitoExtension.class)
 public class ImportServiceTest {

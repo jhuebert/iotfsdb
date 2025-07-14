@@ -1,13 +1,20 @@
 package org.huebert.iotfsdb.service;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import com.google.common.collect.Range;
+import org.huebert.iotfsdb.IotfsdbProperties;
+import org.huebert.iotfsdb.api.schema.InsertRequest;
+import org.huebert.iotfsdb.api.schema.PartitionPeriod;
+import org.huebert.iotfsdb.api.schema.Reducer;
+import org.huebert.iotfsdb.api.schema.SeriesData;
+import org.huebert.iotfsdb.api.schema.SeriesDefinition;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.partition.PartitionAdapter;
-import org.huebert.iotfsdb.schema.InsertRequest;
-import org.huebert.iotfsdb.schema.PartitionPeriod;
-import org.huebert.iotfsdb.schema.Reducer;
-import org.huebert.iotfsdb.schema.SeriesData;
-import org.huebert.iotfsdb.schema.SeriesDefinition;
-import org.huebert.iotfsdb.schema.SeriesFile;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,12 +26,11 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
-
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class InsertServiceTest {
@@ -40,6 +46,12 @@ public class InsertServiceTest {
 
     @Mock
     private ReducerService reducerService;
+
+    @Mock
+    private IotfsdbProperties properties;
+
+    @Mock
+    private IotfsdbProperties.SeriesProperties seriesProperties;
 
     @InjectMocks
     private InsertService insertService;
@@ -128,10 +140,10 @@ public class InsertServiceTest {
         when(dataService.getBuffer(key4, 24L, partitionAdapter)).thenReturn(byteBuffer4);
 
         when(reducerService.getCollector(Reducer.AVERAGE, false, null)).thenCallRealMethod();
-        when(partitionAdapter.getStream(byteBuffer1, 6, 1)).thenReturn(Stream.of(new Double[]{null}));
+        when(partitionAdapter.getStream(byteBuffer1, 6, 1)).thenReturn(Stream.of(new Double[] {null}));
         when(partitionAdapter.getStream(byteBuffer2, 7, 1)).thenReturn(Stream.of(1));
         when(partitionAdapter.getStream(byteBuffer3, 8, 1)).thenReturn(Stream.of(8));
-        when(partitionAdapter.getStream(byteBuffer4, 9, 1)).thenReturn(Stream.of(new Double[]{null}));
+        when(partitionAdapter.getStream(byteBuffer4, 9, 1)).thenReturn(Stream.of(new Double[] {null}));
 
         insertService.insert(new InsertRequest("123", List.of(
             new SeriesData(time1, null),
@@ -144,6 +156,116 @@ public class InsertServiceTest {
         verify(partitionAdapter).put(byteBuffer2, 7, 1.0);
         verify(partitionAdapter).put(byteBuffer3, 8, 5.0);
         verify(partitionAdapter).put(byteBuffer4, 9, 3.0);
+    }
+
+    @Test
+    public void testInsertWithCreateOnInsert() {
+
+        // Setup default series from properties
+        SeriesDefinition defaultDefinition = SeriesDefinition.builder()
+            .partition(PartitionPeriod.DAY)
+            .interval(3600000L)
+            .build();
+
+        SeriesFile defaultSeries = SeriesFile.builder()
+            .definition(defaultDefinition)
+            .metadata(Map.of("default", "metadata"))
+            .build();
+
+        // Setup properties mock behavior
+        when(properties.isReadOnly()).thenReturn(false);
+        when(properties.getSeries()).thenReturn(seriesProperties);
+        when(seriesProperties.isCreateOnInsert()).thenReturn(true);
+        when(seriesProperties.getDefaultSeries()).thenReturn(defaultSeries);
+
+        // Mock that the series doesn't exist initially
+        String seriesId = "new-series";
+        when(dataService.getSeries(seriesId)).thenReturn(Optional.empty());
+
+        // Setup time and data for insert
+        ZonedDateTime time1 = ZonedDateTime.parse("2024-08-11T00:00:00-06:00");
+
+        // Setup partition info
+        PartitionKey key = new PartitionKey(seriesId, "20240811");
+        when(partitionService.getRange(key)).thenReturn(
+            new PartitionRange(key,
+                Range.closed(LocalDateTime.parse("2024-08-11T00:00:00"),
+                    LocalDateTime.parse("2024-08-12T00:00:00").minusNanos(1)),
+                Duration.ofHours(1),
+                partitionAdapter,
+                new ReentrantReadWriteLock())
+        );
+
+        ByteBuffer byteBuffer = ByteBuffer.allocate(24);
+        when(dataService.getBuffer(key, 24L, partitionAdapter)).thenReturn(byteBuffer);
+
+        // Execute insert
+        insertService.insert(new InsertRequest(seriesId, List.of(
+            new SeriesData(time1, 1)
+        ), null));
+
+        // Verify series was created with expected properties
+        SeriesFile expectedSeriesFile = SeriesFile.builder()
+            .definition(defaultDefinition.toBuilder().id(seriesId).build())
+            .metadata(Map.of("default", "metadata"))
+            .build();
+
+        verify(dataService).saveSeries(expectedSeriesFile);
+
+        // Verify insert happened
+        verify(partitionAdapter).put(byteBuffer, 6, 1);
+    }
+
+    @Test
+    public void testInsertWithoutCreateOnInsert() {
+
+        // Setup properties mock behavior to disable createOnInsert
+        when(properties.isReadOnly()).thenReturn(false);
+        when(properties.getSeries()).thenReturn(seriesProperties);
+        when(seriesProperties.isCreateOnInsert()).thenReturn(false);
+
+        // Mock that the series doesn't exist
+        String seriesId = "non-existent-series";
+        when(dataService.getSeries(seriesId)).thenReturn(Optional.empty());
+
+        // Setup time and data for insert
+        ZonedDateTime time1 = ZonedDateTime.parse("2024-08-11T00:00:00-06:00");
+
+        // Execute insert - this should throw because the series doesn't exist
+        InsertRequest request = new InsertRequest(seriesId, List.of(
+            new SeriesData(time1, 1)
+        ), null);
+
+        // This should throw a NoSuchElementException because the series doesn't exist and createOnInsert is false
+        assertThrows(NoSuchElementException.class, () -> insertService.insert(request));
+
+        // Verify the series was not created
+        verify(dataService, never()).saveSeries(any());
+    }
+
+    @Test
+    public void testInsertWithReadOnly() {
+
+        // Setup properties mock behavior
+        when(properties.isReadOnly()).thenReturn(true);
+
+        // Mock that the series doesn't exist
+        String seriesId = "new-series";
+        when(dataService.getSeries(seriesId)).thenReturn(Optional.empty());
+
+        // Setup time and data for insert
+        ZonedDateTime time1 = ZonedDateTime.parse("2024-08-11T00:00:00-06:00");
+
+        // Execute insert - this should throw because the series doesn't exist and system is in read-only mode
+        InsertRequest request = new InsertRequest(seriesId, List.of(
+            new SeriesData(time1, 1)
+        ), null);
+
+        // This should throw a NoSuchElementException
+        assertThrows(NoSuchElementException.class, () -> insertService.insert(request));
+
+        // Verify the series was not created
+        verify(dataService, never()).saveSeries(any());
     }
 
 }

@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package iotfsdb.v1.internal;
+
+import "iotfsdb/common.proto";
+
+option java_package = "org.huebert.iotfsdb.api.grpc.proto.v1.internal";
+option java_outer_classname = "SeriesPersistenceServiceProto";
+
+// SeriesPersistenceService provides internal operations for series metadata storage
+service SeriesPersistenceService {
+
+  // DeleteSeries removes a series from storage
+  rpc DeleteSeries(DeleteSeriesRequest) returns (DeleteSeriesResponse);
+
+  // GetSeries retrieves all series metadata
+  rpc GetSeries(GetSeriesRequest) returns (GetSeriesResponse);
+
+  // SaveSeries stores series metadata
+  rpc SaveSeries(SaveSeriesRequest) returns (SaveSeriesResponse);
+}
+
+message DeleteSeriesRequest {
+  string id = 1;
+}
+
+message GetSeriesRequest {
+  // Empty request - returns all series
+}
+
+message SaveSeriesRequest {
+  iotfsdb.v1.common.Series series = 1;
+}
+
+message DeleteSeriesResponse {
+  iotfsdb.v1.common.Status status = 1;
+}
+
+message GetSeriesResponse {
+  iotfsdb.v1.common.Status status = 1;
+  repeated iotfsdb.v1.common.Series series = 2;
+}
+
+message SaveSeriesResponse {
+  iotfsdb.v1.common.Status status = 1;
+}

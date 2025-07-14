@@ -2,13 +2,13 @@ package org.huebert.iotfsdb.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.constraints.NotNull;
+import org.huebert.iotfsdb.api.schema.InsertRequest;
+import org.huebert.iotfsdb.api.schema.Reducer;
+import org.huebert.iotfsdb.api.schema.SeriesData;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.persistence.FilePersistenceAdapter;
 import org.huebert.iotfsdb.persistence.PartitionByteBuffer;
 import org.huebert.iotfsdb.persistence.PersistenceAdapter;
-import org.huebert.iotfsdb.schema.InsertRequest;
-import org.huebert.iotfsdb.schema.Reducer;
-import org.huebert.iotfsdb.schema.SeriesData;
-import org.huebert.iotfsdb.schema.SeriesFile;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -62,17 +62,17 @@ public class ImportService {
     }
 
     private static List<SeriesData> convertPartition(PersistenceAdapter adapter, PartitionRange partitionRange) {
-        PartitionByteBuffer pbb = adapter.openPartition(partitionRange.key());
+        PartitionByteBuffer pbb = adapter.openPartition(partitionRange.getKey());
         try {
             List<SeriesData> result = new ArrayList<>();
-            ZonedDateTime current = TimeConverter.toUtc(partitionRange.range().lowerEndpoint());
-            Iterator<Number> iterator = partitionRange.adapter().getStream(pbb.getByteBuffer(), 0, (int) partitionRange.getSize()).iterator();
+            ZonedDateTime current = TimeConverter.toUtc(partitionRange.getRange().lowerEndpoint());
+            Iterator<Number> iterator = partitionRange.getStream(pbb.getByteBuffer()).iterator();
             while (iterator.hasNext()) {
                 Number value = iterator.next();
                 if (value != null) {
                     result.add(new SeriesData(current, value));
                 }
-                current = current.plus(partitionRange.interval());
+                current = current.plus(partitionRange.getInterval());
             }
             return result;
         } finally {

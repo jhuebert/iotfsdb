@@ -4,6 +4,12 @@ import com.google.common.collect.Maps;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
+import org.huebert.iotfsdb.api.schema.FindDataRequest;
+import org.huebert.iotfsdb.api.schema.FindDataResponse;
+import org.huebert.iotfsdb.api.schema.Reducer;
+import org.huebert.iotfsdb.api.schema.SeriesData;
+import org.huebert.iotfsdb.api.schema.SeriesDefinition;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.collectors.AveragingCollector;
 import org.huebert.iotfsdb.collectors.BigDecimalAveragingCollector;
 import org.huebert.iotfsdb.collectors.BigDecimalMaximumCollector;
@@ -21,18 +27,11 @@ import org.huebert.iotfsdb.collectors.MinimumCollector;
 import org.huebert.iotfsdb.collectors.ModeCollector;
 import org.huebert.iotfsdb.collectors.MultiplyingCollector;
 import org.huebert.iotfsdb.collectors.SummingCollector;
-import org.huebert.iotfsdb.schema.FindDataRequest;
-import org.huebert.iotfsdb.schema.FindDataResponse;
-import org.huebert.iotfsdb.schema.Reducer;
-import org.huebert.iotfsdb.schema.SeriesData;
-import org.huebert.iotfsdb.schema.SeriesDefinition;
-import org.huebert.iotfsdb.schema.SeriesFile;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
@@ -117,18 +116,24 @@ public class ReducerService {
     }
 
     public FindDataResponse reduce(@NotNull List<FindDataResponse> responses, @Valid @NotNull FindDataRequest request) {
-
-        Map<ZonedDateTime, List<SeriesData>> grouped = responses.parallelStream()
-            .map(FindDataResponse::getData)
-            .flatMap(Collection::stream)
-            .collect(Collectors.groupingByConcurrent(SeriesData::getTime));
-
+        Map<ZonedDateTime, List<SeriesData>> grouped = groupSeriesDataByTime(responses);
         Collector<Number, ?, Number> collector = getCollector(request, request.getSeriesReducer());
+        List<SeriesData> data = processDataEntries(grouped, collector, request);
+        Map<String, String> metadata = extractCommonMetadata(responses);
+        return buildFindDataResponse(data, metadata);
+    }
 
-        List<SeriesData> data = grouped.entrySet().stream()
-            .map(e -> new SeriesData(
-                e.getKey(),
-                e.getValue().stream()
+    private Map<ZonedDateTime, List<SeriesData>> groupSeriesDataByTime(List<FindDataResponse> responses) {
+        return responses.parallelStream()
+            .flatMap(response -> response.getData().stream())
+            .collect(Collectors.groupingByConcurrent(SeriesData::getTime));
+    }
+
+    private List<SeriesData> processDataEntries(Map<ZonedDateTime, List<SeriesData>> grouped, Collector<Number, ?, Number> collector, FindDataRequest request) {
+        return grouped.entrySet().stream()
+            .map(entry -> new SeriesData(
+                entry.getKey(),
+                entry.getValue().stream()
                     .map(SeriesData::getValue)
                     .collect(collector)
             ))
@@ -136,13 +141,17 @@ public class ReducerService {
             .peek(request.getPreviousConsumer())
             .filter(request.getNullPredicate())
             .toList();
+    }
 
-        Map<String, String> metadata = responses.stream()
+    private Map<String, String> extractCommonMetadata(List<FindDataResponse> responses) {
+        return responses.stream()
             .map(FindDataResponse::getSeries)
             .map(SeriesFile::getMetadata)
             .reduce((a, b) -> Maps.difference(a, b).entriesInCommon())
             .orElse(Map.of());
+    }
 
+    private FindDataResponse buildFindDataResponse(List<SeriesData> data, Map<String, String> metadata) {
         return FindDataResponse.builder()
             .series(SeriesFile.builder()
                 .definition(SeriesDefinition.builder()

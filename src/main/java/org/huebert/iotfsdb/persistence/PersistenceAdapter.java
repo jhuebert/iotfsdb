@@ -4,7 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import org.huebert.iotfsdb.schema.SeriesFile;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.service.PartitionKey;
 import org.springframework.validation.annotation.Validated;
 

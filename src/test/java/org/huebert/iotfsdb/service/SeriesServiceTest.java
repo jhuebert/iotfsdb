@@ -1,8 +1,13 @@
 package org.huebert.iotfsdb.service;
 
-import org.huebert.iotfsdb.schema.FindSeriesRequest;
-import org.huebert.iotfsdb.schema.SeriesDefinition;
-import org.huebert.iotfsdb.schema.SeriesFile;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import org.huebert.iotfsdb.api.schema.FindSeriesRequest;
+import org.huebert.iotfsdb.api.schema.SeriesDefinition;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -15,11 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class SeriesServiceTest {
@@ -57,12 +57,49 @@ public class SeriesServiceTest {
 
         when(dataService.getSeries("123")).thenReturn(Optional.of(seriesFile));
 
-        seriesService.updateMetadata("123", metadata);
+        seriesService.updateMetadata("123", metadata, false);
 
         verify(dataService).getSeries("123");
         verify(dataService).saveSeries(captor.capture());
         assertThat(captor.getValue().getDefinition()).isEqualTo(definition);
         assertThat(captor.getValue().getMetadata()).isEqualTo(metadata);
+    }
+
+    @Test
+    public void testUpdateMetadata_WithMerge() {
+
+        // Setup existing series file with some metadata
+        SeriesDefinition definition = SeriesDefinition.builder().id("123").build();
+        Map<String, String> existingMetadata = Map.of("existing1", "value1", "existing2", "value2");
+        SeriesFile seriesFile = SeriesFile.builder()
+            .definition(definition)
+            .metadata(existingMetadata)
+            .build();
+
+        // New metadata to merge
+        Map<String, String> newMetadata = Map.of("existing1", "updated", "new1", "newValue");
+
+        when(dataService.getSeries("123")).thenReturn(Optional.of(seriesFile));
+
+        // Call updateMetadata with merge=true
+        seriesService.updateMetadata("123", newMetadata, true);
+
+        // Verify interactions and captured value
+        verify(dataService).getSeries("123");
+        verify(dataService).saveSeries(captor.capture());
+
+        // Verify the definition was preserved
+        assertThat(captor.getValue().getDefinition()).isEqualTo(definition);
+
+        // Verify the metadata was properly merged:
+        // - existing1 should be updated
+        // - existing2 should remain
+        // - new1 should be added
+        Map<String, String> expectedMetadata = Map.of(
+            "existing1", "updated",
+            "existing2", "value2",
+            "new1", "newValue");
+        assertThat(captor.getValue().getMetadata()).isEqualTo(expectedMetadata);
     }
 
     @Test

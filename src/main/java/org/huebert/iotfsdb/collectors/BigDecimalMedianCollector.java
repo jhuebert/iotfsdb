@@ -14,7 +14,7 @@ import java.util.function.Supplier;
 
 public class BigDecimalMedianCollector implements NumberCollector<BigDecimal, List<BigDecimal>> {
 
-    private static final BigDecimal TWO = new BigDecimal("2");
+    private static final BigDecimal TWO = BigDecimal.valueOf(2);
 
     @Override
     public Supplier<List<BigDecimal>> supplier() {
@@ -46,7 +46,7 @@ public class BigDecimalMedianCollector implements NumberCollector<BigDecimal, Li
                 return average(a.get(0), a.get(1));
             }
 
-            a.sort(Comparator.comparing(b -> b));
+            a.sort(Comparator.naturalOrder());
             int index = a.size() / 2;
             BigDecimal median = a.get(index);
             if (a.size() % 2 == 0) {
@@ -63,9 +63,7 @@ public class BigDecimalMedianCollector implements NumberCollector<BigDecimal, Li
     }
 
     private static BigDecimal average(BigDecimal a, BigDecimal b) {
-        BigDecimal sum = a.add(b);
-        int precision = sum.precision() + (int) Math.ceil(10.0 * TWO.precision() / 3.0);
-        return sum.divide(TWO, new MathContext(precision));
+        return a.add(b).divide(TWO, MathContext.DECIMAL128);
     }
 
 }

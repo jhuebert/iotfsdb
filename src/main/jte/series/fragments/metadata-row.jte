@@ -1,5 +1,5 @@
-@import org.huebert.iotfsdb.schema.SeriesFile
-@import org.huebert.iotfsdb.ui.service.BasePageService
+@import org.huebert.iotfsdb.api.schema.SeriesFile
+@import org.huebert.iotfsdb.api.ui.service.BasePageService
 
 @param BasePageService.BasePage basePage
 @param SeriesFile file

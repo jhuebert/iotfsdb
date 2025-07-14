@@ -3,7 +3,6 @@ package org.huebert.iotfsdb.partition;
 import lombok.Data;
 
 import java.nio.ByteBuffer;
-import java.util.Iterator;
 import java.util.stream.Stream;
 
 @Data
@@ -28,13 +27,8 @@ public class CurvedMappedPartition implements PartitionAdapter {
     }
 
     @Override
-    public Iterator<Number> getIterator(ByteBuffer buffer, int index, int length) {
-        return innerAdapter.getIterator(buffer, index, length);
-    }
-
-    @Override
     public Stream<Number> getStream(ByteBuffer buffer, int index, int length) {
-        return PartitionAdapter.super.getStream(buffer, index, length)
+        return innerAdapter.getStream(buffer, index, length)
             .map(innerValue -> {
                 if (innerValue == null) {
                     return null;
@@ -59,8 +53,7 @@ public class CurvedMappedPartition implements PartitionAdapter {
     }
 
     private static double decurve(double value) {
-        double a = (1.0 + value) / (1.0 - value);
-        return 0.5 * Math.log(a);
+        return 0.5 * Math.log((1.0 + value) / (1.0 - value));
     }
 
 }

@@ -4,12 +4,13 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
-import org.huebert.iotfsdb.schema.FindSeriesRequest;
-import org.huebert.iotfsdb.schema.SeriesFile;
+import org.huebert.iotfsdb.api.schema.FindSeriesRequest;
+import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,9 +28,10 @@ public class SeriesService {
     }
 
     public void createSeries(@Valid @NotNull SeriesFile seriesFile) {
-        if (dataService.getSeries(seriesFile.getId()).isPresent()) {
-            throw new IllegalArgumentException(String.format("series (%s) already exists", seriesFile.getId()));
-        }
+        dataService.getSeries(seriesFile.getId())
+            .ifPresent(_ -> {
+                throw new IllegalArgumentException(String.format("series (%s) already exists", seriesFile.getId()));
+            });
         dataService.saveSeries(seriesFile);
     }
 
@@ -45,9 +47,14 @@ public class SeriesService {
             .toList();
     }
 
-    public void updateMetadata(@NotBlank String seriesId, @NotNull Map<String, String> metadata) {
+    public void updateMetadata(@NotBlank String seriesId, @NotNull Map<String, String> metadata, boolean merge) {
         SeriesFile seriesFile = dataService.getSeries(seriesId).orElseThrow();
-        dataService.saveSeries(new SeriesFile(seriesFile.getDefinition(), metadata));
+        Map<String, String> updatedMetadata = metadata;
+        if (merge) {
+            updatedMetadata = new HashMap<>(seriesFile.getMetadata());
+            updatedMetadata.putAll(metadata);
+        }
+        dataService.saveSeries(new SeriesFile(seriesFile.getDefinition(), updatedMetadata));
     }
 
     public void deleteSeries(@NotBlank String seriesId) {
@@ -55,21 +62,17 @@ public class SeriesService {
     }
 
     private boolean matchesMetadata(@Valid @NotNull SeriesFile series, @NotNull Map<String, Pattern> metadata) {
-        Map<String, String> seriesMetadata = series.getMetadata();
-
         if (metadata.isEmpty()) {
             return true;
-        } else if (metadata.size() > seriesMetadata.size()) {
+        }
+        Map<String, String> seriesMetadata = series.getMetadata();
+        if (metadata.size() > seriesMetadata.size()) {
             return false;
         }
-
-        for (Map.Entry<String, Pattern> entry : metadata.entrySet()) {
-            String seriesValue = seriesMetadata.get(entry.getKey());
-            if ((seriesValue == null) || !entry.getValue().matcher(seriesValue).matches()) {
-                return false;
-            }
-        }
-        return true;
+        return metadata.entrySet().stream()
+            .allMatch(entry -> {
+                String seriesValue = seriesMetadata.get(entry.getKey());
+                return seriesValue != null && entry.getValue().matcher(seriesValue).matches();
+            });
     }
-
 }

@@ -1,8 +1,11 @@
 package org.huebert.iotfsdb.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
 import com.google.common.collect.Range;
 import org.huebert.iotfsdb.IotfsdbProperties;
-import org.huebert.iotfsdb.schema.FindDataRequest;
+import org.huebert.iotfsdb.api.schema.FindDataRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -11,9 +14,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.ZonedDateTime;
 import java.util.List;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class IntervalServiceTest {
@@ -31,7 +31,9 @@ public class IntervalServiceTest {
         request.setFrom(ZonedDateTime.parse(("2024-11-11T00:00:00-06:00")));
         request.setTo(ZonedDateTime.parse(("2024-11-11T04:00:00-06:00")));
 
-        when(properties.getMaxQuerySize()).thenReturn(10);
+        IotfsdbProperties.QueryProperties queryProperties = new IotfsdbProperties.QueryProperties();
+        queryProperties.setMaxSize(10);
+        when(properties.getQuery()).thenReturn(queryProperties);
 
         List<Range<ZonedDateTime>> ranges = intervalService.getIntervalRanges(request);
         assertThat(ranges.size()).isEqualTo(2);
@@ -46,7 +48,9 @@ public class IntervalServiceTest {
         request.setFrom(ZonedDateTime.parse(("2024-11-11T00:00:00-06:00")));
         request.setTo(ZonedDateTime.parse(("2024-11-11T04:00:00-06:00")));
 
-        when(properties.getMaxQuerySize()).thenReturn(1);
+        IotfsdbProperties.QueryProperties queryProperties = new IotfsdbProperties.QueryProperties();
+        queryProperties.setMaxSize(1);
+        when(properties.getQuery()).thenReturn(queryProperties);
 
         List<Range<ZonedDateTime>> ranges = intervalService.getIntervalRanges(request);
         assertThat(ranges.size()).isEqualTo(1);
@@ -60,7 +64,9 @@ public class IntervalServiceTest {
         request.setFrom(ZonedDateTime.parse(("2024-11-11T00:00:00-06:00")));
         request.setTo(ZonedDateTime.parse(("2024-11-11T04:00:00-06:00")));
 
-        when(properties.getMaxQuerySize()).thenReturn(10);
+        IotfsdbProperties.QueryProperties queryProperties = new IotfsdbProperties.QueryProperties();
+        queryProperties.setMaxSize(10);
+        when(properties.getQuery()).thenReturn(queryProperties);
 
         List<Range<ZonedDateTime>> ranges = intervalService.getIntervalRanges(request);
         assertThat(ranges.size()).isEqualTo(2);
@@ -75,7 +81,9 @@ public class IntervalServiceTest {
         request.setFrom(ZonedDateTime.parse(("2024-11-11T00:00:00-06:00")));
         request.setTo(ZonedDateTime.parse(("2024-11-11T04:00:00-06:00")));
 
-        when(properties.getMaxQuerySize()).thenReturn(1);
+        IotfsdbProperties.QueryProperties queryProperties = new IotfsdbProperties.QueryProperties();
+        queryProperties.setMaxSize(1);
+        when(properties.getQuery()).thenReturn(queryProperties);
 
         List<Range<ZonedDateTime>> ranges = intervalService.getIntervalRanges(request);
         assertThat(ranges.size()).isEqualTo(1);
@@ -88,7 +96,9 @@ public class IntervalServiceTest {
         request.setFrom(ZonedDateTime.parse(("2024-11-11T00:00:00-06:00")));
         request.setTo(ZonedDateTime.parse(("2024-11-11T04:00:00-06:00")));
 
-        when(properties.getMaxQuerySize()).thenReturn(10);
+        IotfsdbProperties.QueryProperties queryProperties = new IotfsdbProperties.QueryProperties();
+        queryProperties.setMaxSize(10);
+        when(properties.getQuery()).thenReturn(queryProperties);
 
         List<Range<ZonedDateTime>> ranges = intervalService.getIntervalRanges(request);
         assertThat(ranges.size()).isEqualTo(10);
@@ -104,7 +114,9 @@ public class IntervalServiceTest {
         request.setFrom(ZonedDateTime.parse(("2024-11-11T00:00:00-06:00")));
         request.setTo(ZonedDateTime.parse(("2024-11-11T04:00:00-06:00")));
 
-        when(properties.getMaxQuerySize()).thenReturn(10);
+        IotfsdbProperties.QueryProperties queryProperties = new IotfsdbProperties.QueryProperties();
+        queryProperties.setMaxSize(10);
+        when(properties.getQuery()).thenReturn(queryProperties);
 
         List<Range<ZonedDateTime>> ranges = intervalService.getIntervalRanges(request);
         assertThat(ranges.size()).isEqualTo(2);

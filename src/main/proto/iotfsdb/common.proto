@@ -1,0 +1,144 @@
+syntax = "proto3";
+
+package iotfsdb.v1.common;
+
+option java_package = "org.huebert.iotfsdb.api.grpc.proto.v1";
+option java_outer_classname = "CommonProto";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+// Represents a binary file with optional filename
+message File {
+  bytes data = 1;
+  string filename = 2;
+}
+
+// NullHandler defines how null values are handled in queries
+message NullHandler {
+  oneof null_handling {
+    NullOption null_option = 1;
+    double null_value = 2;
+  }
+}
+
+// NullOption defines how null values are handled in queries
+enum NullOption {
+  NULL_HANDLER_UNSPECIFIED = 0;   // Default behavior
+  NULL_HANDLER_INCLUDE = 1;       // Include null values in results
+  NULL_HANDLER_EXCLUDE = 2;       // Exclude null values from results
+  NULL_HANDLER_PREVIOUS = 3;      // Use previous non-null value
+}
+
+// NumberType defines the storage type for series values
+enum NumberType {
+  NUMBER_TYPE_UNSPECIFIED = 0;    // Default type
+  NUMBER_TYPE_CURVED1 = 1;        // Curved mapped float, 1 byte
+  NUMBER_TYPE_CURVED2 = 2;        // Curved mapped float, 2 bytes
+  NUMBER_TYPE_CURVED4 = 3;        // Curved mapped float, 4 bytes
+  NUMBER_TYPE_FLOAT2 = 4;         // 2-byte float
+  NUMBER_TYPE_FLOAT3 = 5;         // 3-byte float
+  NUMBER_TYPE_FLOAT4 = 6;         // 4-byte float (standard float)
+  NUMBER_TYPE_FLOAT8 = 7;         // 8-byte float (standard double)
+  NUMBER_TYPE_INTEGER1 = 8;       // 1-byte integer
+  NUMBER_TYPE_INTEGER2 = 9;       // 2-byte integer
+  NUMBER_TYPE_INTEGER4 = 10;      // 4-byte integer
+  NUMBER_TYPE_INTEGER8 = 11;      // 8-byte integer
+  NUMBER_TYPE_MAPPED1 = 12;       // Mapped float, 1 byte
+  NUMBER_TYPE_MAPPED2 = 13;       // Mapped float, 2 bytes
+  NUMBER_TYPE_MAPPED4 = 14;       // Mapped float, 4 bytes
+}
+
+// PartitionPeriod defines how data is partitioned in storage
+enum PartitionPeriod {
+  PARTITION_PERIOD_UNSPECIFIED = 0;  // Default period
+  PARTITION_PERIOD_DAY = 1;          // Daily partitions
+  PARTITION_PERIOD_MONTH = 2;        // Monthly partitions
+  PARTITION_PERIOD_YEAR = 3;         // Yearly partitions
+}
+
+// Reducer defines how multiple values are reduced to a single value
+enum Reducer {
+  REDUCER_UNSPECIFIED = 0;       // Default reducer
+  REDUCER_AVERAGE = 1;           // Average of values
+  REDUCER_COUNT = 2;             // Count of values
+  REDUCER_COUNT_DISTINCT = 3;    // Count of distinct values
+  REDUCER_FIRST = 4;             // First value
+  REDUCER_LAST = 5;              // Last value
+  REDUCER_MAXIMUM = 6;           // Maximum value
+  REDUCER_MEDIAN = 7;            // Median value
+  REDUCER_MINIMUM = 8;           // Minimum value
+  REDUCER_MODE = 9;              // Most common value
+  REDUCER_MULTIPLY = 10;         // Product of values
+  REDUCER_SQUARE_SUM = 11;       // Sum of squares
+  REDUCER_SUM = 12;              // Sum of values
+}
+
+// Series represents a time series with its definition and metadata
+message Series {
+  SeriesDefinition definition = 1;
+  map<string, string> metadata = 2;
+}
+
+// Search criteria used for querying series
+message SeriesCriteria {
+  string id = 1;
+  map<string, string> metadata = 2;
+}
+
+// Contains data values for a specific series
+message SeriesData {
+  string id = 1;
+  repeated SeriesValue values = 2;
+}
+
+// Defines the properties of a time series
+message SeriesDefinition {
+  string id = 1;                         // Unique identifier for the series
+  google.protobuf.Duration interval = 2; // Expected time interval between values
+  PartitionPeriod partition = 3;         // How data is partitioned for storage
+  NumberType type = 4;                   // Storage type for the values
+  double min = 5;                        // Minimum expected value for MAPPED and CURVED types
+  double max = 6;                        // Maximum expected value for MAPPED and CURVED types
+}
+
+// Represents a single timestamped value in a series
+message SeriesValue {
+  google.protobuf.Timestamp timestamp = 1;
+  double value = 2;
+}
+
+// Controls the size of data returned in queries
+message Size {
+  google.protobuf.Duration interval = 1;
+  int32 size = 2;
+}
+
+// Status represents the result of an operation
+message Status {
+  bool success = 1;                 // Whether the operation succeeded
+  StatusCode code = 2;              // Specific status code
+  string message = 3;               // Human-readable status message
+  map<string, string> metadata = 4; // Additional metadata about the status
+}
+
+// StatusCode defines standard status codes for API responses
+enum StatusCode {
+  STATUS_CODE_UNSPECIFIED = 0;    // Default or unknown status
+  STATUS_CODE_CLIENT_ERROR = 1;   // Error caused by client request
+  STATUS_CODE_SERVER_ERROR = 2;   // Error caused by server failure
+}
+
+// Time represents either an absolute or relative time
+message Time {
+  oneof time_option {
+    google.protobuf.Duration relative_time = 1;
+    google.protobuf.Timestamp timestamp = 2;
+  }
+}
+
+// Represents a time interval with start and end times
+message TimeRange {
+  Time start = 1;
+  Time end = 2;
+}
