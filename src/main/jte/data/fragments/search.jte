@@ -43,12 +43,77 @@
       }
   }
 
+  function zoomIn() {
+      adjustTimeRange(0.75);
+  }
+
+  function zoomOut() {
+      adjustTimeRange(1.25);
+  }
+
+  function moveEarlier() {
+      shiftTimeRange(-0.25);
+  }
+
+  function moveLater() {
+      shiftTimeRange(0.25);
+  }
+
+  function adjustTimeRange(factor) {
+      const [fromInput, toInput] = getRangeInputs();
+      const [fromTime, toTime] = getTimeRange(fromInput, toInput);
+
+      const middleTime = (fromTime + toTime) / 2;
+      const halfRange = ((toTime - fromTime) / 2) * factor;
+
+      updateRangeInputs(fromInput, toInput, middleTime - halfRange, middleTime + halfRange);
+      triggerSearch();
+  }
+
+  function shiftTimeRange(factor) {
+      const [fromInput, toInput] = getRangeInputs();
+      const [fromTime, toTime] = getTimeRange(fromInput, toInput);
+
+      const offset = (toTime - fromTime) * factor;
+      updateRangeInputs(fromInput, toInput, fromTime + offset, toTime + offset);
+      triggerSearch();
+  }
+
+  function getRangeInputs() {
+      const fromInput = document.getElementById('from');
+      const toInput = document.getElementById('to');
+
+      if (fromInput.disabled || toInput.disabled) {
+          document.getElementById('dateTimePreset').value = 'NONE';
+          dateTimePresetChanged(document.getElementById('dateTimePreset'));
+      }
+
+      return [fromInput, toInput];
+  }
+
+  function getTimeRange(fromInput, toInput) {
+      return [new Date(fromInput.value).getTime(), new Date(toInput.value).getTime()];
+  }
+
+  function updateRangeInputs(fromInput, toInput, fromTime, toTime) {
+      fromInput.value = new Date(fromTime).toISOString().slice(0, 16);
+      toInput.value = new Date(toTime).toISOString().slice(0, 16);
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
       const toggleButton = document.getElementById('toggle-periodic-search');
       const intervalInput = document.getElementById('interval');
+      const zoomInButton = document.getElementById('zoom-in-button');
+      const zoomOutButton = document.getElementById('zoom-out-button');
+      const moveEarlierButton = document.getElementById('move-earlier-button');
+      const moveLaterButton = document.getElementById('move-later-button');
 
       toggleButton.addEventListener('click', () => togglePeriodicSearch(!periodicSearchEnabled));
       intervalInput?.addEventListener('input', handleIntervalChange);
+      zoomInButton?.addEventListener('click', zoomIn);
+      zoomOutButton?.addEventListener('click', zoomOut);
+      moveEarlierButton?.addEventListener('click', moveEarlier);
+      moveLaterButton?.addEventListener('click', moveLater);
   });
 </script>
 <form>
@@ -66,6 +131,30 @@
                     hx-target="#chart-data"
                     hx-on::response-error="handleHtmxResponseError(event)">
                 <i class="bi bi-search"></i>
+            </button>
+            <button class="btn btn-sm btn-secondary"
+                    id="zoom-in-button"
+                    type="button"
+                    title="Zoom In">
+                <i class="bi bi-zoom-in"></i>
+            </button>
+            <button class="btn btn-sm btn-secondary"
+                    id="zoom-out-button"
+                    type="button"
+                    title="Zoom Out">
+                <i class="bi bi-zoom-out"></i>
+            </button>
+            <button class="btn btn-sm btn-secondary"
+                    id="move-earlier-button"
+                    type="button"
+                    title="Move Earlier">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <button class="btn btn-sm btn-secondary"
+                    id="move-later-button"
+                    type="button"
+                    title="Move Later">
+                <i class="bi bi-chevron-right"></i>
             </button>
             <button class="btn btn-sm btn-secondary"
                     id="toggle-periodic-search"
