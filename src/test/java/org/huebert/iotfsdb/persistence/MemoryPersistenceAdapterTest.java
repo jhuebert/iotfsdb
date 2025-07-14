@@ -10,6 +10,12 @@ import org.junit.jupiter.api.Test;
 public class MemoryPersistenceAdapterTest {
 
     @Test
+    public void testPostConstruct() {
+        MemoryPersistenceAdapter adapter = new MemoryPersistenceAdapter();
+        adapter.postConstruct();
+    }
+
+    @Test
     public void testSeries() {
         MemoryPersistenceAdapter adapter = new MemoryPersistenceAdapter();
         SeriesFile seriesFile = SeriesFile.builder().definition(SeriesDefinition.builder().id("123").build()).build();
