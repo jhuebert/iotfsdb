@@ -27,6 +27,14 @@
       const toggleButton = document.getElementById('toggle-periodic-search');
       toggleButton.classList.toggle('active', enabled);
 
+      if (enabled) {
+          toggleButton.classList.add('btn-success');
+          toggleButton.classList.remove('btn-secondary');
+      } else {
+          toggleButton.classList.add('btn-secondary');
+          toggleButton.classList.remove('btn-success');
+      }
+
       clearInterval(periodicSearchInterval);
       if (enabled) {
           periodicSearchInterval = setInterval(triggerSearch, getPeriodicInterval());
@@ -133,56 +141,62 @@
 </script>
 <form>
     <div class="row mb-3">
-        <div class="col">
-            <input class="form-control form-control-sm"
-                   name="search"
-                   type="search"
-                   placeholder="Search"
-                   value="${SearchParser.toSearch(request)}"/>
+        <div class="col pe-1">
+            <div class="input-group input-group-sm">
+                <input class="form-control"
+                       name="search"
+                       type="search"
+                       placeholder="Search"
+                       value="${SearchParser.toSearch(request)}"/>
+                <button class="btn btn-secondary"
+                        id="toggle-periodic-search"
+                        type="button"
+                        title="Toggle periodic search">
+                    <i class="bi bi-arrow-repeat"></i>
+                </button>
+                <button class="btn btn-secondary"
+                        data-bs-toggle="modal"
+                        data-bs-target="#advancedModal"
+                        title="Advanced Options">
+                    <i class="bi bi-gear"></i>
+                </button>
+                <button class="btn btn-primary"
+                        hx-post="/ui/data/search"
+                        hx-target="#chart-data"
+                        hx-on::response-error="handleHtmxResponseError(event)">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
         </div>
         <div class="col-auto ps-0">
-            <button class="btn btn-sm btn-primary"
-                    hx-post="/ui/data/search"
-                    hx-target="#chart-data"
-                    hx-on::response-error="handleHtmxResponseError(event)">
-                <i class="bi bi-search"></i>
-            </button>
-            <button class="btn btn-sm btn-secondary"
-                    id="zoom-in-button"
-                    type="button"
-                    title="Zoom In">
-                <i class="bi bi-zoom-in"></i>
-            </button>
-            <button class="btn btn-sm btn-secondary"
-                    id="zoom-out-button"
-                    type="button"
-                    title="Zoom Out">
-                <i class="bi bi-zoom-out"></i>
-            </button>
-            <button class="btn btn-sm btn-secondary"
-                    id="move-earlier-button"
-                    type="button"
-                    title="Move Earlier">
-                <i class="bi bi-chevron-left"></i>
-            </button>
-            <button class="btn btn-sm btn-secondary"
-                    id="move-later-button"
-                    type="button"
-                    title="Move Later">
-                <i class="bi bi-chevron-right"></i>
-            </button>
-            <button class="btn btn-sm btn-secondary"
-                    id="toggle-periodic-search"
-                    type="button"
-                    title="Toggle periodic search">
-                <i class="bi bi-clock"></i>
-            </button>
-            <button class="btn btn-sm btn-secondary"
-                    data-bs-toggle="modal"
-                    data-bs-target="#advancedModal">
-                <i class="bi bi-gear"></i>
-            </button>
-            <!-- TODO Add left and right and zoom in and zoom out buttons for for navigating time -->
+            <div class="btn-group btn-group-sm">
+                <button class="btn btn-secondary"
+                        id="move-earlier-button"
+                        type="button"
+                        title="Move Earlier">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <button class="btn btn-secondary"
+                        id="move-later-button"
+                        type="button"
+                        title="Move Later">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+            <div class="btn-group btn-group-sm">
+                <button class="btn btn-secondary"
+                        id="zoom-in-button"
+                        type="button"
+                        title="Zoom In">
+                    <i class="bi bi-zoom-in"></i>
+                </button>
+                <button class="btn btn-secondary"
+                        id="zoom-out-button"
+                        type="button"
+                        title="Zoom Out">
+                    <i class="bi bi-zoom-out"></i>
+                </button>
+            </div>
             <div class="modal fade" id="advancedModal" tabindex="-1"
                  aria-labelledby="advancedModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-lg">
