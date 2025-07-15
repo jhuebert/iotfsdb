@@ -43,37 +43,38 @@
       }
   }
 
+  const zoomFactor = 0.7;
+
   function zoomIn() {
-      adjustTimeRange(0.75);
+      adjustTimeRange(zoomFactor);
   }
 
   function zoomOut() {
-      adjustTimeRange(1.25);
+      adjustTimeRange(1.0 / zoomFactor);
   }
 
+  const moveFactor = 0.25;
+
   function moveEarlier() {
-      shiftTimeRange(-0.25);
+      shiftTimeRange(-moveFactor);
   }
 
   function moveLater() {
-      shiftTimeRange(0.25);
+      shiftTimeRange(moveFactor);
   }
 
   function adjustTimeRange(factor) {
       const [fromInput, toInput] = getRangeInputs();
       const [fromTime, toTime] = getTimeRange(fromInput, toInput);
-
-      const middleTime = (fromTime + toTime) / 2;
+      const midpoint = (fromTime + toTime) / 2;
       const halfRange = ((toTime - fromTime) / 2) * factor;
-
-      updateRangeInputs(fromInput, toInput, middleTime - halfRange, middleTime + halfRange);
+      updateRangeInputs(fromInput, toInput, midpoint - halfRange, midpoint + halfRange);
       triggerSearch();
   }
 
   function shiftTimeRange(factor) {
       const [fromInput, toInput] = getRangeInputs();
       const [fromTime, toTime] = getTimeRange(fromInput, toInput);
-
       const offset = (toTime - fromTime) * factor;
       updateRangeInputs(fromInput, toInput, fromTime + offset, toTime + offset);
       triggerSearch();
@@ -85,6 +86,7 @@
 
       if (fromInput.disabled || toInput.disabled) {
           document.getElementById('dateTimePreset').value = 'NONE';
+          //TODO Need to set the from and to values based on the preset
           dateTimePresetChanged(document.getElementById('dateTimePreset'));
       }
 
@@ -92,7 +94,20 @@
   }
 
   function getTimeRange(fromInput, toInput) {
-      return [new Date(fromInput.value).getTime(), new Date(toInput.value).getTime()];
+      return [getTime(fromInput.value), getTime(toInput.value)];
+  }
+
+  function getTime(input) {
+      const local = new Date(input);
+      return new Date(Date.UTC(
+          local.getFullYear(),
+          local.getMonth(),
+          local.getDate(),
+          local.getHours(),
+          local.getMinutes(),
+          local.getSeconds(),
+          local.getMilliseconds()
+      )).getTime();
   }
 
   function updateRangeInputs(fromInput, toInput, fromTime, toTime) {

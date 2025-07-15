@@ -110,9 +110,10 @@ public class DataUiController {
         FindDataRequest request = new FindDataRequest();
         request.setSeries(SearchParser.fromSearch(search));
         request.setDateTimePreset(dateTimePreset);
-        request.setTimezone(TimeZone.getTimeZone(timezone));
-        request.setFrom(from != null ? TimeConverter.toUtc(from) : null);
-        request.setTo(to != null ? TimeConverter.toUtc(to) : null);
+        TimeZone timeZone = TimeZone.getTimeZone(timezone);
+        request.setTimezone(timeZone);
+        request.setFrom(from != null ? from.atZone(timeZone.toZoneId()) : null);
+        request.setTo(to != null ? to.atZone(timeZone.toZoneId()) : null);
         request.setInterval(interval);
         request.setSize(size);
         request.setIncludeNull("on".equalsIgnoreCase(includeNull));
