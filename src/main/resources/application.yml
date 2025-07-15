@@ -39,7 +39,7 @@ iotfsdb:
     internal: false
     ui: true
   stats:
-    enabled: true
+    enabled: false
   query:
     max-size: 1000
   series:
