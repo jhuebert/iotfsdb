@@ -12,5 +12,8 @@ public enum Reducer {
     MODE,
     MULTIPLY,
     SQUARE_SUM,
-    SUM
+    SUM;
+
+    public static final String REDUCED_ID = "reduced";
+
 }

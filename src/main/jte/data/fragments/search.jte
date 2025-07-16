@@ -77,7 +77,6 @@
       const midpoint = (fromTime + toTime) / 2;
       const halfRange = ((toTime - fromTime) / 2) * factor;
       updateRangeInputs(fromInput, toInput, midpoint - halfRange, midpoint + halfRange);
-      triggerSearch();
   }
 
   function shiftTimeRange(factor) {
@@ -85,7 +84,6 @@
       const [fromTime, toTime] = getTimeRange(fromInput, toInput);
       const offset = (toTime - fromTime) * factor;
       updateRangeInputs(fromInput, toInput, fromTime + offset, toTime + offset);
-      triggerSearch();
   }
 
   function getRangeInputs() {
@@ -118,9 +116,27 @@
       )).getTime();
   }
 
+  function getTimeString(input) {
+      return String(input.getUTCFullYear()).padStart(4, "0") + "-" +
+          String(input.getUTCMonth() + 1).padStart(2, "0") + "-" +
+          String(input.getUTCDate()).padStart(2, "0") + "T" +
+          String(input.getUTCHours()).padStart(2, "0") + ":" +
+          String(input.getUTCMinutes()).padStart(2, "0") + ":" +
+          String(input.getUTCSeconds()).padStart(2, "0");
+  }
+
   function updateRangeInputs(fromInput, toInput, fromTime, toTime) {
-      fromInput.value = new Date(fromTime).toISOString().slice(0, 16);
-      toInput.value = new Date(toTime).toISOString().slice(0, 16);
+      const fromDate = new Date(fromTime);
+      const toDate = new Date(toTime);
+      if (
+          ((toTime - fromTime) > 1000) &&
+          (fromDate.getUTCFullYear() > 1900) && (toDate.getUTCFullYear() > 1900) &&
+          (fromDate.getUTCFullYear() < 2100) && (toDate.getUTCFullYear() < 2100)
+      ) {
+          fromInput.value = getTimeString(fromDate);
+          toInput.value = getTimeString(toDate);
+          triggerSearch();
+      }
   }
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -185,16 +201,16 @@
             </div>
             <div class="btn-group btn-group-sm">
                 <button class="btn btn-secondary"
-                        id="zoom-in-button"
-                        type="button"
-                        title="Zoom In">
-                    <i class="bi bi-zoom-in"></i>
-                </button>
-                <button class="btn btn-secondary"
                         id="zoom-out-button"
                         type="button"
                         title="Zoom Out">
                     <i class="bi bi-zoom-out"></i>
+                </button>
+                <button class="btn btn-secondary"
+                        id="zoom-in-button"
+                        type="button"
+                        title="Zoom In">
+                    <i class="bi bi-zoom-in"></i>
                 </button>
             </div>
             <div class="modal fade" id="advancedModal" tabindex="-1"
@@ -243,6 +259,26 @@
             datasets: [],
           },
           options: {
+            plugins: {
+              legend: {
+                labels: {
+                  usePointStyle: true,
+                },
+                onHover: (evt, legendItem, legend) => {
+                  const chart = legend.chart;
+                  chart.data.datasets[legendItem.datasetIndex].borderWidth = 3;
+                  chart.update();
+                },
+                onLeave: (evt, legendItem, legend) => {
+                  const chart = legend.chart;
+                  chart.data.datasets[legendItem.datasetIndex].borderWidth = 1;
+                  chart.update();
+                }
+              },
+                tooltip: {
+                    usePointStyle: true,
+                }
+            },
             animation: false,
             cubicInterpolationMode: 'monotone',
             maintainAspectRatio: false,
@@ -254,6 +290,12 @@
             },
             scales: {
                 x: {
+                    border: {
+                        color: '#373737'
+                    },
+                    grid: {
+                        color: '#373737'
+                    },
                     type: 'time',
                     ticks: {
                         autoSkip: true,
@@ -276,6 +318,9 @@
                     }
                 },
                 y: {
+                    grid: {
+                        color: '#373737'
+                    },
                     position: 'right'
                 },
                 y2: {
