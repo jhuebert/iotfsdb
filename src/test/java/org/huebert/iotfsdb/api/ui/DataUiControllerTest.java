@@ -208,7 +208,7 @@ class DataUiControllerTest {
         // Act
         String viewName = controller.searchData(
             model, response, timezone, search, dateTimePreset,
-            from, to, interval, size, includeNull, useBigDecimal, usePrevious,
+            from, to, interval, size, usePrevious,
             nullValue, timeReducer, seriesReducer
         );
 
@@ -227,7 +227,7 @@ class DataUiControllerTest {
         assertEquals(interval, capturedRequest.getInterval());
         assertEquals(size, capturedRequest.getSize());
         assertTrue(capturedRequest.isIncludeNull());
-        assertTrue(capturedRequest.isUseBigDecimal());
+        assertFalse(capturedRequest.isUseBigDecimal());
         assertTrue(capturedRequest.isUsePrevious());
         assertEquals(nullValue, capturedRequest.getNullValue());
         assertEquals(timeReducer, capturedRequest.getTimeReducer());
@@ -261,7 +261,7 @@ class DataUiControllerTest {
         // Act - call with null for optional parameters
         String viewName = controller.searchData(
             model, response, timezone, search, dateTimePreset,
-            null, null, 60000L, 250, null, null, null,
+            null, null, 60000L, 250, null,
             null, Reducer.AVERAGE, null
         );
 
@@ -279,7 +279,7 @@ class DataUiControllerTest {
         assertNull(capturedRequest.getTo());
         assertEquals(60000L, capturedRequest.getInterval());
         assertEquals(250, capturedRequest.getSize());
-        assertFalse(capturedRequest.isIncludeNull());
+        assertTrue(capturedRequest.isIncludeNull());
         assertFalse(capturedRequest.isUseBigDecimal());
         assertFalse(capturedRequest.isUsePrevious());
         assertNull(capturedRequest.getNullValue());
@@ -296,7 +296,7 @@ class DataUiControllerTest {
         // Act
         String viewName = controller.searchData(
             model, response, "UTC", "id:test-series", DateTimePreset.LAST_24_HOURS,
-            null, null, 60000L, 250, null, null, null,
+            null, null, 60000L, 250, null,
             null, Reducer.AVERAGE, null
         );
 
@@ -318,7 +318,7 @@ class DataUiControllerTest {
         when(queryService.findData(any(FindDataRequest.class))).thenReturn(List.of());
 
         controller.searchData(model, response, "UTC", "id:test-series", DateTimePreset.LAST_24_HOURS,
-            null, null, 60000L, 250, null, null, null,
+            null, null, 60000L, 250, null,
             null, Reducer.AVERAGE, null);
 
         // Verify empty labels list
@@ -353,7 +353,7 @@ class DataUiControllerTest {
         // Call searchData
         controller.searchData(
             model, this.response, "UTC", "id:test-series", DateTimePreset.LAST_24_HOURS,
-            null, null, 60000L, 250, null, null, null,
+            null, null, 60000L, 250, null,
             null, Reducer.AVERAGE, null
         );
 
