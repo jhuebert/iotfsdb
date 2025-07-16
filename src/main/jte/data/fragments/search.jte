@@ -51,7 +51,7 @@
       }
   }
 
-  const zoomFactor = 0.7;
+  const zoomFactor = 0.5;
 
   function zoomIn() {
       adjustTimeRange(zoomFactor);
@@ -215,16 +215,16 @@
                             <div class="row mb-3">
                                 @template.components.number(id = "size", label = "Size", min = 1, value = request.getSize())
                                 @template.components.number(id = "interval", label = "Interval (ms)", min = 1L, step = 60000L, value = request.getInterval())
+                            </div>
+                            <div class="row mb-3">
                                 @template.components.number(id = "nullValue", label = "Null Value", value = request.getNullValue() != null ? request.getNullValue().doubleValue() : null)
+                                <div class="col d-flex align-items-center">
+                                    @template.components.switch(id = "usePrevious", label = "Use Previous", checked = request.isUsePrevious())
+                                </div>
                             </div>
                             <div class="row mb-3">
                                 @template.components.select(id = "timeReducer", label = "Time Reducer", values = Reducer.values(), selected = request.getTimeReducer())
                                 @template.components.select(id = "seriesReducer", label = "Series Reducer", emptyOption = true, values = Reducer.values(), selected = request.getSeriesReducer())
-                            </div>
-                            <div class="row mb-3">
-                                @template.components.switch(id = "includeNull", label = "Include Null", checked = request.isIncludeNull())
-                                @template.components.switch(id = "useBigDecimal", label = "Use Big Decimal", checked = request.isUseBigDecimal())
-                                @template.components.switch(id = "usePrevious", label = "Use Previous", checked = request.isUsePrevious())
                             </div>
                         </div>
                     </div>
@@ -254,7 +254,26 @@
             },
             scales: {
                 x: {
-                    type: 'time'
+                    type: 'time',
+                    ticks: {
+                        autoSkip: true,
+                        autoSkipPadding: 50,
+                        maxRotation: 0,
+                    },
+                    time: {
+                        tooltipFormat: 'YYYY-MM-DD H:mm:ss.SSS',
+                        displayFormats: {
+                            millisecond: 'H:mm:ss.SSS',
+                            second: 'H:mm:ss',
+                            minute: 'M/D H:mm',
+                            hour: 'M/D H:mm',
+                            day: 'M/D',
+                            week: 'M/D',
+                            month: 'M/YYYY',
+                            quarter: 'M/YYYY',
+                            year: 'YYYY',
+                        }
+                    }
                 },
                 y: {
                     position: 'right'
