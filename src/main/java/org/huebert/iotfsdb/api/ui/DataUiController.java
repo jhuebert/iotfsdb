@@ -99,8 +99,6 @@ public class DataUiController {
         @RequestParam(value = "to", required = false) LocalDateTime to,
         @RequestParam(value = "interval", required = false, defaultValue = "60000") Long interval,
         @RequestParam(value = "size", required = false, defaultValue = "250") Integer size,
-        @RequestParam(value = "includeNull", required = false) String includeNull,
-        @RequestParam(value = "useBigDecimal", required = false) String useBigDecimal,
         @RequestParam(value = "usePrevious", required = false) String usePrevious,
         @RequestParam(value = "nullValue", required = false) Number nullValue,
         @RequestParam(value = "timeReducer", required = false, defaultValue = "AVERAGE") Reducer timeReducer,
@@ -110,13 +108,14 @@ public class DataUiController {
         FindDataRequest request = new FindDataRequest();
         request.setSeries(SearchParser.fromSearch(search));
         request.setDateTimePreset(dateTimePreset);
-        request.setTimezone(TimeZone.getTimeZone(timezone));
-        request.setFrom(from != null ? TimeConverter.toUtc(from) : null);
-        request.setTo(to != null ? TimeConverter.toUtc(to) : null);
+        TimeZone timeZone = TimeZone.getTimeZone(timezone);
+        request.setTimezone(timeZone);
+        request.setFrom(from != null ? from.atZone(timeZone.toZoneId()) : null);
+        request.setTo(to != null ? to.atZone(timeZone.toZoneId()) : null);
         request.setInterval(interval);
         request.setSize(size);
-        request.setIncludeNull("on".equalsIgnoreCase(includeNull));
-        request.setUseBigDecimal("on".equalsIgnoreCase(useBigDecimal));
+        request.setIncludeNull(true);
+        request.setUseBigDecimal(false);
         request.setUsePrevious("on".equalsIgnoreCase(usePrevious));
         request.setNullValue(nullValue);
         request.setTimeReducer(timeReducer);

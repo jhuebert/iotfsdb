@@ -18,5 +18,6 @@
             pointHitRadius: 10
         },
     @endfor];
+    chart.config.options.plugins.legend.display = ${plotData.isSeriesReduced()};
     chart.update();
 </script>

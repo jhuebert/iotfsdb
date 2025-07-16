@@ -155,7 +155,7 @@ public class ReducerService {
         return FindDataResponse.builder()
             .series(SeriesFile.builder()
                 .definition(SeriesDefinition.builder()
-                    .id("reduced")
+                    .id(Reducer.REDUCED_ID)
                     .build())
                 .metadata(metadata)
                 .build())
