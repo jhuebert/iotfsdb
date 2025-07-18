@@ -114,7 +114,7 @@ public class StatsCollector {
             annotation.group(),
             annotation.type(),
             annotation.operation(),
-            stat.name(),
+            stat.getKey(),
             annotation.version()
         ));
         components.removeIf(String::isBlank);
