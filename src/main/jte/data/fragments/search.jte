@@ -51,6 +51,41 @@
       }
   }
 
+  function downloadChartCSV() {
+
+      // Get chart data
+      const chartData = chart.data;
+      const labels = chartData.labels;
+      const datasets = chartData.datasets;
+
+      // Create CSV header with timestamp and series names
+      let csvContent = "Timestamp";
+      datasets.forEach(dataset => {
+          csvContent += "," + dataset.label;
+      });
+      csvContent += "\n";
+
+      // Add data rows
+      for (let i = 0; i < labels.length; i++) {
+          csvContent += labels[i];
+          datasets.forEach(dataset => {
+              csvContent += "," + (dataset.data[i] === null ? "" : dataset.data[i]);
+          });
+          csvContent += "\n";
+      }
+
+      // Create and trigger download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'chart_data_' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+  }
+
   const zoomFactor = 0.5;
 
   function zoomIn() {
@@ -146,6 +181,22 @@
       const zoomOutButton = document.getElementById('zoom-out-button');
       const moveEarlierButton = document.getElementById('move-earlier-button');
       const moveLaterButton = document.getElementById('move-later-button');
+      const searchForm = document.querySelector('form');
+      const searchInput = document.querySelector('input[name="search"]');
+
+      // Prevent default form submission and handle Enter key in search input
+      searchForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          triggerSearch();
+      });
+
+      // Add event listener for Enter key on search input as a backup
+      searchInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+              e.preventDefault();
+              triggerSearch();
+          }
+      });
 
       toggleButton.addEventListener('click', () => togglePeriodicSearch(!periodicSearchEnabled));
       intervalInput?.addEventListener('input', handleIntervalChange);
@@ -177,6 +228,7 @@
                     <i class="bi bi-gear"></i>
                 </button>
                 <button class="btn btn-primary"
+                        title="Execute Search"
                         hx-post="/ui/data/search"
                         hx-target="#chart-data"
                         hx-on::response-error="handleHtmxResponseError(event)">
@@ -211,6 +263,15 @@
                         type="button"
                         title="Zoom In">
                     <i class="bi bi-zoom-in"></i>
+                </button>
+            </div>
+            <div class="btn-group btn-group-sm">
+                <button class="btn btn-secondary"
+                        id="download-csv-button"
+                        type="button"
+                        title="Download CSV"
+                        onclick="downloadChartCSV()">
+                    <i class="bi bi-file-earmark-spreadsheet"></i>
                 </button>
             </div>
             <div class="modal fade" id="advancedModal" tabindex="-1"
