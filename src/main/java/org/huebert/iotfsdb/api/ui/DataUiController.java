@@ -64,6 +64,8 @@ public class DataUiController {
         try {
             if (request != null) {
                 FindDataRequest findDataRequest = objectEncoder.decode(request, FindDataRequest.class);
+                findDataRequest.setIncludeNull(true);
+                findDataRequest.setUseBigDecimal(false);
                 List<FindDataResponse> data = queryService.findData(findDataRequest);
                 plotData = PlotData.builder()
                     .labels(getLabels(data))

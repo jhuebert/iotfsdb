@@ -25,7 +25,7 @@ logging.level:
 server:
   compression:
     enabled: true
-    mime-types: application/json
+    mime-types: text/html,text/xml,text/plain,text/css,text/javascript,application/javascript,application/json,image/svg+xml
     min-response-size: 2048
 
 iotfsdb:
