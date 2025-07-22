@@ -64,18 +64,17 @@ public interface ServiceMapper {
     @Mapping(target = "values", source = "data")
     CommonProto.SeriesData toProto(FindDataResponse wrapper);
 
-    @Mapping(target = "interval", source = "size.interval")
-    @Mapping(target = "size", source = "size.size")
-    @Mapping(target = "timezone", expression = "java(java.util.TimeZone.getTimeZone(\"UTC\"))")
-    @Mapping(target = "from", source = "timeRange.start")
-    @Mapping(target = "to", source = "timeRange.end")
+    @Mapping(target = "interval", source = "request.size.interval")
+    @Mapping(target = "size", source = "request.size.size")
+    @Mapping(target = "from", source = "request.timeRange.start")
+    @Mapping(target = "to", source = "request.timeRange.end")
     @Mapping(target = "dateTimePreset", ignore = true)
-    @Mapping(target = "series", source = "criteria")
+    @Mapping(target = "series", source = "request.criteria")
     @Mapping(target = "includeNull", expression = "java(request.getNullHandler().getNullOption() == CommonProto.NullOption.NULL_HANDLER_INCLUDE)")
     @Mapping(target = "usePrevious", expression = "java(request.getNullHandler().getNullOption() == CommonProto.NullOption.NULL_HANDLER_PREVIOUS)")
-    @Mapping(target = "nullValue", source = "nullHandler.nullValue")
-    @Mapping(target = "useBigDecimal", source = "highPrecision")
-    FindDataRequest fromProto(DataServiceProto.FindDataRequest request);
+    @Mapping(target = "nullValue", source = "request.nullHandler.nullValue")
+    @Mapping(target = "useBigDecimal", source = "request.highPrecision")
+    FindDataRequest fromProto(DataServiceProto.FindDataRequest request, String timezone);
 
     @Mapping(target = "series", source = "request.id")
     InsertRequest fromProto(CommonProto.SeriesData request, CommonProto.Reducer reducer);

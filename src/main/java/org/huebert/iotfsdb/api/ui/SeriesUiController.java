@@ -2,6 +2,8 @@ package org.huebert.iotfsdb.api.ui;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.huebert.iotfsdb.api.grpc.api.ServiceMapper;
+import org.huebert.iotfsdb.api.grpc.proto.v1.CommonProto;
 import org.huebert.iotfsdb.api.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.api.ui.service.BasePageService;
@@ -10,6 +12,7 @@ import org.huebert.iotfsdb.api.ui.service.ObjectEncoder;
 import org.huebert.iotfsdb.api.ui.service.SearchParser;
 import org.huebert.iotfsdb.service.SeriesService;
 import org.huebert.iotfsdb.stats.CaptureStats;
+import org.mapstruct.factory.Mappers;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -29,6 +32,8 @@ import java.util.List;
 @RequestMapping("/ui/series")
 @ConditionalOnExpression("${iotfsdb.api.ui:true}")
 public class SeriesUiController {
+
+    private static final ServiceMapper SERVICE_MAPPER = Mappers.getMapper(ServiceMapper.class);
 
     private final SeriesService seriesService;
 
@@ -57,7 +62,10 @@ public class SeriesUiController {
         List<SeriesFile> series = List.of();
         try {
             if (request != null) {
-                FindSeriesRequest findSeriesRequest = objectEncoder.decode(request, FindSeriesRequest.class);
+                FindSeriesRequest findSeriesRequest = objectEncoder.decode(request, FindSeriesRequest.class)
+                    .or(() -> objectEncoder.decode(request, CommonProto.SeriesCriteria::parseFrom)
+                        .map(SERVICE_MAPPER::fromProto))
+                    .orElseThrow(() -> new IOException("Could not decode request: " + request));
                 series = seriesService.findSeries(findSeriesRequest);
                 model.addAttribute("request", findSeriesRequest);
             }
@@ -81,7 +89,7 @@ public class SeriesUiController {
         FindSeriesRequest request = SearchParser.fromSearch(search);
         model.addAttribute("series", seriesService.findSeries(request));
         try {
-            response.addHeader("HX-Push-Url", "/ui/series?request=" + objectEncoder.encode(request));
+            response.addHeader("HX-Push-Url", "/ui/series?request=" + objectEncoder.encode(SERVICE_MAPPER.toProto(request)));
         } catch (IOException e) {
             log.warn("Could not serialize request: {}", request);
         }

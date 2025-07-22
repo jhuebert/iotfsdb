@@ -53,7 +53,7 @@ public class GrpcDataService extends DataServiceGrpc.DataServiceImplBase {
     public void findData(DataServiceProto.FindDataRequest request, StreamObserver<DataServiceProto.FindDataResponse> responseObserver) {
         DataServiceProto.FindDataResponse.Builder builder = DataServiceProto.FindDataResponse.newBuilder();
         try {
-            builder.addAllData(queryService.findData(SERVICE_MAPPER.fromProto(request)).stream()
+            builder.addAllData(queryService.findData(SERVICE_MAPPER.fromProto(request, "UTC")).stream()
                 .map(SERVICE_MAPPER::toProto)
                 .toList());
             builder.setStatus(CommonMapper.SUCCESS_STATUS);

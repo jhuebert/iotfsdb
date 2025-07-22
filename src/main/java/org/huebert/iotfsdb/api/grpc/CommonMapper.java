@@ -17,6 +17,7 @@ import org.mapstruct.ReportingPolicy;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.TimeZone;
 import java.util.regex.Pattern;
 
 @Mapper(
@@ -58,6 +59,13 @@ public interface CommonMapper {
             Instant.ofEpochSecond(value.getSeconds(), value.getNanos()),
             ZoneId.of("UTC")
         );
+    }
+
+    default TimeZone toTimeZone(String value) {
+        if (value == null || value.isBlank()) {
+            return TimeZone.getDefault();
+        }
+        return TimeZone.getTimeZone(value);
     }
 
     default ZonedDateTime fromProto(CommonProto.Time value) {

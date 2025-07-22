@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package iotfsdb.v1.api;
+
+import "google/protobuf/duration.proto";
+import "iotfsdb/api/data_service.proto";
+
+option java_package = "org.huebert.iotfsdb.api.grpc.proto.v1.api";
+option java_outer_classname = "UiServiceProto";
+
+message UiFindDataRequest {
+  iotfsdb.v1.api.FindDataRequest request = 1;
+  string timezone = 2;
+}

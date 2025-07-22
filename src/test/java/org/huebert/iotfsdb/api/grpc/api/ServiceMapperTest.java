@@ -182,7 +182,7 @@ class ServiceMapperTest {
         DataServiceProto.FindDataRequest protoRequest = builder.build();
 
         // Convert to domain object
-        FindDataRequest request = serviceMapper.fromProto(protoRequest);
+        FindDataRequest request = serviceMapper.fromProto(protoRequest, "UTC");
 
         // Verify mapping
         assertEquals("test.*", request.getSeries().getPattern().pattern());
@@ -216,7 +216,7 @@ class ServiceMapperTest {
         DataServiceProto.FindDataRequest protoRequest = builder.build();
 
         // Convert to domain object
-        FindDataRequest request = serviceMapper.fromProto(protoRequest);
+        FindDataRequest request = serviceMapper.fromProto(protoRequest, "UTC");
 
         // Verify mapping
         assertFalse(request.isIncludeNull());

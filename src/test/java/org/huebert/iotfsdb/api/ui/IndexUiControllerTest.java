@@ -1,5 +1,11 @@
 package org.huebert.iotfsdb.api.ui;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,12 +14,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.servlet.view.RedirectView;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Unit tests for the IndexUiController class.
@@ -56,8 +56,8 @@ class IndexUiControllerTest {
     void testGetIndexEndpoint() throws Exception {
         // Perform a GET request to the /ui endpoint
         mockMvc.perform(get("/ui"))
-               .andExpect(status().is3xxRedirection())
-               .andExpect(redirectedUrl("/ui/series"));
+            .andExpect(status().is3xxRedirection())
+            .andExpect(redirectedUrl("/ui/series"));
     }
 
     /**
@@ -67,8 +67,8 @@ class IndexUiControllerTest {
     void testRedirectResponseDetails() throws Exception {
         // Perform a GET request and capture the response
         MvcResult result = mockMvc.perform(get("/ui"))
-                                  .andExpect(status().is3xxRedirection())
-                                  .andReturn();
+            .andExpect(status().is3xxRedirection())
+            .andReturn();
 
         // Verify response details
         String redirectUrl = result.getResponse().getRedirectedUrl();

@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 @ExtendWith(MockitoExtension.class)
@@ -108,7 +109,7 @@ class SeriesUiControllerTest {
 
         // Arrange
         String encodedRequest = "encoded-request";
-        when(objectEncoder.decode(encodedRequest, FindSeriesRequest.class)).thenReturn(testRequest);
+        when(objectEncoder.decode(encodedRequest, FindSeriesRequest.class)).thenReturn(Optional.of(testRequest));
         when(seriesService.findSeries(testRequest)).thenReturn(testSeriesList);
 
         // Act

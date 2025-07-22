@@ -2,6 +2,8 @@ package org.huebert.iotfsdb.api.ui;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.huebert.iotfsdb.api.grpc.api.ServiceMapper;
+import org.huebert.iotfsdb.api.grpc.proto.v1.api.UiServiceProto;
 import org.huebert.iotfsdb.api.schema.DateTimePreset;
 import org.huebert.iotfsdb.api.schema.FindDataRequest;
 import org.huebert.iotfsdb.api.schema.FindDataResponse;
@@ -12,8 +14,8 @@ import org.huebert.iotfsdb.api.ui.service.ObjectEncoder;
 import org.huebert.iotfsdb.api.ui.service.PlotData;
 import org.huebert.iotfsdb.api.ui.service.SearchParser;
 import org.huebert.iotfsdb.service.QueryService;
-import org.huebert.iotfsdb.service.TimeConverter;
 import org.huebert.iotfsdb.stats.CaptureStats;
+import org.mapstruct.factory.Mappers;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -34,6 +36,8 @@ import java.util.TimeZone;
 @RequestMapping("/ui/data")
 @ConditionalOnExpression("${iotfsdb.api.ui:true}")
 public class DataUiController {
+
+    private static final ServiceMapper SERVICE_MAPPER = Mappers.getMapper(ServiceMapper.class);
 
     private final QueryService queryService;
 
@@ -63,7 +67,10 @@ public class DataUiController {
 
         try {
             if (request != null) {
-                FindDataRequest findDataRequest = objectEncoder.decode(request, FindDataRequest.class);
+                FindDataRequest findDataRequest = objectEncoder.decode(request, FindDataRequest.class)
+                    .or(() -> objectEncoder.decode(request, UiServiceProto.UiFindDataRequest::parseFrom)
+                        .map(ui -> SERVICE_MAPPER.fromProto(ui.getRequest(), ui.getTimezone())))
+                    .orElseThrow(() -> new IOException("Could not decode request: " + request));
                 findDataRequest.setIncludeNull(true);
                 findDataRequest.setUseBigDecimal(false);
                 List<FindDataResponse> data = queryService.findData(findDataRequest);
@@ -110,10 +117,10 @@ public class DataUiController {
         FindDataRequest request = new FindDataRequest();
         request.setSeries(SearchParser.fromSearch(search));
         request.setDateTimePreset(dateTimePreset);
-        TimeZone timeZone = TimeZone.getTimeZone(timezone);
-        request.setTimezone(timeZone);
-        request.setFrom(from != null ? from.atZone(timeZone.toZoneId()) : null);
-        request.setTo(to != null ? to.atZone(timeZone.toZoneId()) : null);
+        TimeZone tz = TimeZone.getTimeZone(timezone);
+        request.setTimezone(tz);
+        request.setFrom(from != null ? from.atZone(tz.toZoneId()) : null);
+        request.setTo(to != null ? to.atZone(tz.toZoneId()) : null);
         request.setInterval(interval);
         request.setSize(size);
         request.setIncludeNull(true);
@@ -133,7 +140,10 @@ public class DataUiController {
         model.addAttribute("plotData", plotData);
 
         try {
-            response.addHeader("HX-Push-Url", "/ui/data?request=" + objectEncoder.encode(request));
+            response.addHeader("HX-Push-Url", "/ui/data?request=" + objectEncoder.encode(UiServiceProto.UiFindDataRequest.newBuilder()
+                .setRequest(SERVICE_MAPPER.toProto(request))
+                .setTimezone(timezone)
+                .build()));
         } catch (IOException e) {
             log.warn("Could not serialize request: {}", request);
         }

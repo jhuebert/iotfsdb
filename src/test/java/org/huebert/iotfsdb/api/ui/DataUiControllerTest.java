@@ -41,6 +41,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
 
@@ -134,7 +135,7 @@ class DataUiControllerTest {
     void testGetIndexWithValidRequest() throws IOException {
         // Arrange
         String encodedRequest = "encoded-request";
-        when(objectEncoder.decode(encodedRequest, FindDataRequest.class)).thenReturn(testRequest);
+        when(objectEncoder.decode(encodedRequest, FindDataRequest.class)).thenReturn(Optional.of(testRequest));
         when(queryService.findData(testRequest)).thenReturn(testResponses);
 
         // Act
