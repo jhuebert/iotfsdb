@@ -86,7 +86,7 @@ public class QueryService {
 
     private Stream<Number> findDataFromPartition(PartitionRange partitionRange, Range<LocalDateTime> current) {
         return dataService.getBuffer(partitionRange.getKey())
-            .map(b -> partitionRange.getStream(b, current))
+            .map(b -> partitionRange.getStream(b, current).stream())
             .orElse(Stream.empty());
     }
 

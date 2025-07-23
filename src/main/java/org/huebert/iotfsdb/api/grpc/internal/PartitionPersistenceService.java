@@ -78,7 +78,7 @@ public class PartitionPersistenceService extends PartitionPersistenceServiceGrpc
         try {
             PartitionByteBuffer partitionByteBuffer = persistenceAdapter.openPartition(fromGrpc(request.getKey()));
             try {
-                builder.setData(ByteString.copyFrom(partitionByteBuffer.getByteBuffer()));
+                builder.setData(partitionByteBuffer.withRead(ByteString::copyFrom));
             } finally {
                 partitionByteBuffer.close();
             }

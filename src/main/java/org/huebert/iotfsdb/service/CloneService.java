@@ -9,10 +9,10 @@ import org.huebert.iotfsdb.api.schema.Reducer;
 import org.huebert.iotfsdb.api.schema.SeriesData;
 import org.huebert.iotfsdb.api.schema.SeriesDefinition;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
+import org.huebert.iotfsdb.persistence.PartitionByteBuffer;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import java.nio.ByteBuffer;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -79,7 +79,7 @@ public class CloneService {
         PartitionRange range = partitionService.getRange(partition);
         List<SeriesData> result = new ArrayList<>();
         range.withRead(() -> {
-            ByteBuffer buffer = dataService.getBuffer(partition).orElseThrow();
+            PartitionByteBuffer buffer = dataService.getBuffer(partition).orElseThrow();
             ZonedDateTime current = TimeConverter.toUtc(range.getRange().lowerEndpoint());
             Iterator<Number> iterator = range.getStream(buffer).iterator();
             while (iterator.hasNext()) {
@@ -115,10 +115,10 @@ public class CloneService {
         PartitionRange sourceRange = partitionService.getRange(sourceKey);
         PartitionRange destinationRange = partitionService.getRange(destinationKey);
         sourceRange.withRead(() -> {
-            ByteBuffer sourceBuffer = dataService.getBuffer(sourceKey).orElseThrow();
+            PartitionByteBuffer sourceBuffer = dataService.getBuffer(sourceKey).orElseThrow();
             destinationRange.withWrite(() -> {
-                ByteBuffer destinationBuffer = dataService.getBuffer(destinationKey, sourceRange.getSize(), sourceRange.getAdapter());
-                destinationBuffer.put(sourceBuffer);
+                PartitionByteBuffer destinationBuffer = dataService.getBuffer(destinationKey, sourceRange.getSize(), sourceRange.getAdapter());
+                destinationBuffer.withWrite(db -> sourceBuffer.withRead(db::put));
             });
         });
     }

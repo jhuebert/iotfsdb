@@ -9,10 +9,10 @@ import org.huebert.iotfsdb.api.schema.SeriesData;
 import org.huebert.iotfsdb.api.schema.SeriesDefinition;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.partition.PartitionAdapter;
+import org.huebert.iotfsdb.persistence.PartitionByteBuffer;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import java.nio.ByteBuffer;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -75,19 +75,21 @@ public class InsertService {
         PartitionRange details = partitionService.getRange(key);
         PartitionAdapter adapter = details.getAdapter();
         details.withWrite(() -> {
-            ByteBuffer buffer = dataService.getBuffer(key, details.getSize(), adapter);
-            for (SeriesData value : data) {
-                LocalDateTime local = TimeConverter.toUtc(value.getTime());
-                int index = details.getIndex(local);
-                Number putValue = value.getValue();
-                if (collector != null) {
-                    putValue = Stream.concat(
-                        adapter.getStream(buffer, index, 1),
-                        Stream.of(putValue)
-                    ).collect(collector);
+            PartitionByteBuffer buffer = dataService.getBuffer(key, details.getSize(), adapter);
+            buffer.withWrite(b -> {
+                for (SeriesData value : data) {
+                    LocalDateTime local = TimeConverter.toUtc(value.getTime());
+                    int index = details.getIndex(local);
+                    Number putValue = value.getValue();
+                    if (collector != null) {
+                        putValue = Stream.concat(
+                            adapter.getStream(b, index, 1),
+                            Stream.of(putValue)
+                        ).collect(collector);
+                    }
+                    adapter.put(b, index, putValue);
                 }
-                adapter.put(buffer, index, putValue);
-            }
+            });
         });
     }
 

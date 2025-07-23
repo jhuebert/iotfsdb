@@ -10,7 +10,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.IotfsdbProperties;
 import org.huebert.iotfsdb.api.schema.PartitionPeriod;
@@ -25,7 +24,6 @@ import org.springframework.validation.annotation.Validated;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.FileSystem;
@@ -193,7 +191,10 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
             long fileSize = Files.size(path);
             FileChannel fileChannel = FileChannel.open(path, openOptions);
             MappedByteBuffer byteBuffer = fileChannel.map(readOnly ? READ_ONLY : READ_WRITE, 0, fileSize);
-            return new FileByteBuffer(fileChannel, byteBuffer);
+            return PartitionByteBuffer.builder()
+                .fileChannel(fileChannel)
+                .byteBuffer(byteBuffer)
+                .build();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -223,28 +224,6 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
 
     private Path getPartitionPath(PartitionKey key) {
         return getSeriesRoot(key.seriesId()).resolve(key.partitionId());
-    }
-
-    @AllArgsConstructor
-    private static class FileByteBuffer implements PartitionByteBuffer {
-
-        private final FileChannel fileChannel;
-
-        private final MappedByteBuffer byteBuffer;
-
-        @Override
-        public ByteBuffer getByteBuffer() {
-            return byteBuffer.slice();
-        }
-
-        @Override
-        public void close() {
-            try {
-                fileChannel.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 
 }

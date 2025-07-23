@@ -56,7 +56,7 @@ public class ExportService {
 
     private void writePartitionsToZip(ZipOutputStream zos, String seriesId) throws IOException {
         for (PartitionKey key : dataService.getPartitions(seriesId)) {
-            partitionService.getRange(key).withRead(() -> addToZip(zos, key.seriesId(), key.partitionId(), dataService.getBuffer(key).map(ByteBuffer::array).orElseThrow()));
+            partitionService.getRange(key).withRead(() -> addToZip(zos, key.seriesId(), key.partitionId(), dataService.getBuffer(key).map(pbb -> pbb.withRead(ByteBuffer::array)).orElseThrow()));
         }
     }
 
