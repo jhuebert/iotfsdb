@@ -74,22 +74,20 @@ public class InsertService {
     private void insertIntoPartition(PartitionKey key, List<SeriesData> data, Collector<Number, ?, Number> collector) {
         PartitionRange details = partitionService.getRange(key);
         PartitionAdapter adapter = details.getAdapter();
-        details.withWrite(() -> {
-            PartitionByteBuffer buffer = dataService.getBuffer(key, details.getSize(), adapter);
-            buffer.withWrite(b -> {
-                for (SeriesData value : data) {
-                    LocalDateTime local = TimeConverter.toUtc(value.getTime());
-                    int index = details.getIndex(local);
-                    Number putValue = value.getValue();
-                    if (collector != null) {
-                        putValue = Stream.concat(
-                            adapter.getStream(b, index, 1),
-                            Stream.of(putValue)
-                        ).collect(collector);
-                    }
-                    adapter.put(b, index, putValue);
+        PartitionByteBuffer buffer = dataService.getBuffer(key, details.getSize(), adapter);
+        buffer.withWrite(b -> {
+            for (SeriesData value : data) {
+                LocalDateTime local = TimeConverter.toUtc(value.getTime());
+                int index = details.getIndex(local);
+                Number putValue = value.getValue();
+                if (collector != null) {
+                    putValue = Stream.concat(
+                        adapter.getStream(b, index, 1),
+                        Stream.of(putValue)
+                    ).collect(collector);
                 }
-            });
+                adapter.put(b, index, putValue);
+            }
         });
     }
 

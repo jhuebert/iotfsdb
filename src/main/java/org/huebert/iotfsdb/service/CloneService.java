@@ -16,7 +16,6 @@ import org.springframework.validation.annotation.Validated;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -78,15 +77,12 @@ public class CloneService {
     private List<SeriesData> convertPartition(PartitionKey partition) {
         PartitionRange range = partitionService.getRange(partition);
         List<SeriesData> result = new ArrayList<>();
-        range.withRead(() -> {
-            PartitionByteBuffer buffer = dataService.getBuffer(partition).orElseThrow();
-            ZonedDateTime current = TimeConverter.toUtc(range.getRange().lowerEndpoint());
-            Iterator<Number> iterator = range.getStream(buffer).iterator();
-            while (iterator.hasNext()) {
-                result.add(new SeriesData(current, iterator.next()));
-                current = current.plus(range.getInterval());
-            }
-        });
+        PartitionByteBuffer buffer = dataService.getBuffer(partition).orElseThrow();
+        ZonedDateTime current = TimeConverter.toUtc(range.getRange().lowerEndpoint());
+        for (Number number : range.getStream(buffer)) {
+            result.add(new SeriesData(current, number));
+            current = current.plus(range.getInterval());
+        }
         return result;
     }
 
@@ -113,14 +109,9 @@ public class CloneService {
     private void clonePartition(PartitionKey sourceKey, String destinationId) {
         PartitionKey destinationKey = new PartitionKey(destinationId, sourceKey.partitionId());
         PartitionRange sourceRange = partitionService.getRange(sourceKey);
-        PartitionRange destinationRange = partitionService.getRange(destinationKey);
-        sourceRange.withRead(() -> {
-            PartitionByteBuffer sourceBuffer = dataService.getBuffer(sourceKey).orElseThrow();
-            destinationRange.withWrite(() -> {
-                PartitionByteBuffer destinationBuffer = dataService.getBuffer(destinationKey, sourceRange.getSize(), sourceRange.getAdapter());
-                destinationBuffer.withWrite(db -> sourceBuffer.withRead(db::put));
-            });
-        });
+        PartitionByteBuffer sourceBuffer = dataService.getBuffer(sourceKey).orElseThrow();
+        PartitionByteBuffer destinationBuffer = dataService.getBuffer(destinationKey, sourceRange.getSize(), sourceRange.getAdapter());
+        destinationBuffer.withWrite(db -> sourceBuffer.withRead(db::put));
     }
 
 }

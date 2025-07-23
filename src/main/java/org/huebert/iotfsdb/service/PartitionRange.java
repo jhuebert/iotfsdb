@@ -11,7 +11,6 @@ import org.huebert.iotfsdb.persistence.PartitionByteBuffer;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.concurrent.locks.ReadWriteLock;
 
 public class PartitionRange {
 
@@ -32,10 +31,6 @@ public class PartitionRange {
     @NotNull
     private final PartitionAdapter adapter;
 
-    @Getter
-    @NotNull
-    private final ReadWriteLock rwLock;
-
     private final long intervalMillis;
 
     private final LocalDateTime lowerEndpoint;
@@ -43,12 +38,11 @@ public class PartitionRange {
     @Getter
     private final long size;
 
-    public PartitionRange(PartitionKey key, Range<LocalDateTime> range, Duration interval, PartitionAdapter adapter, ReadWriteLock rwLock) {
+    public PartitionRange(PartitionKey key, Range<LocalDateTime> range, Duration interval, PartitionAdapter adapter) {
         this.key = key;
         this.range = range;
         this.interval = interval;
         this.adapter = adapter;
-        this.rwLock = rwLock;
 
         intervalMillis = interval.toMillis();
         lowerEndpoint = range.lowerEndpoint();
@@ -69,14 +63,6 @@ public class PartitionRange {
 
     public int getIndex(LocalDateTime dateTime) {
         return (int) (Duration.between(lowerEndpoint, dateTime).toMillis() / intervalMillis);
-    }
-
-    public void withRead(LockUtil.RunnableWithException runnable) {
-        LockUtil.withRead(rwLock, runnable);
-    }
-
-    public void withWrite(LockUtil.RunnableWithException runnable) {
-        LockUtil.withWrite(rwLock, runnable);
     }
 
 }
