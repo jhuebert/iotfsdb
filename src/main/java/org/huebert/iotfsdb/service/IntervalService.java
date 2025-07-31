@@ -50,10 +50,11 @@ public class IntervalService {
 
     private List<Range<ZonedDateTime>> createRanges(ZonedDateTime start, Duration duration, int count) {
         List<Range<ZonedDateTime>> ranges = new ArrayList<>(count);
+        ZonedDateTime currentStart = start;
         for (int i = 0; i < count; i++) {
-            ZonedDateTime end = start.plus(duration);
-            ranges.add(Range.closed(start, end.minusNanos(1)));
-            start = end;
+            ZonedDateTime end = currentStart.plus(duration);
+            ranges.add(Range.closed(currentStart, end.minusNanos(1)));
+            currentStart = end;
         }
         return ranges;
     }
