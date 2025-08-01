@@ -90,4 +90,34 @@ public class NumberConverterTest {
         assertThat(NumberConverter.toShort(1.234)).isEqualTo((short) 1);
     }
 
+    @Test
+    public void testFromFloat1() {
+        // Test with NaN value - create a NaN byte directly
+        java.nio.ByteBuffer nanBuffer = java.nio.ByteBuffer.allocate(1);
+        Float1.NaN.writeTo(nanBuffer);
+        byte nanByte = nanBuffer.get(0);
+        assertThat(NumberConverter.fromFloat1(nanByte)).isEqualTo(null);
+
+        // Test with regular value
+        Float1 testFloat1 = Float1.fromFloat(1.5f);
+        java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(1);
+        testFloat1.writeTo(buffer);
+        byte value = buffer.get(0);
+        Number result = NumberConverter.fromFloat1(value);
+        assertThat(result).isInstanceOf(Float1.class);
+        assertThat(result).isNotNull();
+        assertThat(result.floatValue()).isGreaterThan(0.0f);
+    }
+
+    @Test
+    public void testToFloat1() {
+        byte nanByte = NumberConverter.toFloat1(null);
+        Float1 nanFloat1 = Float1.readFrom(java.nio.ByteBuffer.wrap(new byte[]{nanByte}));
+        assertThat(nanFloat1.isNaN()).isTrue();
+
+        byte valueByte = NumberConverter.toFloat1(1.5);
+        Float1 valueFloat1 = Float1.readFrom(java.nio.ByteBuffer.wrap(new byte[]{valueByte}));
+        assertThat(valueFloat1.floatValue()).isGreaterThan(0.0f);
+    }
+
 }
