@@ -86,6 +86,21 @@
       document.body.removeChild(link);
   }
 
+  function downloadChartAsImage() {
+
+      // Create an image from the canvas
+      const image = chart.toBase64Image();
+
+      // Create and trigger download
+      const link = document.createElement('a');
+      link.setAttribute('href', image);
+      link.setAttribute('download', 'chart_image_' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.png');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+  }
+
   const zoomFactor = 0.5;
 
   function zoomIn() {
@@ -272,6 +287,13 @@
                         title="Download CSV"
                         onclick="downloadChartCSV()">
                     <i class="bi bi-file-earmark-spreadsheet"></i>
+                </button>
+                <button class="btn btn-secondary"
+                        id="download-image-button"
+                        type="button"
+                        title="Download Image"
+                        onclick="downloadChartAsImage()">
+                    <i class="bi bi-file-earmark-image"></i>
                 </button>
             </div>
             <div class="modal fade" id="advancedModal" tabindex="-1"
