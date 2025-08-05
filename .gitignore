@@ -24,5 +24,6 @@ replay_pid*
 
 .idea
 .gradle
+.vscode
 build
 jte-classes

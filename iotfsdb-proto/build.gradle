@@ -1,0 +1,36 @@
+plugins {
+    id 'com.google.protobuf' version '0.9.5'
+}
+
+ext {
+    set('springGrpcVersion', "0.9.0")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.grpc:spring-grpc-dependencies:${springGrpcVersion}"
+    }
+}
+
+protobuf {
+    protoc {
+        artifact = 'com.google.protobuf:protoc'
+    }
+    plugins {
+        grpc {
+            artifact = 'io.grpc:protoc-gen-grpc-java'
+        }
+    }
+    generateProtoTasks {
+        all()*.plugins {
+            grpc {
+                option 'jakarta_omit'
+                option '@generated=omit'
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.grpc:spring-grpc-spring-boot-starter'
+}

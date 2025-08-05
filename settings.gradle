@@ -1,1 +1,12 @@
-rootProject.name = 'iotfsdb'
+include "iotfsdb-app-server"
+include "iotfsdb-collector"
+include "iotfsdb-grpc"
+include "iotfsdb-partition"
+include "iotfsdb-persistence"
+include "iotfsdb-properties"
+include "iotfsdb-proto"
+include "iotfsdb-rest"
+include "iotfsdb-schema"
+include "iotfsdb-service"
+include "iotfsdb-stats"
+include "iotfsdb-web"

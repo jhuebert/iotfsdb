@@ -1,0 +1,22 @@
+ext {
+    set('springGrpcVersion', "0.9.0")
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.grpc:spring-grpc-dependencies:${springGrpcVersion}"
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+    implementation 'org.springframework.grpc:spring-grpc-spring-boot-starter'
+
+    implementation project(':iotfsdb-persistence')
+    implementation project(':iotfsdb-proto')
+    implementation project(':iotfsdb-schema')
+    implementation project(':iotfsdb-service')
+    implementation project(':iotfsdb-stats')
+}

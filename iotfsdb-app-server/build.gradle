@@ -1,0 +1,40 @@
+plugins {
+    id 'org.springframework.boot'
+    id 'com.google.protobuf' version '0.9.5'
+}
+
+ext {
+    set('springGrpcVersion', "0.9.0")
+}
+
+springBoot {
+    buildInfo()
+}
+
+jar {
+    enabled = false
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.grpc:spring-grpc-dependencies:${springGrpcVersion}"
+    }
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+    implementation 'com.google.guava:guava:33.4.8-jre'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.9'
+    implementation 'io.grpc:grpc-services'
+    implementation 'org.springframework.grpc:spring-grpc-spring-boot-starter'
+    implementation 'gg.jte:jte:3.2.1'
+    implementation 'gg.jte:jte-spring-boot-starter-3:3.2.1'
+    implementation("com.google.protobuf:protobuf-java:4.31.1")
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+    annotationProcessor"no.entur.mapstruct.spi:protobuf-spi-impl:1.49.0"
+    implementation project(':iotfsdb-rest')
+    implementation project(':iotfsdb-grpc')
+    implementation project(':iotfsdb-web')
+}
