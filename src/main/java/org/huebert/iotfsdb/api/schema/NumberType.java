@@ -4,6 +4,7 @@ public enum NumberType {
     CURVED1,
     CURVED2,
     CURVED4,
+    FLOAT1,
     FLOAT2,
     FLOAT3,
     FLOAT4,

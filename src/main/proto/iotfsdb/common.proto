@@ -47,6 +47,7 @@ enum NumberType {
   NUMBER_TYPE_MAPPED1 = 12;       // Mapped float, 1 byte
   NUMBER_TYPE_MAPPED2 = 13;       // Mapped float, 2 bytes
   NUMBER_TYPE_MAPPED4 = 14;       // Mapped float, 4 bytes
+  NUMBER_TYPE_FLOAT1 = 15;        // 1-byte float
 }
 
 // PartitionPeriod defines how data is partitioned in storage
