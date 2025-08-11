@@ -18,7 +18,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
@@ -92,14 +91,14 @@ public class DataService {
         return seriesPartitions.getOrDefault(seriesId, Set.of());
     }
 
-    public Optional<ByteBuffer> getBuffer(@Valid @NotNull PartitionKey key) {
+    public Optional<PartitionByteBuffer> getBuffer(@Valid @NotNull PartitionKey key) {
         if (partitionNotExists(key)) {
             return Optional.empty();
         }
-        return Optional.of(partitionCache.getUnchecked(key).getByteBuffer());
+        return Optional.of(partitionCache.getUnchecked(key));
     }
 
-    public ByteBuffer getBuffer(@Valid @NotNull PartitionKey key, @NotNull @Positive Long size, @NotNull PartitionAdapter adapter) {
+    public PartitionByteBuffer getBuffer(@Valid @NotNull PartitionKey key, @NotNull @Positive Long size, @NotNull PartitionAdapter adapter) {
         if (partitionNotExists(key)) {
             LockUtil.withLock(stripedLocks.get(key.seriesId()), () -> {
                 if (partitionNotExists(key)) {
@@ -107,17 +106,18 @@ public class DataService {
                     persistenceAdapter.createPartition(key, adapter.getTypeSize() * size);
 
                     PartitionByteBuffer partitionByteBuffer = persistenceAdapter.openPartition(key);
-                    ByteBuffer byteBuffer = partitionByteBuffer.getByteBuffer();
-                    for (int i = 0; i < size; i++) {
-                        adapter.put(byteBuffer, i, null);
-                    }
+                    partitionByteBuffer.withWrite(b -> {
+                        for (int i = 0; i < size; i++) {
+                            adapter.put(b, i, null);
+                        }
+                    });
                     partitionCache.put(key, partitionByteBuffer);
 
                     seriesPartitions.computeIfAbsent(key.seriesId(), k -> ConcurrentHashMap.newKeySet()).add(key);
                 }
             });
         }
-        return partitionCache.getUnchecked(key).getByteBuffer();
+        return partitionCache.getUnchecked(key);
     }
 
     private boolean partitionNotExists(PartitionKey key) {

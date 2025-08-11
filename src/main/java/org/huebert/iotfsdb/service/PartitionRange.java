@@ -6,12 +6,11 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import org.huebert.iotfsdb.partition.PartitionAdapter;
+import org.huebert.iotfsdb.persistence.PartitionByteBuffer;
 
-import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.stream.Stream;
+import java.util.List;
 
 public class PartitionRange {
 
@@ -32,10 +31,6 @@ public class PartitionRange {
     @NotNull
     private final PartitionAdapter adapter;
 
-    @Getter
-    @NotNull
-    private final ReadWriteLock rwLock;
-
     private final long intervalMillis;
 
     private final LocalDateTime lowerEndpoint;
@@ -43,12 +38,11 @@ public class PartitionRange {
     @Getter
     private final long size;
 
-    public PartitionRange(PartitionKey key, Range<LocalDateTime> range, Duration interval, PartitionAdapter adapter, ReadWriteLock rwLock) {
+    public PartitionRange(PartitionKey key, Range<LocalDateTime> range, Duration interval, PartitionAdapter adapter) {
         this.key = key;
         this.range = range;
         this.interval = interval;
         this.adapter = adapter;
-        this.rwLock = rwLock;
 
         intervalMillis = interval.toMillis();
         lowerEndpoint = range.lowerEndpoint();
@@ -56,27 +50,19 @@ public class PartitionRange {
         size = getIndex(range.upperEndpoint()) + 1;
     }
 
-    public Stream<Number> getStream(ByteBuffer buffer) {
-        return adapter.getStream(buffer, 0, (int) size);
+    public List<Number> getStream(PartitionByteBuffer buffer) {
+        return buffer.withRead(b -> adapter.getStream(b, 0, (int) size).toList());
     }
 
-    public Stream<Number> getStream(ByteBuffer buffer, Range<LocalDateTime> current) {
+    public List<Number> getStream(PartitionByteBuffer buffer, Range<LocalDateTime> current) {
         Range<LocalDateTime> intersection = range.intersection(current);
         int fromIndex = getIndex(intersection.lowerEndpoint());
         int toIndex = getIndex(intersection.upperEndpoint());
-        return adapter.getStream(buffer, fromIndex, toIndex - fromIndex + 1);
+        return buffer.withRead(b -> adapter.getStream(b, fromIndex, toIndex - fromIndex + 1).toList());
     }
 
     public int getIndex(LocalDateTime dateTime) {
         return (int) (Duration.between(lowerEndpoint, dateTime).toMillis() / intervalMillis);
-    }
-
-    public void withRead(LockUtil.RunnableWithException runnable) {
-        LockUtil.withRead(rwLock, runnable);
-    }
-
-    public void withWrite(LockUtil.RunnableWithException runnable) {
-        LockUtil.withWrite(rwLock, runnable);
     }
 
 }

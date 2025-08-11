@@ -33,7 +33,6 @@ import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @Validated
 @Slf4j
@@ -95,7 +94,7 @@ public class PartitionService {
     public static PartitionRange calculateRange(SeriesDefinition definition, PartitionKey key) {
         Range<LocalDateTime> range = getRange(definition, key.partitionId());
         PartitionAdapter adapter = getAdapter(definition);
-        return new PartitionRange(key, range, definition.getIntervalDuration(), adapter, new ReentrantReadWriteLock());
+        return new PartitionRange(key, range, definition.getIntervalDuration(), adapter);
     }
 
     private static Range<LocalDateTime> getRange(SeriesDefinition definition, String partitionId) {

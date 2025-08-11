@@ -73,20 +73,15 @@ public class QueryService {
     private SeriesData findDataOverPartitions(Collector<Number, ?, Number> collector, RangeMap<LocalDateTime, PartitionRange> rangeMap, Range<ZonedDateTime> current) {
         Range<LocalDateTime> local = TimeConverter.toUtc(current);
         Collection<PartitionRange> covered = rangeMap.subRangeMap(local).asMapOfRanges().values();
-        covered.forEach(c -> c.getRwLock().readLock().lock());
-        try {
-            Number value = covered.stream()
-                .flatMap(pr -> findDataFromPartition(pr, local))
-                .collect(collector);
-            return new SeriesData(current.lowerEndpoint(), value);
-        } finally {
-            covered.forEach(c -> c.getRwLock().readLock().unlock());
-        }
+        Number value = covered.stream()
+            .flatMap(pr -> findDataFromPartition(pr, local))
+            .collect(collector);
+        return new SeriesData(current.lowerEndpoint(), value);
     }
 
     private Stream<Number> findDataFromPartition(PartitionRange partitionRange, Range<LocalDateTime> current) {
         return dataService.getBuffer(partitionRange.getKey())
-            .map(b -> partitionRange.getStream(b, current))
+            .map(b -> partitionRange.getStream(b, current).stream())
             .orElse(Stream.empty());
     }
 

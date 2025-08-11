@@ -7,7 +7,6 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.huebert.iotfsdb.service.PartitionKey;
@@ -31,7 +30,7 @@ public class MemoryPersistenceAdapter implements PersistenceAdapter {
 
     private final SetMultimap<String, PartitionKey> partitionMap = HashMultimap.create();
 
-    private final ConcurrentMap<PartitionKey, MemoryPartitionByteBuffer> byteBufferMap = new ConcurrentHashMap<>();
+    private final ConcurrentMap<PartitionKey, PartitionByteBuffer> byteBufferMap = new ConcurrentHashMap<>();
 
     @PostConstruct
     public void postConstruct() {
@@ -60,8 +59,9 @@ public class MemoryPersistenceAdapter implements PersistenceAdapter {
 
     @Override
     public void createPartition(@NotNull @Valid PartitionKey key, @Positive long size) {
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect((int) size);
-        byteBufferMap.put(key, new MemoryPartitionByteBuffer(byteBuffer));
+        byteBufferMap.put(key, PartitionByteBuffer.builder()
+            .byteBuffer(ByteBuffer.allocateDirect((int) size))
+            .build());
     }
 
     @Override
@@ -72,22 +72,6 @@ public class MemoryPersistenceAdapter implements PersistenceAdapter {
     @Override
     public void close() {
         // Do nothing
-    }
-
-    @AllArgsConstructor
-    private static class MemoryPartitionByteBuffer implements PartitionByteBuffer {
-
-        private final ByteBuffer byteBuffer;
-
-        @Override
-        public ByteBuffer getByteBuffer() {
-            return byteBuffer.slice();
-        }
-
-        @Override
-        public void close() {
-            // Do nothing
-        }
     }
 
 }
