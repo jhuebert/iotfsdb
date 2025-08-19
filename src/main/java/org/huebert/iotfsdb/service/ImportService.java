@@ -66,7 +66,7 @@ public class ImportService {
         try {
             List<SeriesData> result = new ArrayList<>();
             ZonedDateTime current = TimeConverter.toUtc(partitionRange.getRange().lowerEndpoint());
-            Iterator<Number> iterator = partitionRange.getStream(pbb.getByteBuffer()).iterator();
+            Iterator<Number> iterator = partitionRange.getStream(pbb).iterator();
             while (iterator.hasNext()) {
                 Number value = iterator.next();
                 if (value != null) {
