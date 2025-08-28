@@ -1,6 +1,7 @@
 package org.huebert.iotfsdb.stats;
 
 import com.google.common.collect.Sets;
+import jakarta.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -46,19 +47,44 @@ public class StatsCollector {
     private static final Map<CaptureStats, Accumulator> STATS_MAP = new ConcurrentHashMap<>();
     private static final Set<CaptureStats> SERIES_MAP = Sets.newConcurrentHashSet();
 
-    private final IotfsdbProperties properties;
+    private static final double MEGABYTE = 1024.0 * 1024.0;
+    private static final SeriesFile USED_MEMORY = SeriesFile.builder()
+        .definition(SeriesDefinition.builder()
+            .id("iotfsdb-runtime-memory-used")
+            .type(NumberType.FLOAT4)
+            .partition(PartitionPeriod.DAY)
+            .interval(MEASUREMENT_INTERVAL)
+            .build())
+        .metadata("source", "iotfsdb")
+        .metadata("group", "runtime")
+        .metadata("type", "memory")
+        .metadata("operation", "used")
+        .metadata("unit", "MB")
+        .build();
+
     private final InsertService insertService;
     private final DataService dataService;
+    private final boolean enabled;
 
     public StatsCollector(IotfsdbProperties properties, InsertService insertService, DataService dataService) {
-        this.properties = properties;
         this.insertService = insertService;
         this.dataService = dataService;
+        this.enabled = !properties.isReadOnly() && properties.getStats().isEnabled();
+    }
+
+    @PostConstruct
+    public void init() {
+        if (!enabled) {
+            log.info("Stats collection is disabled");
+            return;
+        }
+        log.info("Stats collection is enabled");
+        createAndUpdate(USED_MEMORY);
     }
 
     @Around("@annotation(captureAnnotation)")
     public Object captureExecutionTime(ProceedingJoinPoint joinPoint, CaptureStats captureAnnotation) throws Throwable {
-        if (properties.isReadOnly() || !properties.getStats().isEnabled()) {
+        if (!enabled) {
             return joinPoint.proceed();
         }
         long startTime = System.nanoTime();
@@ -73,11 +99,24 @@ public class StatsCollector {
     @Scheduled(fixedRate = MEASUREMENT_INTERVAL, timeUnit = TimeUnit.MILLISECONDS)
     public void calculateMeasurements() {
 
+        if (!enabled) {
+            return;
+        }
+
         Map<CaptureStats, Accumulator> localStats = new HashMap<>();
         LockUtil.withWrite(RW_LOCK, () -> {
             localStats.putAll(STATS_MAP);
             STATS_MAP.clear();
         });
+
+        ZonedDateTime now = ZonedDateTime.now();
+
+        Runtime runtime = Runtime.getRuntime();
+        insertService.insert(new InsertRequest(
+            USED_MEMORY.getId(),
+            List.of(new SeriesData(now, (runtime.totalMemory() - runtime.freeMemory()) / MEGABYTE)),
+            Reducer.LAST)
+        );
 
         if (localStats.isEmpty()) {
             return;
@@ -89,23 +128,26 @@ public class StatsCollector {
             .filter(SERIES_MAP::add)
             .map(StatsCollector::createSeries)
             .flatMap(List::stream)
-            .forEach(ns -> dataService.getSeries(ns.getId()).ifPresentOrElse(sf -> {
-                log.debug("Updating existing series: {}", ns.getId());
-                Map<String, String> metadata = new HashMap<>(sf.getMetadata());
-                metadata.putAll(ns.getMetadata());
-                sf.setMetadata(metadata);
-                dataService.saveSeries(sf);
-            }, () -> {
-                log.debug("Creating new series: {}", ns.getId());
-                dataService.saveSeries(ns);
-            }));
+            .forEach(this::createAndUpdate);
 
-        ZonedDateTime now = ZonedDateTime.now();
         List<InsertRequest> requests = localStats.values().stream()
             .flatMap(v -> createRequests(now, v).stream())
             .toList();
 
         ParallelUtil.forEach(requests, insertService::insert);
+    }
+
+    private void createAndUpdate(SeriesFile seriesFile) {
+        dataService.getSeries(seriesFile.getId()).ifPresentOrElse(sf -> {
+            log.debug("Updating existing series: {}", seriesFile.getId());
+            Map<String, String> metadata = new HashMap<>(sf.getMetadata());
+            metadata.putAll(seriesFile.getMetadata());
+            sf.setMetadata(metadata);
+            dataService.saveSeries(sf);
+        }, () -> {
+            log.debug("Creating new series: {}", seriesFile.getId());
+            dataService.saveSeries(seriesFile);
+        });
     }
 
     private static String getSeriesId(CaptureStats annotation, Stat stat) {

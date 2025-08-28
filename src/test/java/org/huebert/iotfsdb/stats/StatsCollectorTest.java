@@ -59,6 +59,11 @@ class StatsCollectorTest {
     @BeforeEach
     void setUp() throws Exception {
 
+        // Mock IotfsdbProperties before creating StatsCollector
+        when(properties.getStats()).thenReturn(statsProperties);
+        when(properties.isReadOnly()).thenReturn(false);
+        when(statsProperties.isEnabled()).thenReturn(true);
+
         // Create StatsCollector instance
         statsCollector = new StatsCollector(properties, insertService, dataService);
 
@@ -71,11 +76,6 @@ class StatsCollectorTest {
 
     @Test
     void testCaptureExecutionTime() throws Throwable {
-
-        // Mock IotfsdbProperties
-        when(properties.getStats()).thenReturn(statsProperties);
-        when(properties.isReadOnly()).thenReturn(false);
-        when(statsProperties.isEnabled()).thenReturn(true);
 
         // Arrange
         when(joinPoint.proceed()).thenReturn("test result");
@@ -95,13 +95,12 @@ class StatsCollectorTest {
     @Test
     void testCaptureExecutionTimeWhenDisabled() throws Throwable {
 
-        // Mock IotfsdbProperties
-        when(properties.getStats()).thenReturn(statsProperties);
-        when(properties.isReadOnly()).thenReturn(false);
-        when(statsProperties.isEnabled()).thenReturn(true);
-
-        // Arrange
+        // Arrange - override the enabled setting
         when(statsProperties.isEnabled()).thenReturn(false);
+        // Create new StatsCollector with disabled stats
+        statsCollector = new StatsCollector(properties, insertService, dataService);
+        resetStaticMaps();
+
         when(joinPoint.proceed()).thenReturn("test result");
 
         // Act
@@ -118,8 +117,12 @@ class StatsCollectorTest {
     @Test
     void testCaptureExecutionTimeWhenReadOnly() throws Throwable {
 
-        // Arrange
+        // Arrange - override the readonly setting
         when(properties.isReadOnly()).thenReturn(true);
+        // Create new StatsCollector with readonly mode
+        statsCollector = new StatsCollector(properties, insertService, dataService);
+        resetStaticMaps();
+
         when(joinPoint.proceed()).thenReturn("test result");
 
         // Act
@@ -140,17 +143,28 @@ class StatsCollectorTest {
         statsCollector.calculateMeasurements();
 
         // Assert
+        // Should only insert memory usage, no series should be saved
+        verify(insertService, times(1)).insert(any()); // Memory usage insert
+        verify(dataService, never()).saveSeries(any());
+    }
+
+    @Test
+    void testCalculateMeasurementsWhenDisabled() {
+        // Arrange - create a disabled stats collector
+        when(statsProperties.isEnabled()).thenReturn(false);
+        StatsCollector disabledStatsCollector = new StatsCollector(properties, insertService, dataService);
+
+        // Act
+        disabledStatsCollector.calculateMeasurements();
+
+        // Assert
+        // When disabled, no insertions should happen
         verify(insertService, never()).insert(any());
         verify(dataService, never()).saveSeries(any());
     }
 
     @Test
     void testCalculateMeasurementsWithStats() throws Throwable {
-
-        // Mock IotfsdbProperties
-        when(properties.getStats()).thenReturn(statsProperties);
-        when(properties.isReadOnly()).thenReturn(false);
-        when(statsProperties.isEnabled()).thenReturn(true);
 
         // Arrange
         // Add some stats to the collector
@@ -169,21 +183,20 @@ class StatsCollectorTest {
         List<SeriesFile> capturedSeries = seriesCaptor.getAllValues();
         assertEquals(4, capturedSeries.size()); // Should have 4 series (MIN, MAX, MEAN, COUNT)
 
-        // Verify that values were inserted
+        // Verify that values were inserted (4 stats + 1 memory usage)
         ArgumentCaptor<InsertRequest> insertCaptor = ArgumentCaptor.forClass(InsertRequest.class);
-        verify(insertService, times(4)).insert(insertCaptor.capture());
+        verify(insertService, times(5)).insert(insertCaptor.capture());
 
         List<InsertRequest> capturedInserts = insertCaptor.getAllValues();
-        assertEquals(4, capturedInserts.size());
+        assertEquals(5, capturedInserts.size());
+
+        // Verify memory usage insert is present
+        assertTrue(capturedInserts.stream().anyMatch(insert ->
+            insert.getSeries().equals("iotfsdb-runtime-memory-used")));
     }
 
     @Test
     void testCalculateMeasurementsWithExistingSeries() throws Throwable {
-
-        // Mock IotfsdbProperties
-        when(properties.getStats()).thenReturn(statsProperties);
-        when(properties.isReadOnly()).thenReturn(false);
-        when(statsProperties.isEnabled()).thenReturn(true);
 
         // Arrange
         // Add some stats to the collector
@@ -210,9 +223,16 @@ class StatsCollectorTest {
         // Metadata should be merged with existing
         assertTrue(capturedSeries.getFirst().getMetadata().containsKey("existing"));
 
-        // Verify that values were inserted
+        // Verify that values were inserted (4 stats + 1 memory usage)
         ArgumentCaptor<InsertRequest> insertCaptor = ArgumentCaptor.forClass(InsertRequest.class);
-        verify(insertService, times(4)).insert(insertCaptor.capture());
+        verify(insertService, times(5)).insert(insertCaptor.capture());
+
+        List<InsertRequest> capturedInserts = insertCaptor.getAllValues();
+        assertEquals(5, capturedInserts.size());
+
+        // Verify memory usage insert is present
+        assertTrue(capturedInserts.stream().anyMatch(insert ->
+            insert.getSeries().equals("iotfsdb-runtime-memory-used")));
     }
 
     @Test
