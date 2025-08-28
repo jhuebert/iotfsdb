@@ -58,4 +58,16 @@ public class NumberConverter {
         return value == null ? Short.MIN_VALUE : value.shortValue();
     }
 
+    public static Number fromFloat1(byte value) {
+        Float1 float1 = Float1.readFrom(java.nio.ByteBuffer.wrap(new byte[]{value}));
+        return float1.isNaN() ? null : float1;
+    }
+
+    public static byte toFloat1(Number value) {
+        Float1 float1 = value == null ? Float1.NaN : Float1.fromDouble(value.doubleValue());
+        java.nio.ByteBuffer buffer = java.nio.ByteBuffer.allocate(1);
+        float1.writeTo(buffer);
+        return buffer.get(0);
+    }
+
 }
