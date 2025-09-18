@@ -1,4 +1,4 @@
-FROM amazoncorretto:24-alpine
+FROM amazoncorretto:25-alpine
 EXPOSE 8080
 VOLUME /data
 ENV IOTFSDB_PERSISTENCE_ROOT=/data
