@@ -15,7 +15,7 @@ version = file('version.txt').text.trim()
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(24)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
