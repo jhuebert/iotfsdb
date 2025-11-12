@@ -51,6 +51,14 @@ iotfsdb:
         partition: DAY
       metadata:
         createdBy: "iotfsdb"
+  security:
+    users:
+      admin:
+        password: "$2a$10$8K1p/9qjQzV8gFJhDyWfOuHxYvZzXzXzXzXzXzXzXzXzXzXzXzXzX" # Default password: admin
+        roles: "USER"
+    api-keys:
+      rest: "rest-api-key-12345"
+      grpc: "grpc-api-key-12345"
 
 gg:
   jte:

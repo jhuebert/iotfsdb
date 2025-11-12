@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
 import java.nio.file.Path;
+import java.util.Map;
 
 /**
  * Configuration properties for IoTFSDB
@@ -75,6 +76,14 @@ public class IotfsdbProperties {
     @Valid
     @NestedConfigurationProperty
     private StatsProperties stats = new StatsProperties();
+
+    /**
+     * Security-related configuration properties.
+     */
+    @NotNull
+    @Valid
+    @NestedConfigurationProperty
+    private SecurityProperties security = new SecurityProperties();
 
     /**
      * Configuration properties for APIs.
@@ -198,6 +207,7 @@ public class IotfsdbProperties {
 
     /**
      * Configuration properties for statistics collection.
+     * Controls collection and reporting of runtime statistics.
      */
     @Data
     @Validated
@@ -211,6 +221,64 @@ public class IotfsdbProperties {
          */
         private boolean enabled = false;
 
+    }
+
+    /**
+     * Configuration properties for security.
+     */
+    @Data
+    @Validated
+    public static class SecurityProperties {
+
+        /**
+         * User credentials for authentication.
+         */
+        @NotNull
+        private Map<String, UserProperties> users = Map.of();
+
+        /**
+         * API keys for REST and gRPC endpoints.
+         */
+        @NotNull
+        private ApiKeyProperties apiKeys = new ApiKeyProperties();
+
+        /**
+         * User properties for authentication.
+         */
+        @Data
+        @Validated
+        public static class UserProperties {
+
+            /**
+             * Password for the user.
+             */
+            @NotNull
+            private String password;
+
+            /**
+             * Roles assigned to the user (comma-separated).
+             */
+            @NotNull
+            private String roles;
+        }
+
+        /**
+         * API key properties for different services.
+         */
+        @Data
+        @Validated
+        public static class ApiKeyProperties {
+
+            /**
+             * API key for REST endpoints.
+             */
+            private String rest;
+
+            /**
+             * API key for gRPC endpoints.
+             */
+            private String grpc;
+        }
     }
 
 }
