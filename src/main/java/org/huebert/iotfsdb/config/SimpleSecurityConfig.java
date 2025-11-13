@@ -65,6 +65,16 @@ public class SimpleSecurityConfig {
     }
 
     @Bean
+    public ApiKeyAuthenticationFilter apiKeyAuthenticationFilter() {
+        return new ApiKeyAuthenticationFilter();
+    }
+
+    @Bean
+    public GrpcApiKeyFilter grpcApiKeyFilter() {
+        return new GrpcApiKeyFilter();
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(authz -> authz
@@ -86,6 +96,8 @@ public class SimpleSecurityConfig {
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
+            .addFilterBefore(apiKeyAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(apiKeyAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
             .csrf(AbstractHttpConfigurer::disable);
         
         return http.build();
