@@ -1,6 +1,7 @@
 package org.huebert.iotfsdb.api.ui.service;
 
 import com.google.common.net.HttpHeaders;
+import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.api.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.service.ExportService;
 import org.huebert.iotfsdb.service.TimeConverter;
@@ -13,6 +14,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.regex.Pattern;
 
+@Slf4j
 @Service
 public class ExportUiService {
 
@@ -35,6 +37,13 @@ public class ExportUiService {
             .header(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION)
             .header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + filename)
             .contentType(MediaType.APPLICATION_OCTET_STREAM)
-            .body(out -> exportService.export(request, out));
+            .body(out -> {
+                try {
+                    exportService.export(request, out);
+                } catch (Exception e) {
+                    log.error("Error during export stream for request: {}", request, e);
+                    throw e;
+                }
+            });
     }
 }

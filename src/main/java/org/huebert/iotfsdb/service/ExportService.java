@@ -5,6 +5,7 @@ import static org.huebert.iotfsdb.persistence.FilePersistenceAdapter.SERIES_JSON
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import lombok.extern.slf4j.Slf4j;
 import org.huebert.iotfsdb.api.schema.FindSeriesRequest;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+@Slf4j
 @Validated
 @Service
 public class ExportService {
@@ -46,6 +48,7 @@ public class ExportService {
                 writePartitionsToZip(zos, seriesFile.getId());
             }
         } catch (IOException e) {
+            log.error("Failed to export data for request: {}", request, e);
             throw new RuntimeException("Failed to export data", e);
         }
     }
