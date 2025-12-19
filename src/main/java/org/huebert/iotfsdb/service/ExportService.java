@@ -59,7 +59,12 @@ public class ExportService {
 
     private void writePartitionsToZip(ZipOutputStream zos, String seriesId) throws IOException {
         for (PartitionKey key : dataService.getPartitions(seriesId)) {
-            partitionService.getRange(key).withRead(() -> addToZip(zos, key.seriesId(), key.partitionId(), dataService.getBuffer(key).map(ByteBuffer::array).orElseThrow()));
+            partitionService.getRange(key).withRead(() -> {
+                ByteBuffer buffer = dataService.getBuffer(key).orElseThrow();
+                byte[] bytes = new byte[buffer.remaining()];
+                buffer.asReadOnlyBuffer().get(bytes);
+                addToZip(zos, key.seriesId(), key.partitionId(), bytes);
+            });
         }
     }
 
