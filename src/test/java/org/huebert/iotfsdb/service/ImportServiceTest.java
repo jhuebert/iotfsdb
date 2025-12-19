@@ -42,7 +42,11 @@ public class ImportServiceTest {
 
         Path temp = Files.createTempFile("iotfsdb", ".zip");
         try (InputStream is = FilePersistenceAdapterTest.class.getResourceAsStream("/import.zip"); OutputStream os = new FileOutputStream(temp.toFile())) {
-            is.transferTo(os);
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = is.read(buffer)) != -1) {
+                os.write(buffer, 0, bytesRead);
+            }
         }
 
         new ImportService(seriesService, insertService, objectMapper).importData(temp);

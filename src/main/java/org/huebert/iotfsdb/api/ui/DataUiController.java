@@ -12,7 +12,6 @@ import org.huebert.iotfsdb.api.ui.service.ObjectEncoder;
 import org.huebert.iotfsdb.api.ui.service.PlotData;
 import org.huebert.iotfsdb.api.ui.service.SearchParser;
 import org.huebert.iotfsdb.service.QueryService;
-import org.huebert.iotfsdb.service.TimeConverter;
 import org.huebert.iotfsdb.stats.CaptureStats;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.stereotype.Controller;

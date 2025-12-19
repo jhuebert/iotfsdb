@@ -195,8 +195,6 @@ class DataUiControllerTest {
         LocalDateTime to = LocalDateTime.of(2025, 7, 12, 10, 0);
         Long interval = 60000L;
         Integer size = 250;
-        String includeNull = "on";
-        String useBigDecimal = "on";
         String usePrevious = "on";
         Double nullValue = 0.0;
         Reducer timeReducer = Reducer.AVERAGE;

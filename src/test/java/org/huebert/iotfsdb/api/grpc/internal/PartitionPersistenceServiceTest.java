@@ -12,7 +12,6 @@ import static org.mockito.Mockito.when;
 
 import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
-import org.huebert.iotfsdb.api.grpc.CommonMapper;
 import org.huebert.iotfsdb.api.grpc.proto.v1.CommonProto;
 import org.huebert.iotfsdb.api.grpc.proto.v1.internal.PartitionPersistenceServiceProto;
 import org.huebert.iotfsdb.api.schema.SeriesFile;
@@ -22,7 +21,6 @@ import org.huebert.iotfsdb.service.PartitionKey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -50,7 +48,6 @@ class PartitionPersistenceServiceTest {
     private PartitionByteBuffer partitionByteBuffer;
 
     private PartitionPersistenceService service;
-    private final CommonMapper mapper = Mappers.getMapper(CommonMapper.class);
 
     @BeforeEach
     void setUp() {

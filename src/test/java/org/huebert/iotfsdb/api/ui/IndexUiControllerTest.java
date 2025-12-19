@@ -1,12 +1,15 @@
 package org.huebert.iotfsdb.api.ui;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.servlet.view.RedirectView;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -19,14 +22,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Unit tests for the IndexUiController class.
  */
 @ExtendWith(SpringExtension.class)
-@WebMvcTest(IndexUiController.class)
+@SpringBootTest
 class IndexUiControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
 
     @Autowired
+    private WebApplicationContext webApplicationContext;
+
+    @Autowired
     private IndexUiController indexUiController;
+
+    @BeforeEach
+    void setup() {
+        this.mockMvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext).build();
+    }
 
     /**
      * Test that the controller is properly autowired.

@@ -136,14 +136,6 @@ class GrpcDataServiceTest {
     void testInsertData_Success() {
 
         // Arrange
-        CommonProto.SeriesDefinition definition = CommonProto.SeriesDefinition.newBuilder()
-            .setId("test-series")
-            .build();
-
-        CommonProto.Series series = CommonProto.Series.newBuilder()
-            .setDefinition(definition)
-            .build();
-
         CommonProto.SeriesValue value = CommonProto.SeriesValue.newBuilder()
             .setValue(42.5)
             .build();

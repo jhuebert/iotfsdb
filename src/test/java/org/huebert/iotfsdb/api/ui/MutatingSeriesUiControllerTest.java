@@ -100,6 +100,7 @@ class MutatingSeriesUiControllerTest {
         controller.deleteMetadata("test-series", "key1");
 
         // Assert
+        @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, String>> metadataCaptor = ArgumentCaptor.forClass(Map.class);
         verify(seriesService).updateMetadata(eq("test-series"), metadataCaptor.capture(), eq(false));
 
@@ -127,6 +128,7 @@ class MutatingSeriesUiControllerTest {
         // Assert
         assertEquals("series/fragments/metadata-row", viewName);
 
+        @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, String>> metadataCaptor = ArgumentCaptor.forClass(Map.class);
         verify(seriesService).updateMetadata(eq("test-series"), metadataCaptor.capture(), eq(false));
 
@@ -160,6 +162,7 @@ class MutatingSeriesUiControllerTest {
         // Assert
         assertEquals("series/fragments/metadata-row", viewName);
 
+        @SuppressWarnings("unchecked")
         ArgumentCaptor<Map<String, String>> metadataCaptor = ArgumentCaptor.forClass(Map.class);
         verify(seriesService).updateMetadata(eq("test-series"), metadataCaptor.capture(), eq(false));
 

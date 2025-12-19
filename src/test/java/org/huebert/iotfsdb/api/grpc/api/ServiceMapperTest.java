@@ -284,10 +284,6 @@ class ServiceMapperTest {
 
         List<CommonProto.SeriesValue> values = List.of(value);
 
-        CommonProto.SeriesDefinition definition = CommonProto.SeriesDefinition.newBuilder()
-            .setId("test-series")
-            .build();
-
         CommonProto.SeriesData seriesData = CommonProto.SeriesData.newBuilder()
             .setId("test-series")
             .addAllValues(values)

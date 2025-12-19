@@ -39,11 +39,11 @@ dependencyManagement {
 
 protobuf {
     protoc {
-        artifact = 'com.google.protobuf:protoc'
+        artifact = 'com.google.protobuf:protoc:4.33.2'
     }
     plugins {
         grpc {
-            artifact = 'io.grpc:protoc-gen-grpc-java'
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.71.0'
         }
     }
     generateProtoTasks {
@@ -69,7 +69,8 @@ repositories {
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-aop'
+    implementation 'org.springframework:spring-aop'
+    implementation 'org.aspectj:aspectjweaver'
     implementation 'com.google.guava:guava:33.5.0-jre'
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.0'
     implementation 'io.grpc:grpc-services'
@@ -83,6 +84,7 @@ dependencies {
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
     annotationProcessor"no.entur.mapstruct.spi:protobuf-spi-impl:1.52.0"
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-test-autoconfigure'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 

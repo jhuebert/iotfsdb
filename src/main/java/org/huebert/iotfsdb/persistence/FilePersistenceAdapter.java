@@ -121,7 +121,7 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
 
     private SeriesFile readSeriesFile(Path file) {
         try {
-            return objectMapper.readValue(file.toUri().toURL(), SeriesFile.class);
+            return objectMapper.readValue(Files.newInputStream(file), SeriesFile.class);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -186,7 +186,11 @@ public class FilePersistenceAdapter implements PersistenceAdapter {
             OpenOption[] openOptions = readOnly ? OPEN_OPTIONS_READ : OPEN_OPTIONS_READ_WRITE;
             if (zip) {
                 String prefix = String.format("iotfsdb-%s-%s-", key.seriesId(), key.partitionId());
-                path = Files.copy(path, Files.createTempFile(propertyRoot.getParent(), prefix, ".tmp"), StandardCopyOption.REPLACE_EXISTING);
+                Path tempDir = propertyRoot.getParent();
+                if (tempDir == null || !Files.exists(tempDir)) {
+                    tempDir = Path.of(System.getProperty("java.io.tmpdir"));
+                }
+                path = Files.copy(path, Files.createTempFile(tempDir, prefix, ".tmp"), StandardCopyOption.REPLACE_EXISTING);
                 openOptions = OPEN_OPTIONS_TEMP;
             }
             // File size must be retrieved before open if it is a temp file that deletes on close

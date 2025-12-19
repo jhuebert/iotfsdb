@@ -213,7 +213,11 @@ public class FilePersistenceAdapterTest {
 
         Path temp = Files.createTempFile("iotfsdb", ".zip");
         try (InputStream is = FilePersistenceAdapterTest.class.getResourceAsStream("/db.zip"); OutputStream os = new FileOutputStream(temp.toFile())) {
-            is.transferTo(os);
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = is.read(buffer)) != -1) {
+                os.write(buffer, 0, bytesRead);
+            }
         }
 
         IotfsdbProperties properties = new IotfsdbProperties();

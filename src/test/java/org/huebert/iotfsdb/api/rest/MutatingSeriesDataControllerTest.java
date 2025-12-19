@@ -13,29 +13,39 @@ import org.huebert.iotfsdb.api.schema.InsertRequest;
 import org.huebert.iotfsdb.api.schema.SeriesData;
 import org.huebert.iotfsdb.service.ImportService;
 import org.huebert.iotfsdb.service.InsertService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 import java.io.InputStream;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-@WebMvcTest(MutatingSeriesDataController.class)
+@SpringBootTest
 public class MutatingSeriesDataControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private WebApplicationContext webApplicationContext;
 
     @MockitoBean
     private InsertService insertService;
 
     @MockitoBean
     private ImportService importService;
+
+    @BeforeEach
+    void setup() {
+        this.mockMvc = MockMvcBuilders.webAppContextSetup(this.webApplicationContext).build();
+    }
 
     private final ObjectMapper mapper = new ObjectMapper()
         .registerModule(new JavaTimeModule())
