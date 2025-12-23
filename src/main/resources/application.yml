@@ -16,6 +16,9 @@ spring:
   threads:
     virtual:
       enabled: true
+  mvc:
+    async:
+      request-timeout: 600000
 
 logging.level:
   root: WARN
