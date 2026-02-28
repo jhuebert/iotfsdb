@@ -1,8 +1,8 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '4.0.2'
+    id 'org.springframework.boot' version '4.0.3'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'gg.jte.gradle' version '3.2.2'
+    id 'gg.jte.gradle' version '3.2.3'
     id 'com.google.protobuf' version '0.9.6'
 }
 
@@ -39,11 +39,11 @@ dependencyManagement {
 
 protobuf {
     protoc {
-        artifact = 'com.google.protobuf:protoc:4.33.5'
+        artifact = 'com.google.protobuf:protoc:4.34.0'
     }
     plugins {
         grpc {
-            artifact = 'io.grpc:protoc-gen-grpc-java:1.78.0'
+            artifact = 'io.grpc:protoc-gen-grpc-java:1.79.0'
         }
     }
     generateProtoTasks {
@@ -76,7 +76,7 @@ dependencies {
     implementation 'org.springframework.grpc:spring-grpc-spring-boot-starter'
     implementation 'gg.jte:jte:3.2.3'
     implementation "gg.jte:jte-spring-boot-starter-4:3.2.3"
-    implementation("com.google.protobuf:protobuf-java:4.33.5")
+    implementation("com.google.protobuf:protobuf-java:4.34.0")
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     implementation 'org.mapstruct:mapstruct:1.6.3'
