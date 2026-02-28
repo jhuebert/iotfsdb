@@ -74,8 +74,8 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.1'
     implementation 'io.grpc:grpc-services'
     implementation 'org.springframework.grpc:spring-grpc-spring-boot-starter'
-    implementation 'gg.jte:jte:3.2.2'
-    implementation 'gg.jte:jte-spring-boot-starter-3:3.2.2'
+    implementation 'gg.jte:jte:3.2.3'
+    implementation "gg.jte:jte-spring-boot-starter-4:3.2.3"
     implementation("com.google.protobuf:protobuf-java:4.33.5")
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
