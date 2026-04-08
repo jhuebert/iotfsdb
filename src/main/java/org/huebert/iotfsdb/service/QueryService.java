@@ -17,7 +17,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collector;
-import java.util.stream.Stream;
 
 @Validated
 @Service
@@ -73,21 +72,28 @@ public class QueryService {
     private SeriesData findDataOverPartitions(Collector<Number, ?, Number> collector, RangeMap<LocalDateTime, PartitionRange> rangeMap, Range<ZonedDateTime> current) {
         Range<LocalDateTime> local = TimeConverter.toUtc(current);
         Collection<PartitionRange> covered = rangeMap.subRangeMap(local).asMapOfRanges().values();
-        covered.forEach(c -> c.getRwLock().readLock().lock());
-        try {
-            Number value = covered.stream()
-                .flatMap(pr -> findDataFromPartition(pr, local))
-                .collect(collector);
-            return new SeriesData(current.lowerEndpoint(), value);
-        } finally {
-            covered.forEach(c -> c.getRwLock().readLock().unlock());
-        }
+
+        Number value = reducePartitions(collector, covered, local);
+
+        return new SeriesData(current.lowerEndpoint(), value);
     }
 
-    private Stream<Number> findDataFromPartition(PartitionRange partitionRange, Range<LocalDateTime> current) {
-        return dataService.getBuffer(partitionRange.getKey())
-            .map(b -> partitionRange.getStream(b, current))
-            .orElse(Stream.empty());
+    private <A> Number reducePartitions(Collector<Number, A, Number> collector, Collection<PartitionRange> covered, Range<LocalDateTime> local) {
+        A globalAccumulator = collector.supplier().get();
+
+        for (PartitionRange pr : covered) {
+            A partitionAccumulator = collector.supplier().get();
+            accumulatePartition(collector, partitionAccumulator, pr, local);
+            globalAccumulator = collector.combiner().apply(globalAccumulator, partitionAccumulator);
+        }
+
+        return collector.finisher().apply(globalAccumulator);
+    }
+
+    private <A> void accumulatePartition(Collector<Number, A, Number> collector, A accumulator, PartitionRange pr, Range<LocalDateTime> local) {
+        pr.withRead(() -> dataService.getBuffer(pr.getKey())
+            .map(buffer -> pr.getStream(buffer, local))
+            .ifPresent(stream -> stream.forEach(val -> collector.accumulator().accept(accumulator, val))));
     }
 
 }
