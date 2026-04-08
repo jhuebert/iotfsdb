@@ -10,6 +10,8 @@ import java.util.function.Function;
 
 public class ParallelUtil {
 
+    private static final ExecutorService EXECUTOR_SERVICE = Executors.newVirtualThreadPerTaskExecutor();
+
     public static <T> void forEach(Collection<T> collection, Consumer<T> consumer) {
         map(collection, item -> {
             consumer.accept(item);
@@ -18,9 +20,9 @@ public class ParallelUtil {
     }
 
     public static <I, O> List<O> map(Collection<I> collection, Function<I, O> mapper) {
-        try (ExecutorService es = Executors.newVirtualThreadPerTaskExecutor()) {
+        try {
             return collection.stream()
-                .map(item -> CompletableFuture.supplyAsync(() -> mapper.apply(item), es))
+                .map(item -> CompletableFuture.supplyAsync(() -> mapper.apply(item), EXECUTOR_SERVICE))
                 .toList()
                 .stream()
                 .map(CompletableFuture::join)
