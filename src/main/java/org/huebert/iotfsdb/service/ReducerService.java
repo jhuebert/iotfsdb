@@ -31,7 +31,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import java.math.BigDecimal;
-import java.time.ZonedDateTime;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
@@ -116,27 +115,21 @@ public class ReducerService {
     }
 
     public FindDataResponse reduce(@NotNull List<FindDataResponse> responses, @Valid @NotNull FindDataRequest request) {
-        Map<ZonedDateTime, List<SeriesData>> grouped = groupSeriesDataByTime(responses);
         Collector<Number, ?, Number> collector = getCollector(request, request.getSeriesReducer());
-        List<SeriesData> data = processDataEntries(grouped, collector, request);
+        List<SeriesData> data = processDataEntries(responses, collector, request);
         Map<String, String> metadata = extractCommonMetadata(responses);
         return buildFindDataResponse(data, metadata);
     }
 
-    private Map<ZonedDateTime, List<SeriesData>> groupSeriesDataByTime(List<FindDataResponse> responses) {
+    private List<SeriesData> processDataEntries(List<FindDataResponse> responses, Collector<Number, ?, Number> collector, FindDataRequest request) {
         return responses.parallelStream()
             .flatMap(response -> response.getData().stream())
-            .collect(Collectors.groupingByConcurrent(SeriesData::getTime));
-    }
-
-    private List<SeriesData> processDataEntries(Map<ZonedDateTime, List<SeriesData>> grouped, Collector<Number, ?, Number> collector, FindDataRequest request) {
-        return grouped.entrySet().stream()
-            .map(entry -> new SeriesData(
-                entry.getKey(),
-                entry.getValue().stream()
-                    .map(SeriesData::getValue)
-                    .collect(collector)
+            .collect(Collectors.groupingByConcurrent(
+                SeriesData::getTime,
+                Collectors.mapping(SeriesData::getValue, collector)
             ))
+            .entrySet().stream()
+            .map(entry -> new SeriesData(entry.getKey(), entry.getValue()))
             .sorted(Comparator.comparing(SeriesData::getTime))
             .peek(request.getPreviousConsumer())
             .filter(request.getNullPredicate())
