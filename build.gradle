@@ -1,13 +1,13 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '4.0.5'
+    id 'org.springframework.boot' version '4.0.6'
     id 'io.spring.dependency-management' version '1.1.7'
     id 'gg.jte.gradle' version '3.2.3'
-    id 'com.google.protobuf' version '0.9.6'
+    id 'com.google.protobuf' version '0.10.0'
 }
 
 ext {
-    set('springGrpcVersion', "1.0.2")
+    set('springGrpcVersion', "1.0.3")
 }
 
 group = 'org.huebert'
