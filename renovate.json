@@ -12,8 +12,12 @@
   "timezone": "America/Chicago",
   "html": {
     "managerFilePatterns": [
-      "/\\.html?$/",
-      "/\\.jte?$/"
+      "/\\.html?$/"
+    ]
+  },
+  "npm": {
+    "fileMatch": [
+      "frontend/package\\.json$"
     ]
   }
 }

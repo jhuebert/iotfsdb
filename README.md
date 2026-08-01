@@ -188,6 +188,39 @@ to get the byte offset of the data in the file (`72136`).
 The OpenAPI specification can be viewed at http://localhost:8080/swagger-ui/index.html.
 You can download the OpenAPI specification from http://localhost:8080/v3/api-docs.yaml.
 
+## Web UI
+
+A single-page application (React + TypeScript, built with Vite and Tailwind) is served at
+`/`, `/series`, `/data` and `/transfer`. The SPA talks exclusively to the `/v2` REST API; all
+assets are self-hosted (no CDNs). The UI reads its runtime configuration (version, read-only
+mode, query limits, series defaults) from `GET /v2/ui/config`.
+
+### Frontend development
+
+```shell
+cd frontend
+npm ci
+npm run dev
+```
+
+The Vite dev server runs at http://localhost:5173 and proxies `/v2` to the backend on
+http://localhost:8080, so start the backend first:
+
+```shell
+./gradlew bootRun
+```
+
+### Frontend quality gates
+
+```shell
+cd frontend
+npm run lint      # ESLint
+npm run typecheck # TypeScript
+npm test          # Vitest unit/component tests
+npm run build     # tsc + Vite production build
+npm run e2e       # Playwright (chromium + firefox) against bootRun
+```
+
 ## Authentication
 
 Since the database exposes a REST API, authentication can be handled by a proxy.
@@ -197,6 +230,10 @@ Since the database exposes a REST API, authentication can be handled by a proxy.
 ```shell
 ./gradlew build
 ```
+
+The Gradle build installs a pinned Node distribution, runs `npm ci` and `npm run build` in
+`frontend/`, and copies the compiled assets into `src/main/resources/static` so the assembled jar
+serves both the SPA and the `/v2` REST API.
 
 ## Running
 
@@ -230,8 +267,8 @@ services:
 
 | Java Property             | Environment Variable      | Description                                                              | Default Value                                       | Docker Default Value                                |
 |---------------------------|---------------------------|--------------------------------------------------------------------------|-----------------------------------------------------|-----------------------------------------------------|
-| `iotfsdb.root`            | `IOTFSDB_ROOT`            | Root data directory for the database                                     | `memory`                                            | `/data`                                             |
+| `iotfsdb.persistence.root`| `IOTFSDB_PERSISTENCE_ROOT`| Root data directory for the database                                     | `memory`                                            | `/data`                                             |
 | `iotfsdb.read-only`       | `IOTFSDB_READ_ONLY`       | Indicates whether any changes to the database are allowed                | `false`                                             | `false`                                             |
-| `iotfsdb.max-query-size`  | `IOTFSDB_MAX_QUERY_SIZE`  | Maximum number of values returned for any series query                   | `1000`                                              | `1000`                                              |
-| `iotfsdb.partition-cache` | `IOTFSDB_PARTITION_CACHE` | Maximum amount of time to keep a series partition file open after access | `expireAfterAccess=5m,maximumSize=10000,softValues` | `expireAfterAccess=5m,maximumSize=10000,softValues` |
-| `iotfsdb.ui`              | `IOTFSDB_UI`              | Indicates whether the web UI will be available                           | `true`                                              | `true`                                              |
+| `iotfsdb.query.max-size`  | `IOTFSDB_MAX_QUERY_SIZE`  | Maximum number of values returned for any series query                   | `1000`                                              | `1000`                                              |
+| `iotfsdb.persistence.partition-cache` | `IOTFSDB_PARTITION_CACHE` | Maximum amount of time to keep a series partition file open after access | `expireAfterAccess=5m,maximumSize=10000,softValues` | `expireAfterAccess=5m,maximumSize=10000,softValues` |
+| `iotfsdb.api.ui`          | `IOTFSDB_UI`              | Indicates whether the web UI will be available                           | `true`                                              | `true`                                              |

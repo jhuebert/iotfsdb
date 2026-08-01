@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '4.0.6'
     id 'io.spring.dependency-management' version '1.1.7'
-    id 'gg.jte.gradle' version '3.2.4'
+    id 'com.github.node-gradle.node' version '7.1.0'
     id 'com.google.protobuf' version '0.10.0'
 }
 
@@ -25,10 +25,6 @@ springBoot {
 
 jar {
     enabled = false
-}
-
-jte {
-    generate()
 }
 
 dependencyManagement {
@@ -74,8 +70,6 @@ dependencies {
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
     implementation 'io.grpc:grpc-services'
     implementation 'org.springframework.grpc:spring-grpc-spring-boot-starter'
-    implementation 'gg.jte:jte:3.2.4'
-    implementation "gg.jte:jte-spring-boot-starter-4:3.2.4"
     implementation("com.google.protobuf:protobuf-java:4.34.1")
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
@@ -85,6 +79,53 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+// --- Frontend (SPA) build integration -------------------------------------
+// The SPA lives in frontend/ and is compiled to static assets by Vite.
+// The Gradle node plugin downloads a pinned Node distribution, runs `npm ci`
+// and `npm run build`, and the resulting frontend/dist is copied into
+// src/main/resources/static before resource processing so the assembled jar
+// serves the SPA alongside the /v2 REST API.
+
+node {
+    version = '22.14.0'
+    download = true
+    nodeProjectDir = file('frontend')
+    npmInstallCommand = 'ci'
+}
+
+def npmBuild = tasks.register('npmBuild', com.github.gradle.node.npm.task.NpmTask) {
+    group = 'build'
+    description = 'Builds the frontend SPA with Vite.'
+    dependsOn tasks.named('npmInstall')
+    npmCommand = ['run', 'build']
+    inputs.file('frontend/package.json')
+    inputs.file('frontend/package-lock.json')
+    inputs.file('frontend/vite.config.ts')
+    inputs.file('frontend/tsconfig.json')
+    inputs.file('frontend/tsconfig.app.json')
+    inputs.file('frontend/tsconfig.node.json')
+    inputs.file('frontend/index.html')
+    inputs.dir('frontend/src')
+    outputs.dir('frontend/dist')
+}
+
+def copyFrontendToStatic = tasks.register('copyFrontendToStatic', Copy) {
+    group = 'build'
+    description = 'Copies the built frontend into the static resources directory.'
+    dependsOn npmBuild
+    from 'frontend/dist'
+    into 'src/main/resources/static'
+    // The static directory is generated build output; remove stale hashed assets
+    // from previous builds so they do not accumulate in the jar.
+    doFirst {
+        delete fileTree('src/main/resources/static')
+    }
+}
+
+tasks.named('processResources') {
+    dependsOn copyFrontendToStatic
 }
 
 tasks.named('test') {

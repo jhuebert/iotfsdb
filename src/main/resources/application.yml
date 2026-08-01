@@ -55,11 +55,6 @@ iotfsdb:
       metadata:
         createdBy: "iotfsdb"
 
-gg:
-  jte:
-    developmentMode: false
-    usePrecompiledTemplates: true
-
 springdoc:
   swagger-ui:
     enabled: true

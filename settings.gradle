@@ -1,1 +1,7 @@
+plugins {
+    // Enables automatic provisioning of the Java toolchain (25) when it is
+    // not installed on the local machine.
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
 rootProject.name = 'iotfsdb'
